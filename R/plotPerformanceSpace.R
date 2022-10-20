@@ -235,10 +235,12 @@ getSliceIndices <- function(expSpace, attSlices) {
 #'
 #' plotPerformanceSpace(performance=egSimPerformance[2], sim=egSimSummary)
 #' 
+#' \dontrun{
 #' # change plot style to "filled.contour" and specify contours - show contours from 
 #' # 0.76 to 0.9 in increments of 0.02
 #' plotPerformanceSpace(type="filled.contour",performance=egSimPerformance[2], 
 #'                      sim=egSimSummary,contourBreaks=seq(0.76,0.9,0.02))
+#'                      
 #' 
 #' # adding climate data, using top 10 replicates
 #' plotPerformanceSpace(performance=egSimPerformance[1], sim=egSimSummary, 
@@ -307,6 +309,7 @@ getSliceIndices <- function(expSpace, attSlices) {
 #' data("egClimData")
 #' plotPerformanceSpace(performance=egScalPerformance[1], sim=egScalSummary, climData = egClimData, 
 #'                      perfThresh = 28.25, perfThreshLabel = "Max Avg. Deficit")
+#'                      }
 #' @export
 
 plotPerformanceSpace <- function(performance,                   # system model performance, matrix of size targets x replicates 
