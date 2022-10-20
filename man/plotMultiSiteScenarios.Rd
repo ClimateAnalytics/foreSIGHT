@@ -46,7 +46,9 @@ The function creates heatmaps (for each replicate and target) that show:
 data(egMultiSiteSim)
 # plot performance of simulated time series in terms of single site 
 # and catchment attributes, and correlation between sites
+\dontrun{
 plotMultiSiteScenarios(reference=barossa_obs,sim=egMultiSiteSim)
+}
 }
 \seealso{
 \code{generateScenarios}

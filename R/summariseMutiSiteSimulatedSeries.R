@@ -24,7 +24,9 @@
 #' data(egMultiSiteSim)
 #' # plot performance of simulated time series in terms of single site 
 #' # and catchment attributes, and correlation between sites
+#' \dontrun{
 #' plotMultiSiteScenarios(reference=barossa_obs,sim=egMultiSiteSim)
+#' }
 #' @export
 plotMultiSiteScenarios = function(reference,sim,attSel=NULL,targets=1,reps=1,stages=c('Stage1','Stage2','Stage3')){
   
