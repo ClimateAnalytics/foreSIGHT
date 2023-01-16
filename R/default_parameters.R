@@ -134,7 +134,9 @@ viewAttributeFuncs <- function() {
 }
  
 attributeFuncs = function() {
-  allFuncs=utils::lsf.str("package:foreSIGHT")
+  allFuncsForesight=utils::lsf.str("package:foreSIGHT")
+  allFuncsGlobal = utils::lsf.str(globalenv())
+  allFuncs = c(allFuncsForesight,allFuncsGlobal)
   funcs=allFuncs[which(startsWith(allFuncs,'func_'))]
   attFuncs = c()
   for (a in 1:length(funcs)){
