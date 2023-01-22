@@ -411,6 +411,23 @@ calcStratIndex = function(indexName,opName,datInd){
   } else if (indexName %in% season.abb){ # this only uses data from given season
     sSel = match(indexName,season.abb)
     stratIndx = datInd$i.ss[[sSel]]
+    } else if (indexName == 'ONDJFM'){
+    stratIndx = c(datInd$i.mm[[10]],
+                   datInd$i.mm[[11]],
+                   datInd$i.mm[[12]],
+                   datInd$i.mm[[1]],
+                   datInd$i.mm[[2]],
+                   datInd$i.mm[[3]])
+    stratIndx = sort(stratIndx)
+  } else if (indexName == 'ONDJFMA'){
+    stratIndx = c(datInd$i.mm[[10]],
+                  datInd$i.mm[[11]],
+                  datInd$i.mm[[12]],
+                  datInd$i.mm[[1]],
+                  datInd$i.mm[[2]],
+                  datInd$i.mm[[3]],
+                  datInd$i.mm[[4]])
+    stratIndx = sort(stratIndx)
   } else {
     invalidStratificationStop(strat=indexName)
   }
