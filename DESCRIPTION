@@ -22,7 +22,8 @@ Imports:
     RColorBrewer,
     rlang,
     lattice,
-    mvtnorm
+    mvtnorm,
+    Matrix
 Suggests: knitr (>= 1.8), rmarkdown (>= 1.18),testthat, evd
 Title: Systems Insights from Generation of Hydroclimatic Timeseries
 Authors@R: 

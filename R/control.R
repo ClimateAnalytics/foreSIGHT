@@ -782,7 +782,10 @@ simulateTargetMarg = function(optimArgs=NULL,
       } else {
         spatCorMatIn = diag(nsite)
       }
-      MVTsampleMat = mvtnorm::rmvnorm(n=nday,sigma=spatCorMatIn)
+#      MVTsampleMat = mvtnorm::rmvnorm(n=nday,sigma=spatCorMatIn)
+    spatCorMatIn_PD = as.matrix(Matrix::nearPD(spatCorMatIn,keepDiag = T)$mat)
+    MVTsampleMat = mvtnorm::rmvnorm(n=nday,sigma=spatCorMatIn_PD)
+
       colnames(MVTsampleMat) = sites      
     }
     
@@ -894,8 +897,10 @@ simulateTargetCor = function(optimArgs=NULL,
         corMat[1,2] = corMat[2,1] = rho_1_2_list[i]
         
         set.seed(setSeed)     
-        MVTsampleMat = mvtnorm::rmvnorm(n=nday,sigma=corMat)
-        
+#        MVTsampleMat = mvtnorm::rmvnorm(n=nday,sigma=corMat)
+        corMat_PD = as.matrix(Matrix::nearPD(corMat,keepDiag = T)$mat)
+        MVTsampleMat = mvtnorm::rmvnorm(n=nday,sigma=corMat_PD)
+      
         attObs1=attribute.calculator(attSel=attSel[attInd[[mod]]],
                                     data=obs[[simVar[mod]]][,s1],
                                     datInd=datInd[["obs"]])
@@ -947,7 +952,10 @@ simulateTargetCor = function(optimArgs=NULL,
 
   sim = list(sites=NULL,P=NULL)
   set.seed(setSeed)     
-  MVTsampleMat = mvtnorm::rmvnorm(n=nday,sigma=cor_par)
+#  MVTsampleMat = mvtnorm::rmvnorm(n=nday,sigma=cor_par)
+  cor_par_PD = as.matrix(Matrix::nearPD(cor_par,keepDiag = T)$mat)
+  MVTsampleMat = mvtnorm::rmvnorm(n=nday,sigma=cor_par_PD)
+
   for (s in 1:nsite){
     site = sites[s]
     sim$sites[[site]] = simulateTarget(optimArgs=optimArgs,         
