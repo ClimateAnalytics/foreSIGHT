@@ -5,6 +5,10 @@ Pstatus_WGEN_cpp <- function(parPwd, parPdd, RN, ndays) {
     .Call('_foreSIGHT_Pstatus_WGEN_cpp', PACKAGE = 'foreSIGHT', parPwd, parPdd, RN, ndays)
 }
 
+doyMean_cpp <- function(obs, doy) {
+    .Call('_foreSIGHT_doyMean_cpp', PACKAGE = 'foreSIGHT', obs, doy)
+}
+
 latentX_calc_cpp <- function(parAlpha, epsilonT, ndays) {
     .Call('_foreSIGHT_latentX_calc_cpp', PACKAGE = 'foreSIGHT', parAlpha, epsilonT, ndays)
 }

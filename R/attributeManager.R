@@ -3,9 +3,9 @@
 #######################################
 
 #CONTAINS
-  #functions of form "func_XXX", used to calculate attributes 
+  #functions of form "func_XXX", used to calculate attributes
   #attribute.calculator() - calculate values of attributes
-  #attribute.calculator.setup() - calculate arguments used in attribute.calculator() based on attribute names 
+  #attribute.calculator.setup() - calculate arguments used in attribute.calculator() based on attribute names
   #attribute.info.check() - get targetType, varType and identify any invalid model selections
     #check.attribute.model.combo() - check if any attribute-model combos are invalid
     #get.attribute.info() - Identify invalid models
@@ -18,19 +18,19 @@
 ####################################
 # Functions used to calculate attributes.
 # Each has input of "data" and optional "attArgs"
-# Note that custom functions starting with "func_" can also be specified  
+# Note that custom functions starting with "func_" can also be specified
 
 #' Calculates total of time series
 #' @param data is a vector, representing a time series
 #' @export
-func_tot = function(data) sum(data) 
+func_tot = function(data) sum(data)
 
 #' Calculates seasonality ratio
 #' @param data is a vector, representing a time series
-#' @param attArgs is a list, with attArgs$indexWet corresponding to wet season and attArgs$indexDry dry season  
+#' @param attArgs is a list, with attArgs$indexWet corresponding to wet season and attArgs$indexDry dry season
 # seasonality ratio
 #' @export
-func_seasRatio = function(data,attArgs) sum(data=data[attArgs$indexWet])/sum(data=data[attArgs$indexDry]) 
+func_seasRatio = function(data,attArgs) sum(data=data[attArgs$indexWet])/sum(data=data[attArgs$indexDry])
 
 #' Calculates number of wet days (above threshold)
 #' @param data is a vector, representing a time series
@@ -74,7 +74,7 @@ func_dyWet = function(data,attArgs) get.wet.average(data=data,threshold=attArgs$
 #' @export
 func_R = function(data,attArgs) get.nwet(data=data,threshold=attArgs$threshold)
 
-#' Calculates a quantile value 
+#' Calculates a quantile value
 #' @param data is a vector, representing a time series
 #' @param attArgs is a list, with attArgs$quant denoting the probability of the quantile
 #' @export
@@ -85,12 +85,12 @@ func_P = function(data,attArgs) get.quantile(data=data,quant=attArgs$quant)
 #' @export
 func_avg = function(data) mean(data,na.rm=T)
 
-# inter-quantile range 
-#' Calculates the inter-quantile range  
+# inter-quantile range
+#' Calculates the inter-quantile range
 #' @param data is a vector, representing a time series
-#' @param attArgs is a list, with attArgs$lim denoting the probability limit width  
+#' @param attArgs is a list, with attArgs$lim denoting the probability limit width
 #' @export
-func_rng = function(data,attArgs) get.quantile.rng(data=data,lim=attArgs$lim) 
+func_rng = function(data,attArgs) get.quantile.rng(data=data,lim=attArgs$lim)
 
 #' Calculates the growing season length
 #' @param data is a vector, representing a time series
@@ -109,10 +109,14 @@ func_F0 = function(data) F0calc(x=data) # could be made generic
 
 #' Calculates the day of year corresponding to the wettest 6 months
 #' @param data is a vector, representing a time series
-#' @param attArgs is a list, with attArgs$doy denoting the day of year for each value in the time series  
+#' @param attArgs is a list, with attArgs$doy denoting the day of year for each value in the time series
 #' @export
 func_wettest6monPeakDay = function(data,attArgs=NULL){
-  seas = calc_meanClimDaily_dayOfYearWindow(obs=data,doy=attArgs$doy,inc=91)
+  if (is.null(attArgs$seas)){
+    seas = calc_meanClimDaily_dayOfYearWindow(obs=data,doy=attArgs$doy,inc=91)
+  } else {
+    seas = attArgs$seas
+  }
   i = stats::median(which(seas==max(seas)))
   #  print(i)
   #  return(i-180)
@@ -120,24 +124,32 @@ func_wettest6monPeakDay = function(data,attArgs=NULL){
 
 #' Calculates the ratio of wet season to dry season rainfall, based on wettest6monPeakDay
 #' @param data is a vector, representing a time series
-#' @param attArgs is a list, with attArgs$doy denoting the day of year for each value in the time series  
+#' @param attArgs is a list, with attArgs$doy denoting the day of year for each value in the time series
 #' @export
 func_wettest6monSeasRatio = function(data,attArgs=NULL){
-  seas = calc_meanClimDaily_dayOfYearWindow(obs=data,doy=attArgs$doy,inc=91)
+  if (is.null(attArgs$seas)){
+    seas = calc_meanClimDaily_dayOfYearWindow(obs=data,doy=attArgs$doy,inc=91)
+  } else {
+    seas = attArgs$seas
+  }
   iwet = stats::median(which(seas==max(seas)))
   idry = stats::median(which(seas==min(seas)))
-  #  wettest6monSeasRatio = seas[idry]/seas[iwet]
-  wettest6monSeasRatio = seas[iwet]/seas[idry]
+#  wettest6monSeasRatio = seas[iwet]/seas[idry]
+  seas_iwet = seas[iwet]
+  seas_idry = seas[idry]
+  wettest6monSeasRatio = seas_iwet/seas_idry
+  if ((seas_idry==0.)|(wettest6monSeasRatio>100.)){wettest6monSeasRatio=100.}
   return(wettest6monSeasRatio)
 }
 
 #' Calculates the seasonal pattern (i.e. climatological mean)
 #' @param obs is a vector, representing a time series
-#' @param doy is the day of year for each value in the time series  
-#' @param inc is the half-window size used in moving average   
+#' @param doy is the day of year for each value in the time series
+#' @param inc is the half-window size used in moving average
 #' @export
 calc_meanClimDaily_dayOfYearWindow = function(obs,doy,inc){
-  mean_day_clim = tapply(obs,doy,mean)
+#  mean_day_clim = tapply(obs,doy,mean)
+  mean_day_clim = doyMean_cpp(obs,doy)
   indicesRM = c( (365-inc+1):365 , 1:365, 1:inc )
   run_mean_day_clim = ma(mean_day_clim[indicesRM],n=(2*inc+1))
   return(run_mean_day_clim[(inc+1):(inc+365)])
@@ -150,13 +162,18 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
                                datInd=NULL,         #dat indices and properties (e.g. datInd$nyr, datInd$i.yy)
                                attInfo=NULL         #optional saved list of attribute information (from attribute.calculator.setup)
 ){
-  
+
   if (!is.null(attInfo$attCalcInfo)){
     attCalcInfo = attInfo$attCalcInfo
   } else {
     attCalcInfo = attribute.calculator.setup(attSel,datInd)
   }
-  
+
+  if (any(c("P_ann_wettest6monSeasRatio","P_ann_wettest6monPeakDay")%in%attSel)){
+    seas = calc_meanClimDaily_dayOfYearWindow(obs=data,doy=attCalcInfo[["P_ann_wettest6monSeasRatio"]]$attArgs$doy,inc=91)
+    attCalcInfo[["P_ann_wettest6monSeasRatio"]]$attArgs$seas = attCalcInfo[["P_ann_wettest6monPeakDay"]]$attArgs$seas = seas
+  }
+
   out = list()
   for (att in attSel){
     if (is.null(attCalcInfo[[att]]$opName)){ # case where there is no operator in attribute name
@@ -197,13 +214,13 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
       }
     }
   }
-  
+
   return(out)
-  
+
 }
 
 ####################################
-# Some error handling functions. 
+# Some error handling functions.
 # Note: need to fix up use of logfile() - currently just outputting to screen through stop()
 
 invalidSuffixStop = function(funcName,suffix){
@@ -248,14 +265,14 @@ invalidFuncStop = function(func){
 attribute.calculator.setup = function(attSel, # list of evaluated attribute names
                                       datInd #dat indices and properties (e.g. datInd$nyr, datInd$i.yy)
                                       ){
-  
+
   attCalcInfo = list()
-  
+
   for (att in attSel){
-    
+
     # split up attribute name
     chopped=strsplit(x = att,split="_")[[1]]
-    
+
     # variable name
     varName = chopped[1]
     # stratification index name
@@ -265,19 +282,19 @@ attribute.calculator.setup = function(attSel, # list of evaluated attribute name
     # operator name
     opName = NULL
     if (length(chopped)>3){opName=chopped[4]}
-    
-    # calculate selected data indices 
+
+    # calculate selected data indices
     indx = calcStratIndex(indexName,opName,datInd)
-    
+
     # calculate function names and arguments
     o = calcFuncNamesAndArgs(funcNameLong,datInd)
-    
+
     attCalcInfo[[att]] = list(func=o$func,attArgs=o$attArgs,indx=indx,opName=opName)
-    
+
   }
-  
+
   return(attCalcInfo)
-  
+
 }
 
 ####################################
@@ -286,27 +303,27 @@ attribute.calculator.setup = function(attSel, # list of evaluated attribute name
 calcFuncNamesAndArgs = function(funcNameLong, # long function name (including parameters)
                                 datInd # dat indices and properties (e.g. datInd$nyr, datInd$i.yy)
                                 ){
-  
+
   # functions that require threshold arguments
   funcsWithThresh = c('nWet','dyWet','maxDSD','maxWSD','avgWSD','avgDSD')
-  
+
   attArgs = NULL
-  
+
   suffix = NULL
   # select index for funcsWithThresh
   iFuncWithThresh = which(startsWith(funcNameLong,funcsWithThresh))
   if (funcNameLong %in% funcsWithThresh){ # case where no additional params are specified as suffixes
-    funcName = funcNameLong 
+    funcName = funcNameLong
     attArgs=list(threshold=0.) # set default threshold to zero since no additional params specified
   } else if (length(iFuncWithThresh)>0){ # case where suffix is specified
     funcName = funcsWithThresh[iFuncWithThresh]
     suffix = strsplit(funcNameLong,funcName)[[1]][2] # suffix
-    if (substring(suffix,1,1)=='T'){ # for case where suffix starts with T we read off threshold 
+    if (substring(suffix,1,1)=='T'){ # for case where suffix starts with T we read off threshold
       threshold = as.numeric(substring(suffix,2))
       if (is.na(threshold)){invalidSuffixStop(funcName=funcName,suffix=suffix)} # stop if threshold not numeric
       attArgs = list(threshold=threshold)
     } else {invalidSuffixStop(funcName=funcName,suffix=suffix)} # stop if suffix doesn't start with T
-    
+
     # seasonality ratios
   } else if (funcNameLong=='seasRatio'){ # note seasRatio not setup to work with monthly/seasonal stratification or with "_m" for mean annual
     funcName = 'seasRatio' # seasonality ratio from foreSIGHT 1.0 (wet season = MAM+JJA)
@@ -317,19 +334,19 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
   } else if (startsWith(funcNameLong,'seasRatio')){
     funcName = 'seasRatio'
     suffix = strsplit(funcNameLong,funcName)[[1]][2]
-    if (substring(suffix,1,4)=='Mwet'){ 
+    if (substring(suffix,1,4)=='Mwet'){
       wet1 = match(substring(suffix,5,7),month.abb) # wet season start month
       wet2 = match(substring(suffix,8,10),month.abb) # wet season end month
       if (!is.integer(wet1)|wet1<1|wet1>12|!is.integer(wet2)|wet2<1|wet2>12){invalidSuffixStop(funcName=funcName,suffix=suffix)}
-      if (wet1<wet2){ 
+      if (wet1<wet2){
         mWet = seq(wet1,wet2)
-      } else { # handle case where wet season ends in next year 
+      } else { # handle case where wet season ends in next year
         mWet = seq(wet1,wet2+12) %% 12
       }
       mAll = 1:12
       # calculate dry months
       mDry = mAll[!(mAll%in%mWet)]
-      # use middle of dry/wet season to calculate phase of harmonic used in seasonla scaling 
+      # use middle of dry/wet season to calculate phase of harmonic used in seasonla scaling
       if(max(diff(mDry))==1){
         midDry = stats::median(mDry)-0.5
         monTop = midDry/12
@@ -342,7 +359,7 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
     } else {
       invalidSuffixStop(funcName=funcName,suffix=suffix)
     }
-    
+
     # quantile ranges
   } else if (funcNameLong=='rng'){
     funcName = 'rng'
@@ -356,8 +373,8 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
     } else {
       invalidSuffixStop(funcName=funcName,suffix=suffix)
     }
-    
-    # percentiles 
+
+    # percentiles
   } else if (substring(funcNameLong,1,1)=='P'){
     funcName = 'P'
     suffix = strsplit(funcNameLong,funcName)[[1]][2]
@@ -367,8 +384,8 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
     } else {
       invalidSuffixStop(funcName=funcName,suffix=suffix)
     }
-    
-    # num days above threshold 
+
+    # num days above threshold
   } else if (substring(funcNameLong,1,1)=='R'){
     funcName = 'R'
     suffix = strsplit(funcNameLong,funcName)[[1]][2]
@@ -378,30 +395,30 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
     } else {
       invalidSuffixStop(funcName=funcName,suffix=suffix)
     }
-    
+
   } else if (funcNameLong%in%c('wettest6monPeakDay','wettest6monSeasRatio')){
     funcName = funcNameLong
     attArgs = list(doy=datInd$jj)
-    
+
   } else {
     funcName = funcNameLong
   }
-  
+
   if (!(funcName%in%attributeFuncs())){invalidFuncStop(func=funcName)}
-  func = get(paste0('func_',funcName))  
-  
+  func = get(paste0('func_',funcName))
+
   return(list(func=func,attArgs=attArgs,funcName=funcName,suffix=suffix))
-  
+
 }
 
 ####################################
-# calculate stratification index  
+# calculate stratification index
 
 calcStratIndex = function(indexName,opName,datInd){
-  
+
   # abbreviate for season names
   season.abb = c('SON','DJF','MAM','JJA')
-  
+
   stratIndx = NULL
   if (indexName=='ann'){ # this uses all data
     stratIndx = 1:datInd$ndays
@@ -431,7 +448,7 @@ calcStratIndex = function(indexName,opName,datInd){
   } else {
     invalidStratificationStop(strat=indexName)
   }
-  
+
   if (is.null(opName)){
     indx = stratIndx
   } else { # here we calculate stratification for each year (later used to calculate mean/max values over all years)
@@ -450,9 +467,9 @@ calcStratIndex = function(indexName,opName,datInd){
     }
     indx = yrIndx
   }
-  
+
   return(indx)
-  
+
 }
 
 ####################################
@@ -465,13 +482,13 @@ attribute.info.check<-function(attSel=NULL,  # vector of selected attributes (st
 ){
   nAtt=length(attSel) # no. of attributes nominated
   attInfo=list()      #create blank list for storage
-  
-  #attribute name chopper function 
+
+  #attribute name chopper function
   attInfo$varType=vapply(attSel,FUN = get.attribute.varType,FUN.VALUE=character(1),USE.NAMES = FALSE) #drop use of names as comes ordered anyway
-  
+
   #ASSIGN TARGET TYPE (IF P USE "FRAC", IF T USE "DIFF")
   attInfo$targetType=vapply(attInfo$varType,FUN=get.target.type,FUN.VALUE=character(1),USE.NAMES=FALSE)
-  
+
   #FIND WHICH ARE PRIMARY
   if(is.null(attPrim)){
     attInfo$primType=rep(FALSE,nAtt)
@@ -496,7 +513,7 @@ attribute.info.check<-function(attSel=NULL,  # vector of selected attributes (st
 
   #CHECK FOR INVALID MODEL CHOICE - returns a logical for each attribute
   # attInfo$modelInvalid=vapply(attSel,FUN=check.attribute.model.combo,FUN.VALUE=logical(1),USE.NAMES=FALSE,modelTag=modelTag)
-  
+
   return(attInfo)
 }
 
@@ -557,10 +574,10 @@ get.target.type<-function(varType=NULL){
 
 tagBlender<-function(attLab=NULL
 ){
- 
+
   # split up attribute name
   chopped=strsplit(x = attLab,split="_")[[1]]
-  
+
   # variable name
   varName = chopped[1]
   # stratification index name
@@ -570,7 +587,7 @@ tagBlender<-function(attLab=NULL
   # operator name
   opName = NULL
   if (length(chopped)>3){opName=chopped[4]}
-  
+
   #variable type
   if(varName== "P"){
     vtype="rainfall"
@@ -580,8 +597,8 @@ tagBlender<-function(attLab=NULL
     vtype="PET"
   }else if(varName=="Radn"){
     vtype="Radiation"
-  } 
-  
+  }
+
   #stratification type
   if(indexName== "ann"){
     atype="annual"
@@ -598,19 +615,19 @@ tagBlender<-function(attLab=NULL
   }else if(indexName== "Feb"){
     atype="Feb"
   }else if(indexName== "Mar"){
-    atype="Mar" 
+    atype="Mar"
   }else if(indexName== "Apr"){
-    atype="Apr"     
+    atype="Apr"
   }else if(indexName== "May"){
-    atype="May" 
+    atype="May"
   }else if(indexName== "Jun"){
-    atype="Jun"  
+    atype="Jun"
   }else if(indexName== "Jul"){
-    atype="Jul"  
+    atype="Jul"
   }else if(indexName== "Aug"){
-    atype="Aug"      
+    atype="Aug"
   }else if(indexName== "Sep"){
-    atype="Sep"  
+    atype="Sep"
   }else if(indexName== "Oct"){
     atype="Oct"
   }else if(indexName== "Nov"){
@@ -736,10 +753,10 @@ tagBlender<-function(attLab=NULL
   } else if (opName=='m'){
     stype="Mean"
   }
-  
+
   #stitch togther
   phrase=paste(stype,atype,mtype,vtype)
-  return(phrase)  
+  return(phrase)
 }
 
 
