@@ -24,10 +24,10 @@ gaWrapper<-function(gaArgs=NULL,        # can specify your own outside
                     attObs=NULL,        # observed series attribute values
                     lambda.mult=NULL,   # lambda multiplier for penalty function
                     simSeed=NULL,       # seeds
-                    wdSeries=NULL,      
+                    wdSeries=NULL,
                     resid_ts=NULL
                     ){
-  
+
   #MEMOISE YAY OR NAY - TBC
   #USER SPECIFIED PARALLEL CONTROLS
   timeStart=Sys.time()
@@ -37,43 +37,135 @@ gaWrapper<-function(gaArgs=NULL,        # can specify your own outside
               upper = modelInfo$maxBound,
               pcrossover= gaArgs$pcrossover,
               pmutation=gaArgs$pmutation,
-              maxiter=gaArgs$maxiter, 
-              popSize = gaArgs$popSize, 
-              maxFitness = gaArgs$maxFitness, 
-              run=gaArgs$run, 
-              seed = gaArgs$seed, 
+              maxiter=gaArgs$maxiter,
+              popSize = gaArgs$popSize,
+              maxFitness = gaArgs$maxFitness,
+              run=gaArgs$run,
+              seed = gaArgs$seed,
               parallel = gaArgs$parallel,
-              keepBest=gaArgs$keepBest, 
-              suggestions = parSuggest, 
+              keepBest=gaArgs$keepBest,
+              suggestions = parSuggest,
               monitor = FALSE,             #switchback
               #BELOW RELATED TO TARGETFINDER()
               modelInfo=modelInfo,
               modelEnv=modelEnv,
-              attSel=attSel,        
-              attPrim=attPrim,       
-              attInfo=attInfo, 
+              attSel=attSel,
+              attPrim=attPrim,
+              attInfo=attInfo,
               datInd=datInd,
               randomVector = randomVector,
               randomUnitNormalVector = randomUnitNormalVector,
-              target=target,        
-              attObs=attObs,        
-              lambda.mult=lambda.mult,   
+              target=target,
+              attObs=attObs,
+              lambda.mult=lambda.mult,
               simSeed=simSeed,
-              wdSeries=wdSeries,      
+              wdSeries=wdSeries,
               resid_ts=resid_ts
               )
   timeFin=Sys.time()
   timeRun=timeFin-timeStart    #optimisation runtime
   #print(summary(optpar)$fitness)
-  
+
   out=list(par=as.vector(optpar@solution[1,]),
-           fitness=as.numeric(optpar@fitnessValue), 
+           fitness=as.numeric(optpar@fitnessValue),
            seed=simSeed,
            opt=optpar,
            runtime=timeRun)
-           
+
   return(out)
-  
+
+}
+
+#-----------------------------------------------
+
+rgnWrapper<-function(rgnArgs=NULL,        # can specify your own outside
+                    modelEnv=NULL,
+                    modelInfo=NULL,     # information related to modelTags
+                    attSel=NULL,        # attributes selected (vector of strings)
+                    attPrim=NULL,       # primary attribute label
+                    attInfo=NULL,       # added info regarding attributes
+                    datInd=NULL,
+                    randomVector = NULL,
+                    randomUnitNormalVector = NULL,
+                    parSuggest=NULL,    # paramater suggestions
+                    target=NULL,        # target locations: desired changes in climate to be simulated, in % relative or abs diff to baseline levels (vector)
+                    attObs=NULL,        # observed series attribute values
+                    lambda.mult=NULL,   # lambda multiplier for penalty function
+                    simSeed=NULL,       # seeds
+                    wdSeries=NULL,
+                    resid_ts=NULL){
+
+  timeStart=Sys.time()
+
+  ##################################
+
+  xLo = modelInfo$minBound
+  xHi = modelInfo$maxBound
+
+  fBest = 9e9
+
+  ######## THESE DEFAULT SETTINGS SHOULD BE INCORPORATED INTO optimArgsdefault() in default_parameters.R . This will require a bit of work to separate GA from RGN settings
+
+  if(!is.null(rgnArgs$nMultiStart)){
+    nMultiStart = rgnArgs$nMultiStart
+  } else {
+    nMultiStart = 10
+  }
+
+  if(!is.null(rgnArgs$iterMax)){
+    iterMax = rgnArgs$iterMax
+  } else {
+    iterMax = 100
+  }
+
+  for (r in 1:nMultiStart){
+
+    set.seed(r+simSeed*2222) # set the random seed for selecting initial parameter values. note same set of seeds will be used for each target/replicate.
+
+    print(r)
+    x0 = xLo + runif(length(xLo))*(xHi-xLo)
+
+    rgnOutTmp <- rgn(simFunc=targetFinder,
+                     x0 = x0,
+                     xHi = xHi,
+                     xLo = xLo,
+                     simTarget = unlist(target),
+                     weights=lambda.mult,
+                     info =rgnInfoType,
+                     cnv = setDefaultRgnConvergeSettings(dump=0, fail=0,iterMax = iterMax),
+                     modelInfo=modelInfo,
+                     modelEnv=modelEnv,
+                     attSel=attSel,
+                     attPrim=attPrim,
+                     attInfo=attInfo,
+                     datInd=datInd,
+                     randomVector = randomVector,
+                     randomUnitNormalVector = randomUnitNormalVector,
+                     simSeed=simSeed,
+                     wdSeries=wdSeries,
+                     resid_ts=resid_ts,
+                     attObs=attObs,target=target,return_sim_only=T)
+
+    if (rgnOutTmp$info$f<fBest){
+      fBest = rgnOutTmp$info$f
+      rgnOut=rgnOutTmp
+    }
+
+    cat(rgnOutTmp$info$f,fBest,'\n')
+
+  }
+
+  timeFin=Sys.time()
+  timeRun=timeFin-timeStart    #optimisation runtime
+
+  out=list(par=as.vector(rgnOut$x),
+           fitness=as.numeric(rgnOut$info$f),
+           seed=simSeed,
+           opt=rgnOut,
+           runtime=timeRun)
+
+  return(out)
+
 }
 
 #FUNCTION TO SCREEN SUGGESTED POPULATIONS (screen outside, screen once)
@@ -91,11 +183,11 @@ screenSuggest<-function(modelInfo=NULL,
                          maxBound=modelInfo[[modelTag[mod]]]$maxBound)
     #JOIN THE INDICES TOGETHER
     ind=c(ind,tmpInd)
-  } 
-  
+  }
+
   #REMOVE INDICES DUPLICATES
   ind=unique(ind)
-  
+
   #REMOVE INAPPROPRIATE SUGGESTIONS
   suggest=suggest[ind,]
   return(suggest)
@@ -116,7 +208,7 @@ testBound<-function(ind=NULL,
                     minBound=NULL,
                     maxBound=NULL
 ){
-  
+
   out=outBound(ind=ind,inVector=matPar[ind,],minBound=minBound,maxBound=maxBound)
   out
 }
@@ -141,27 +233,27 @@ outBound<-function(ind=NULL,      #index of pars being evaluated
 #             max = modelInfo[[2]]$maxBound,
 #             pcrossover= gaArgs$pcrossover,
 #             pmutation=gaArgs$pmutation,
-#             maxiter=gaArgs$maxiter, 
-#             popSize = gaArgs$popSize, 
-#             maxFitness = gaArgs$maxFitness, 
-#             run=gaArgs$run, 
-#             seed = gaArgs$seed, 
+#             maxiter=gaArgs$maxiter,
+#             popSize = gaArgs$popSize,
+#             maxFitness = gaArgs$maxFitness,
+#             run=gaArgs$run,
+#             seed = gaArgs$seed,
 #             parallel = gaArgs$parallel,
-#             keepBest=gaArgs$keepBest, 
-#             monitor = FALSE, 
+#             keepBest=gaArgs$keepBest,
+#             monitor = FALSE,
 #             #BELOW RELATED TO TARGETFINDER()
 #             modelTag=modelTag[2],
 #             modelInfo=modelInfo[[2]],
-#             attSel=attSel[attInd[[2]]],        
-#             attPrim=attPrim,       
-#             attInfo=attInfo[[2]],     
-#             datInd=datInd[[2]],        
-#             initCalibPars=initCalibPars, 
-#             target=target[attInd[[2]]],        
-#             attObs=attObs[attInd[[2]]],        
-#             lambda.mult=gaArgs$lambda.mult,   
+#             attSel=attSel[attInd[[2]]],
+#             attPrim=attPrim,
+#             attInfo=attInfo[[2]],
+#             datInd=datInd[[2]],
+#             initCalibPars=initCalibPars,
+#             target=target[attInd[[2]]],
+#             attObs=attObs[attInd[[2]]],
+#             lambda.mult=gaArgs$lambda.mult,
 #             simSeed=simSeed,
-#             wdSeries=wdStatus,      
+#             wdSeries=wdStatus,
 #             resid_ts=resid_ts
 # )
 
@@ -220,13 +312,13 @@ outBound<-function(ind=NULL,      #index of pars being evaluated
 #                     lambda.mult=1.0,   # lambda multiplier for penalty function
 #                     simSeed=1234           # seeds
 # )
-# 
+#
 # plot(optTest$opt)
-# 
+#
 # out=switch_simulator(type=modelInfo[[modelTag[mod]]]$simVar,parS=optTest$par,
 #                     modelTag=modelTag[mod],modelInfo=modelInfo[[modelTag[mod]]],datInd=datInd[[modelTag[mod]]],
 #                     initCalibPars=NULL,wdSeries=NULL,resid_ts=NULL,seed=1234)
-# 
+#
 #   sim.att=attribute.calculator(attSel=attSel[attInd[[mod]]],
 #                                    data=out$sim,
 #                                    datInd=datInd[[mod]],
