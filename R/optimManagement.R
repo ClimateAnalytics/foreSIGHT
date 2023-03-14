@@ -125,7 +125,7 @@ rgnWrapper<-function(rgnArgs=NULL,        # can specify your own outside
     print(r)
     x0 = xLo + runif(length(xLo))*(xHi-xLo)
 
-    rgnOutTmp <- rgn(simFunc=targetFinder,
+    rgnOutTmp <- rgn_fixPars(simFunc=targetFinder,
                      x0 = x0,
                      xHi = xHi,
                      xLo = xLo,

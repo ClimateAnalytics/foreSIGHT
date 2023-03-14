@@ -24,6 +24,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// calc_mean_day_clim_cpp
+NumericVector calc_mean_day_clim_cpp(NumericVector obs, IntegerMatrix keepMat);
+RcppExport SEXP _foreSIGHT_calc_mean_day_clim_cpp(SEXP obsSEXP, SEXP keepMatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type obs(obsSEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type keepMat(keepMatSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_mean_day_clim_cpp(obs, keepMat));
+    return rcpp_result_gen;
+END_RCPP
+}
 // doyMean_cpp
 NumericVector doyMean_cpp(NumericVector obs, IntegerVector doy);
 RcppExport SEXP _foreSIGHT_doyMean_cpp(SEXP obsSEXP, SEXP doySEXP) {

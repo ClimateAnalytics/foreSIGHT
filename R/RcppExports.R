@@ -5,6 +5,10 @@ Pstatus_WGEN_cpp <- function(parPwd, parPdd, RN, ndays) {
     .Call('_foreSIGHT_Pstatus_WGEN_cpp', PACKAGE = 'foreSIGHT', parPwd, parPdd, RN, ndays)
 }
 
+calc_mean_day_clim_cpp <- function(obs, keepMat) {
+    .Call('_foreSIGHT_calc_mean_day_clim_cpp', PACKAGE = 'foreSIGHT', obs, keepMat)
+}
+
 doyMean_cpp <- function(obs, doy) {
     .Call('_foreSIGHT_doyMean_cpp', PACKAGE = 'foreSIGHT', obs, doy)
 }

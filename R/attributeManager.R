@@ -142,17 +142,31 @@ func_wettest6monSeasRatio = function(data,attArgs=NULL){
   return(wettest6monSeasRatio)
 }
 
+calc_keepMat = function(doy){
+  keepMat = matrix(nrow=365,ncol=length(doy)/365)
+  for (n in 1:365){
+    keepMat[n,] = which(doy==n)
+  }
+  return(keepMat)
+}
+
+calc_mean_day_clim = function(obs,keepMat){
+  mean_day_clim = c()
+  for (i in 1:365){
+    mean_day_clim[i] = mean(obs[keepMat[i,]])
+  }
+  return(mean_day_clim)
+}
+
 #' Calculates the seasonal pattern (i.e. climatological mean)
 #' @param obs is a vector, representing a time series
 #' @param doy is the day of year for each value in the time series
 #' @param inc is the half-window size used in moving average
 #' @export
-calc_meanClimDaily_dayOfYearWindow = function(obs,doy,inc){
-#  mean_day_clim = tapply(obs,doy,mean)
-  mean_day_clim = doyMean_cpp(obs,doy)
+calc_meanClimDaily_dayOfYearWindow = function(obs,doy=NULL,keepMat=NULL,inc){
+  mean_day_clim = calc_mean_day_clim_cpp(obs,keepMat)
   indicesRM = c( (365-inc+1):365 , 1:365, 1:inc )
   run_mean_day_clim = ma(mean_day_clim[indicesRM],n=(2*inc+1))
-  return(run_mean_day_clim[(inc+1):(inc+365)])
 }
 
 ####################################
@@ -170,7 +184,7 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
   }
 
   if (any(c("P_ann_wettest6monSeasRatio","P_ann_wettest6monPeakDay")%in%attSel)){
-    seas = calc_meanClimDaily_dayOfYearWindow(obs=data,doy=attCalcInfo[["P_ann_wettest6monSeasRatio"]]$attArgs$doy,inc=91)
+    seas = calc_meanClimDaily_dayOfYearWindow(obs=data,keepMat=attCalcInfo[["P_ann_wettest6monSeasRatio"]]$attArgs$keepMat,inc=91)
     attCalcInfo[["P_ann_wettest6monSeasRatio"]]$attArgs$seas = attCalcInfo[["P_ann_wettest6monPeakDay"]]$attArgs$seas = seas
   }
 
@@ -398,8 +412,9 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
 
   } else if (funcNameLong%in%c('wettest6monPeakDay','wettest6monSeasRatio')){
     funcName = funcNameLong
-    attArgs = list(doy=datInd$jj)
-
+    doy = datInd$jj
+    keepMat = calc_keepMat(doy)
+    attArgs = list(doy=doy,keepMat=keepMat)
   } else {
     funcName = funcNameLong
   }
