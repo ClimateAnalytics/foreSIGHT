@@ -15,7 +15,7 @@
 #-------------------------------------------------------------------------------------------------------------
 #Get info for multiple models
  get.multi.model.info<-function(modelTag=NULL){
-   nMod=length(modelTag)   
+   nMod=length(modelTag)
    if(nMod==1){
      modelInfo=list()
      modelInfo[[modelTag[1]]]=get.model.info(modelTag[1])                     #even if 1 model still stored in list format
@@ -25,7 +25,7 @@
    }
    return(modelInfo)
  }
- 
+
 
 #UPDATE MODEL INFO IF FIXED PARAMETERS
 update.model.info<-function(modelTag=NULL, modelInfo=NULL,fixedPars=NULL,minUserBound=NULL,maxUserBound=NULL,file=NULL){
@@ -36,8 +36,8 @@ update.model.info<-function(modelTag=NULL, modelInfo=NULL,fixedPars=NULL,minUser
       logfile("Error: Incorrect number of fixed parameters values provided in fixedPar (4 needed)",file)
       logfile("Program terminated",file)
       stop("Incorrect number of fixed parameters values provided in fixedPar (4 needed)")
-    }  
-    
+    }
+
     temp_modelInfo=get.model.info(modelTag="P-har12-wgen")
     modelInfo$parNam=temp_modelInfo$parNam
     modelInfo$npars=temp_modelInfo$npars
@@ -67,9 +67,9 @@ update.model.info<-function(modelTag=NULL, modelInfo=NULL,fixedPars=NULL,minUser
       modelInfo$minBound=minUserBound
       modelInfo$maxBound=maxUserBound
     }
-    
+
   }
-  
+
   #Otherwise do nothing
   return(modelInfo)
 }
@@ -137,21 +137,21 @@ parManager <- function(parS, modelEnv) {
 
 #PARAMETER MANAGER FOR WGEN STYLE RAIN SIMULATOR
   #NPERIOD, I.PP , DATIND INFO
-  #IF NEEDED (E.G. HARMONIC) 
+  #IF NEEDED (E.G. HARMONIC)
 parManager.wgen <- function(parS = NULL,        # pars to split
                             modelEnv = NULL    # modelEnv that stores modelInfo, modelTag & datInd
   ){
-  
+
   modelInfo <- modelEnv$modelInfo
   datInd <- modelEnv$datInd
-  
+
   if (length(parS) != modelInfo$npars) {
     stop("Error: The number of parameters passed to the par manager does not match the number of parameters of the selected model")
   }
-  
+
   #IF NO HARMONIC OR PARAMETER FIXING APPLIED IN MODEL VERSION
   if(is.na(modelInfo$ncycle) & is.na(modelInfo$fixedPars)){
-    
+
     if(modelInfo$nperiod == 1) {
       #stop("Error: nperiod is not equal to 1, rep to create parameters of length `ndays` in the par manager will not work")
     #check length(pars == modelInfo$npars)   # if it fails put in a warning
@@ -167,16 +167,16 @@ parManager.wgen <- function(parS = NULL,        # pars to split
       beta <- assignSeasPars(parS[13], parS[14], parS[15], parS[16], datInd[["i.ss"]])
     }
   }
-  
+
   #if harmonics are required and no pars fixed - fit them
    if(!is.na(modelInfo$ncycle) & is.na(modelInfo$fixedPars)){
-     
-     
+
+
      pdd<-vector(mode="numeric",datInd$ndays) #Initialise vectors
      pwd<-vector(mode="numeric",datInd$ndays)
      alpha<-vector(mode="numeric",datInd$ndays)
      beta<-vector(mode="numeric",datInd$ndays)
-      
+
      #Culley 2019 the below code includes leap years
      # for (i in 1:datInd$nyr){                 #There are probably more speedups here, but this is my leap year solution. It moves through each year, and either takes 365 or 366 points from a harmonic.
      #   pdd[datInd$i.yy[[i]]]<-harmonicFunc(x=seq(1:length(datInd$i.yy[[i]])),mean=parS[1],amp=parS[2],phase.ang = parS[3],k=1,nperiod=length(datInd$i.yy[[i]]))
@@ -184,29 +184,26 @@ parManager.wgen <- function(parS = NULL,        # pars to split
      #   alpha[datInd$i.yy[[i]]]<-harmonicFunc(x=seq(1:length(datInd$i.yy[[i]])),mean=parS[7],amp=parS[8],phase.ang = parS[9],k=1,nperiod=length(datInd$i.yy[[i]]))
      #   beta[datInd$i.yy[[i]]]<-harmonicFunc(x=seq(1:length(datInd$i.yy[[i]])),mean=parS[10],amp=parS[11],phase.ang = parS[12],k=1,nperiod=length(datInd$i.yy[[i]]))
      # }
-     
+
      #Culley 2019 these parameter generators ignore leap years, so for long time series will become out of sync.
        pdd<-harmonicFunc(x=seq(1:datInd$ndays),mean=parS[1],amp=parS[2],phase.ang = parS[3],k=1,nperiod=365)
        pwd<-harmonicFunc(x=seq(1:datInd$ndays),mean=parS[4],amp=parS[5],phase.ang = parS[6],k=1,nperiod=365)
        alpha<-harmonicFunc(x=seq(1:datInd$ndays),mean=parS[7],amp=parS[8],phase.ang = parS[9],k=1,nperiod=365)
        beta<-harmonicFunc(x=seq(1:datInd$ndays),mean=parS[10],amp=parS[11],phase.ang = parS[12],k=1,nperiod=365)
-     
 
      #Culley 2019 setting 0-1 limits for pdd,pwd.
-     pdd<-pmin(pdd,1)
-     pdd<-pmax(pdd,0)
+     pdd[pdd>1] = 1.
+     pdd[pdd<0] = 0.
 
-     pwd<-pmin(pwd,1)
-     pwd<-pmax(pwd,0)
-     
+     pwd[pwd>1] = 1.
+     pwd[pwd<0] = 0.
+
      #Culley 2019 non negative limits for alpha,beta
-     #alpha<-pmax(alpha,0)
-     #beta<-pmax(beta,0)
-     alpha<-pmax(alpha,.Machine$double.xmin) # Modified by SW 1/1/2020 as gamma distribution can't handle zero values for shape and scale
-     beta<-pmax(beta,.Machine$double.xmin)       
-    
+     alpha[alpha<.Machine$double.xmin] = .Machine$double.xmin
+     beta[beta<.Machine$double.xmin] = .Machine$double.xmin
+
    }
-  
+
 
    #out is to - CALCULATE PAR VECTORS (PDD,PWD,ALPA,BETA)
   out=list(pdd=pdd,
@@ -236,48 +233,48 @@ assignSeasPars <- function(par1, par2, par3, par4, seasInd) {
 parManager.latent <- function(parS = NULL,          # pars to split
                               modelEnv = NULL       # modelEnv that stores modelInfo, modelTag & datInd
 ) {
-  
+
   modelInfo <- modelEnv$modelInfo
   datInd <- modelEnv$datInd
-  
+
   if (length(parS) != modelInfo$npars) {
     stop("Error: The number of parameters passed to the par manager does not match the number of parameters of the selected model")
   }
-  
+
   # IF NO HARMONIC OR PARAMETER FIXING APPLIED IN MODEL VERSION
   if(is.na(modelInfo$ncycle) & is.na(modelInfo$fixedPars)){
-    
+
     if(modelInfo$nperiod != 1) {
       stop("Error: nperiod is not equal to 1, rep to create parameters of length `ndays` in the par manager will not work")
     }
-    
+
     alpha <- rep_len(parS[1:modelInfo$nperiod], datInd$ndays)                                 # extract first set of pars (pars evenly split across vector)
     sigma <- rep_len(parS[(modelInfo$nperiod+1):(2*modelInfo$nperiod)], datInd$ndays)
     mu <- rep_len(parS[(2*modelInfo$nperiod+1):(3*modelInfo$nperiod)], datInd$ndays)
     lambda <- rep_len(parS[(3*modelInfo$nperiod+1):(4*modelInfo$nperiod)], datInd$ndays)
   }
-  
+
   # if harmonics are required and no pars fixed - fit them
   if(!is.na(modelInfo$ncycle) & is.na(modelInfo$fixedPars)){
-    
+
     alpha <- vector(mode = "numeric", datInd$ndays) # Initialise vectors - required? check if it makes a difference for computational time
     sigma <- vector(mode = "numeric", datInd$ndays)
     mu <- vector(mode = "numeric", datInd$ndays)
     lambda <- vector(mode = "numeric", datInd$ndays)
-    
+
     # Culley 2019 these parameter generators ignore leap years, so for long time series will become out of sync.
     alpha <- harmonicFunc(x = seq(1:datInd$ndays), mean=parS[1], amp=parS[2], phase.ang = parS[3], k = 1, nperiod = 365)
     sigma <- harmonicFunc(x = seq(1:datInd$ndays), mean=parS[4], amp=parS[5], phase.ang = parS[6], k = 1, nperiod = 365)
     mu <- harmonicFunc(x = seq(1:datInd$ndays), mean=parS[7], amp=parS[8], phase.ang = parS[9], k = 1, nperiod = 365)
     lambda <- harmonicFunc(x = seq(1:datInd$ndays), mean=parS[10], amp=parS[11], phase.ang = parS[12], k = 1, nperiod = 365)
-    
+
     # set limits on parameters after get point values from the harmonic function
     alpha <- pmax(alpha, -1)
     alpha <- pmin(alpha, 1)
     sigma <- pmax(sigma, 0)
-    
+
   }
-  
+
   out=list(alpha = alpha,
            sigma = sigma,
            mu = mu,
@@ -293,21 +290,21 @@ parManager.latent <- function(parS = NULL,          # pars to split
 #                       data=NULL,      #observed data (data frame) to be used in calibration
 #                       datInd=NULL     #date index information
 #   ){
-# 
+#
 #   #FOR ALL MODELS
 #     pdd=rep(0,modelInfo$nperiod); alpha=beta=pwd=pdd    #make space to store fitted pars
 #     for(p in 1:modelInfo$nperiod){
 #       #fit pwd and pdd
 #       tmp=pdd.pwd.estimator(dat=data,ind=datInd$i.pp[[p]],threshold=0.00)
 #       pdd[p]=tmp$pdd; pwd[p]=tmp$pwd
-# 
+#
 #       #fit gamma pars (alpha & beta - using wgen manual labelling convention)
 #       tmp=gammaParsMLE2(dat=data[datInd$i.pp[[p]]],wetThresh=0.00)
 #       alpha[p]=tmp$shape; beta[p]=tmp$scale
 #     }
-#   
-#     
-#   
+#
+#
+#
 #   # MODELS WHERE A HARMONIC IS USED
 #     #EACH PAR (PDD, PWD, ALPHA, BETA) IS FIT TO A HARMONIC (SOME EXCEPTIONS/SPECIAL CASES)
 #     if(!is.na(modelInfo$ncycle)){
@@ -325,7 +322,7 @@ parManager.latent <- function(parS = NULL,          # pars to split
 #       #MAKE PAR VECTOR C(PAR1 X NPERIOD),(PAR2 X NPERIOD),...)
 #       initCalibPars=c(pdd,pwd,alpha,beta)
 #     }
-#     
+#
 #     #PLOT UP
 #     # windows();par(mfrow=c(2,2))
 #     # plot(x=seq(1,modelInfo$nperiod),pdd,pch=16,xlab="period")
@@ -344,21 +341,21 @@ parManager.latent <- function(parS = NULL,          # pars to split
 #     # beta.cycle=harmonicFunc(x=seq(1,modelInfo$nperiod),mean=beta.fit$mean,amp=beta.fit$amp,phase.ang=beta.fit$phase.ang,k=modelInfo$ncycle,nperiod=modelInfo$nperiod)
 #     # lines(x=seq(1,modelInfo$nperiod),beta.cycle,col="red")
 #     # title("beta")
-#     
-#     
+#
+#
 #     #return pars from initial calibration
 #     return(initCalibPars)
 # }
-# 
+#
 # #------------------------------------------------------------------------------------------
 # gammaParsMLE2<- function(dat=NULL, #vector timeseries of rainfall amounts
 #                          wetThresh=0.01, #threshold at which day is deemed wet
 #                          ...){
-#   
+#
 #   x=dat[which(dat>wetThresh)]    #get wet day amounts
 #   nw=length(x)                   #no. wet days
 #   x.mean=mean(x)                 #arithmetic mean of wet days
-#  
+#
 #   s=log(x.mean)-sum(log(x))/nw
 #   #est.shape - note in wgen manual shape is denoted using alpha
 #   # ML method to estimate the 2 parameters of the gamma distribution from
@@ -369,15 +366,15 @@ parManager.latent <- function(parS = NULL,          # pars to split
 #   Adom=s*(17.79728+11.968477*s+s^2.0)
 #   k.est=Anum/Adom
 #   if(k.est >=1.0){k.est=0.998}
-#   
+#
 #   #est.scale - Note in wgen manual scale is denoted by beta
 #   theta.est=x.mean/k.est
-#   
+#
 #   out=list(scale=theta.est,shape=k.est)
 #   return(out)
-#   
+#
 # }
-# 
+#
 # #---------------------------------------------------------------------------
 # #Estimate pdd and pwd
 # pdd.pwd.estimator<-function(dat=NULL,       # vector of rainfall values
@@ -388,15 +385,15 @@ parManager.latent <- function(parS = NULL,          # pars to split
 #   nw=length(which(dat[ind]>threshold))
 #   nd=n-nw
 #   #pDry=nd/n
-#   
+#
 #   ind.prior=ind[-n]; ind.now=ind[-n]+1  #for clarity spell out which is the prior day series and current day series (DROP LAST VALUE TO AVOID ARRAY OVERFLOW)
-#   
+#
 #   ind.wd.p=ind[which((dat[ind.prior])>threshold & (dat[ind.now])<=threshold)]  # GET INDICES OF WET(i-1) - DRY(i) PAIRS
 #   n.wd=length(ind.wd.p)
-#   
+#
 #   ind.dw.p=ind[which((dat[ind.prior])<=threshold & (dat[ind.now])>threshold)]  # GET INDICES OF DRY(i-1) - WET(i) PAIRS
 #   n.dw=length(ind.dw.p)
-#   
+#
 #   probs=list(pwd=(n.wd/nw),pdd=(1-(n.dw/nd)))
 #   return(probs)
 # }
@@ -408,12 +405,12 @@ simHarTS.parmanager<-function(parS=NULL,   #par vector to be divided up (cors, w
                               modelInfo=NULL,
                               initCalibPars=NULL
 ){
-  
+
   #position calculator function for harmonic pars
   posCalc<-function(npos,nAssocSeries,ncycle){st.pos=(npos-1+nAssocSeries)*(2*ncycle+1)+2}
-  
+
   Hmean=list(); Hsd=list()
-  
+
   #if harmonics are required, no pars fixed & conditional on wd status - fit them
   if(!is.na(modelInfo$ncycle) & is.na(modelInfo$fixedPars)){
     if(modelInfo$nAssocSeries ==0){  #If series residual generated alone
@@ -422,10 +419,10 @@ simHarTS.parmanager<-function(parS=NULL,   #par vector to be divided up (cors, w
     }else{
       #INSERT WARNING
       #put on to-do list
-      
+
       stop("Missing capcity to generate correl residuals")
     }
-    
+
     if(modelInfo$WDcondition == TRUE){
       if(modelInfo$wdCycle == "sCycle"){
         #MAKE H MEANS WET AND DRY THE SAME
@@ -436,14 +433,14 @@ simHarTS.parmanager<-function(parS=NULL,   #par vector to be divided up (cors, w
                              phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
                              k=modelInfo$ncycle,
                              nperiod=modelInfo$nperiod)
-        
+
         Hmean$D=harmonicFunc(x=seq(1,modelInfo$nperiod),
                              mean=parS[st.parset],
                              amp=parS[(st.parset+1):(st.parset+modelInfo$ncycle)],
                              phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
                              k=modelInfo$ncycle,
                              nperiod=modelInfo$nperiod)
-        
+
         #MAKE H SD WET AND DRY CONDITIONAL
         st.parset=posCalc(npos=2,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)         # start position in vector for this parameter set
         Hsd$W=harmonicFunc(x=seq(1,modelInfo$nperiod),
@@ -452,7 +449,7 @@ simHarTS.parmanager<-function(parS=NULL,   #par vector to be divided up (cors, w
                            phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
                            k=modelInfo$ncycle,
                            nperiod=modelInfo$nperiod)
-        
+
         st.parset=posCalc(npos=3,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)          # start position in vector for this parameter set
         Hsd$D=harmonicFunc(x=seq(1,modelInfo$nperiod),
                            mean=parS[st.parset],
@@ -460,7 +457,7 @@ simHarTS.parmanager<-function(parS=NULL,   #par vector to be divided up (cors, w
                            phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
                            k=modelInfo$ncycle,
                            nperiod=modelInfo$nperiod)
-        
+
       }else{
         st.parset=posCalc(npos=1,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)     # start position in vector for this parameter set
         Hmean$W=harmonicFunc(x=seq(1,modelInfo$nperiod),
@@ -469,7 +466,7 @@ simHarTS.parmanager<-function(parS=NULL,   #par vector to be divided up (cors, w
                              phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
                              k=modelInfo$ncycle,
                              nperiod=modelInfo$nperiod)
-        
+
         st.parset=posCalc(npos=2,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)         # start position in vector for this parameter set
         Hsd$W=harmonicFunc(x=seq(1,modelInfo$nperiod),
                            mean=parS[st.parset],
@@ -477,7 +474,7 @@ simHarTS.parmanager<-function(parS=NULL,   #par vector to be divided up (cors, w
                            phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
                            k=modelInfo$ncycle,
                            nperiod=modelInfo$nperiod)
-        
+
         st.parset=posCalc(npos=3,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)         # start position in vector for this parameter set
         Hmean$D=harmonicFunc(x=seq(1,modelInfo$nperiod),
                              mean=parS[st.parset],
@@ -485,7 +482,7 @@ simHarTS.parmanager<-function(parS=NULL,   #par vector to be divided up (cors, w
                              phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
                              k=modelInfo$ncycle,
                              nperiod=modelInfo$nperiod)
-        
+
         st.parset=posCalc(npos=4,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)          # start position in vector for this parameter set
         Hsd$D=harmonicFunc(x=seq(1,modelInfo$nperiod),
                            mean=parS[st.parset],
@@ -494,7 +491,7 @@ simHarTS.parmanager<-function(parS=NULL,   #par vector to be divided up (cors, w
                            k=modelInfo$ncycle,
                            nperiod=modelInfo$nperiod)
       }
-      
+
     }else{
       #NOT CONDITIONAL ON WET-DRY
       st.parset=posCalc(npos=1,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)     # start position in vector for this parameter set
@@ -504,7 +501,7 @@ simHarTS.parmanager<-function(parS=NULL,   #par vector to be divided up (cors, w
                             phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
                             k=modelInfo$ncycle,
                             nperiod=modelInfo$nperiod)
-      
+
       st.parset=posCalc(npos=2,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)         # start position in vector for this parameter set
       Hsd$WD=harmonicFunc(x=seq(1,modelInfo$nperiod),
                           mean=parS[st.parset],
@@ -516,8 +513,8 @@ simHarTS.parmanager<-function(parS=NULL,   #par vector to be divided up (cors, w
   }else{
     stop("Fixed parameter functionality yet to come")
   }
-  
-  
+
+
   #CONDITIONS WHERE SOME PARS ARE FIXED
   #FIXED SEASONALITY OR OCCURANCE OR ...
   #INITICALIBPARS
@@ -525,7 +522,7 @@ simHarTS.parmanager<-function(parS=NULL,   #par vector to be divided up (cors, w
   # if modelInfo$fixedPars="phase.angle"...
   #if(!is.na(modelInfo$ncycle) & (modelInfo$fixedPars == "phase.angle")){}
   # if modelInfo$fixedPars=
-  
+
   #out is to - CALCULATE PAR VECTORS (corr_1,corr_0,Hmean,Hsd)
   out=list(cor1=cor1,
            cor0=cor0,
@@ -533,7 +530,7 @@ simHarTS.parmanager<-function(parS=NULL,   #par vector to be divided up (cors, w
            Hsd=Hsd
   )
   return(out)
-  
+
 }
 
 #tester
