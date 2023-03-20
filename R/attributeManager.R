@@ -167,6 +167,7 @@ calc_meanClimDaily_dayOfYearWindow = function(obs,doy=NULL,keepMat=NULL,inc){
   mean_day_clim = calc_mean_day_clim_cpp(obs,keepMat)
   indicesRM = c( (365-inc+1):365 , 1:365, 1:inc )
   run_mean_day_clim = ma(mean_day_clim[indicesRM],n=(2*inc+1))
+  return(run_mean_day_clim[(inc+1):(inc+365)])
 }
 
 ####################################
