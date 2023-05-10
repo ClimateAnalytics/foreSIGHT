@@ -444,7 +444,7 @@ calcStratIndex = function(indexName,opName,datInd){
   } else if (indexName %in% season.abb){ # this only uses data from given season
     sSel = match(indexName,season.abb)
     stratIndx = datInd$i.ss[[sSel]]
-    } else if (indexName == 'ONDJFM'){
+    } else if (indexName == 'ONDJFM'){  #RUBY TO FIX
     stratIndx = c(datInd$i.mm[[10]],
                    datInd$i.mm[[11]],
                    datInd$i.mm[[12]],
