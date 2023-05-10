@@ -431,10 +431,12 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
 # calculate stratification index
 
 calcStratIndex = function(indexName,opName,datInd){
-
+  
   # abbreviate for season names
   season.abb = c('SON','DJF','MAM','JJA')
-
+  month.str.abb <- c("JFMAMJJASONDJFMAMJJASOND") #2 year month abbreviation to allow for wrap around months 
+  month_number <- c(1:12,1:12)   #month.str.abb as month numbers 
+  
   stratIndx = NULL
   if (indexName=='ann'){ # this uses all data
     stratIndx = 1:datInd$ndays
@@ -444,27 +446,16 @@ calcStratIndex = function(indexName,opName,datInd){
   } else if (indexName %in% season.abb){ # this only uses data from given season
     sSel = match(indexName,season.abb)
     stratIndx = datInd$i.ss[[sSel]]
-    } else if (indexName == 'ONDJFM'){  #RUBY TO FIX
-    stratIndx = c(datInd$i.mm[[10]],
-                   datInd$i.mm[[11]],
-                   datInd$i.mm[[12]],
-                   datInd$i.mm[[1]],
-                   datInd$i.mm[[2]],
-                   datInd$i.mm[[3]])
-    stratIndx = sort(stratIndx)
-  } else if (indexName == 'ONDJFMA'){
-    stratIndx = c(datInd$i.mm[[10]],
-                  datInd$i.mm[[11]],
-                  datInd$i.mm[[12]],
-                  datInd$i.mm[[1]],
-                  datInd$i.mm[[2]],
-                  datInd$i.mm[[3]],
-                  datInd$i.mm[[4]])
-    stratIndx = sort(stratIndx)
+  } else if (regexpr(indexName,month.str.abb)[1]!=-1 & nchar(indexName) > 1 & nchar(indexName) < 12) { #check if string is sequential months and are greater than 1 month and less than 12
+    indexName_posit <- regexpr(indexName,month.str.abb)   #find position of month string in 2 year abbreviation 
+    mSel <- sort(month_number[seq(indexName_posit[1],length=attr(indexName_posit,"match.length"),by=1)])  #match month letter index to number index and sort months sequentially
+    for (n in 1:nchar(indexName)){
+      stratIndx = c(stratIndx,datInd$i.mm[[mSel[n]]])
+    }
   } else {
     invalidStratificationStop(strat=indexName)
   }
-
+  
   if (is.null(opName)){
     indx = stratIndx
   } else { # here we calculate stratification for each year (later used to calculate mean/max values over all years)
@@ -483,9 +474,9 @@ calcStratIndex = function(indexName,opName,datInd){
     }
     indx = yrIndx
   }
-
+  
   return(indx)
-
+  
 }
 
 ####################################
