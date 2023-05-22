@@ -20,7 +20,7 @@ targetFinder<- function(x,               # vector of pars (will change in optim)
                         simSeed=NULL,
                         wdSeries=NULL,
                         resid_ts=NULL,
-                        return_sim_only = F
+                        returnThis = 'objFunc'
                         #Nw=NULL,            # warmup period in days
                         # N=NULL,             # seeds
                         # seed1=NULL,
@@ -45,27 +45,33 @@ targetFinder<- function(x,               # vector of pars (will change in optim)
     score=-150  #default here
   }else{
     #CALCULATE SELECTED ATTRIBUTE VALUES
-#    sim.att=attribute.calculator(attSel=attSel,data=sim$sim,datInd=datInd,attribute.funcs=attribute.funcs)
     sim.att=attribute.calculator(attSel=attSel,data=sim$sim,datInd=datInd,attInfo=attInfo)
 
     #RELATING TO BASELINE SERIES
     simPt=unlist(Map(function(type, val,baseVal) simPt.converter.func(type,val,baseVal), attInfo$targetType, as.vector(sim.att),as.vector(attObs)),use.names = FALSE)
 
-    if(return_sim_only){return(simPt)}
+    if(returnThis=='sim'){
+      return(simPt)
+    } else if (returnThis=='resid') {
+      weights = rep(1,length(attSel));names(weights) = attSel
+      weights[attPrim] = lambda.mult
+      resid = weights*(simPt-unlist(target))
+      asr = abs(sum(resid))
+      if(is.infinite(asr)|is.nan(asr)|is.na(asr)){browser()}
+      return(resid)
+    } else if (returnThis=='objFunc'){
 
-    #GET OBJECTIVE FUNCTION VALUE ()
-    score=objFuncMC(attSel= attSel,     # vector of selected attributes
-                    attPrim=attPrim,      # any primary attributes
-                    attInfo=attInfo,
-                    simPt=simPt,
-                    target=target,
-                    penalty.func=penaltyFunc_basic,   #make this changeable (auto calc lambda)
-                    lambda=lambda.mult
-    )
+      #GET OBJECTIVE FUNCTION VALUE ()
+      score=objFuncMC(attSel= attSel,     # vector of selected attributes
+                      attPrim=attPrim,      # any primary attributes
+                      attInfo=attInfo,
+                      simPt=simPt,
+                      target=target,
+                      penalty.func=penaltyFunc_basic,   #make this changeable (auto calc lambda)
+                      lambda=lambda.mult
+      )
+    }
   }
-
-
-#  cat(score,'\n')
   return(score)
 }
 
