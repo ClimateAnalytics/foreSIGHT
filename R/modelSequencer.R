@@ -85,7 +85,6 @@ simulateTarget<-function(
       progress(p("    Working on variable ",simVar[mod]),file)
       progress(p("    Parameters specified by user, no optimisation ..."),file)
 
-
       out[[simVar[mod]]]=switch_simulator(type=modelInfo[[modelTag[mod]]]$simVar,
                                           parS=parMin,   #bounds become the pars
                                           modelEnv = foreSIGHT_modelEnv,
@@ -111,53 +110,75 @@ simulateTarget<-function(
       # calculate attribute info prior to start of optimization so it does not need to be recalculated each call to target finder
       attInfo[[modelTag[mod]]]$attCalcInfo = attribute.calculator.setup(attSel=attSel[attInd[[mod]]],
                                                                         datInd=datInd[[modelTag[mod]]])
-      if (optimArgs$optimizer=='GA') {
-        optTest=gaWrapper(gaArgs=optimArgs,
-                          modelEnv = foreSIGHT_modelEnv,
-                          modelInfo=modelInfo[[modelTag[mod]]],
-                          attSel=attSel[attInd[[mod]]],
-                          attPrim=attPrim,
-                          attInfo=attInfo[[modelTag[mod]]],
-                          datInd=datInd[[modelTag[mod]]],
-                          randomVector = randomVector,
-                          randomUnitNormalVector = randomUnitNormalVector,
-                          parSuggest=parSel,
-                          target=targetLoc[attInd[[mod]]],
-                          attObs=attObs[attInd[[mod]]],
-                          lambda.mult=optimArgs$lambda.mult,
-                          simSeed=setSeed,
-                          wdSeries=wdStatus,   #selecting rainfall  if needed
-                          resid_ts=NULL)
-      } else if (optimArgs$optimizer=='RGN') {
-        optTest=rgnWrapper(rgnArgs=optimArgs$rgnSettings,
-                          modelEnv = foreSIGHT_modelEnv,
-                          modelInfo=modelInfo[[modelTag[mod]]],
-                          attSel=attSel[attInd[[mod]]],
-                          attPrim=attPrim,
-                          attInfo=attInfo[[modelTag[mod]]],
-                          datInd=datInd[[modelTag[mod]]],
-                          randomVector = randomVector,
-                          randomUnitNormalVector = randomUnitNormalVector,
-                          parSuggest=parSel,
-                          target=targetLoc[attInd[[mod]]],
-                          attObs=attObs[attInd[[mod]]],
-                          lambda.mult=optimArgs$lambda.mult,
-                          simSeed=setSeed,
-                          wdSeries=wdStatus,   #selecting rainfall  if needed
-                          resid_ts=NULL)
-      }
 
-      if (optimArgs$optimizer=='GA'){
-        nIter = optTest$opt@iter
-        out$ga_runtime=optTest$runtime
-        out$ga_fitness=optTest$fitness
-        out$ga_iter=optTest$opt@iter
-        out$ga_summary=optTest$opt@summary
-      } else if (optimArgs$optimizer=='RGN'){
-        nIter = optTest$opt$info$nIter
-        out$rgn = optTest
-      }
-      progress(p("    Best fitness: ",signif(optTest$fitness,digits=5), ". Optimisation stopped at iter ",nIter),file)
+      optTest = multiStartOptim(optimArgs=optimArgs,
+                                modelEnv = foreSIGHT_modelEnv,
+                                modelInfo=modelInfo[[modelTag[mod]]],
+                                attSel=attSel[attInd[[mod]]],
+                                attPrim=attPrim,
+                                attInfo=attInfo[[modelTag[mod]]],
+                                datInd=datInd[[modelTag[mod]]],
+                                randomVector = randomVector,
+                                randomUnitNormalVector = randomUnitNormalVector,
+                                parSuggest=parSel,
+                                target=targetLoc[attInd[[mod]]],
+                                attObs=attObs[attInd[[mod]]],
+                                lambda.mult=optimArgs$lambda.mult,
+                                simSeed=setSeed,
+                                wdSeries=wdStatus,   #selecting rainfall  if needed
+                                resid_ts=NULL)
+
+      # if (optimArgs$optimizer=='GA') {
+      #   optTest=gaWrapper(gaArgs=optimArgs,
+      #                     modelEnv = foreSIGHT_modelEnv,
+      #                     modelInfo=modelInfo[[modelTag[mod]]],
+      #                     attSel=attSel[attInd[[mod]]],
+      #                     attPrim=attPrim,
+      #                     attInfo=attInfo[[modelTag[mod]]],
+      #                     datInd=datInd[[modelTag[mod]]],
+      #                     randomVector = randomVector,
+      #                     randomUnitNormalVector = randomUnitNormalVector,
+      #                     parSuggest=parSel,
+      #                     target=targetLoc[attInd[[mod]]],
+      #                     attObs=attObs[attInd[[mod]]],
+      #                     lambda.mult=optimArgs$lambda.mult,
+      #                     simSeed=setSeed,
+      #                     wdSeries=wdStatus,   #selecting rainfall  if needed
+      #                     resid_ts=NULL)
+      # } else if (optimArgs$optimizer=='RGN') {
+      #   optTest=rgnWrapper(rgnArgs=optimArgs,
+      #                     modelEnv = foreSIGHT_modelEnv,
+      #                     modelInfo=modelInfo[[modelTag[mod]]],
+      #                     attSel=attSel[attInd[[mod]]],
+      #                     attPrim=attPrim,
+      #                     attInfo=attInfo[[modelTag[mod]]],
+      #                     datInd=datInd[[modelTag[mod]]],
+      #                     randomVector = randomVector,
+      #                     randomUnitNormalVector = randomUnitNormalVector,
+      #                     parSuggest=parSel,
+      #                     target=targetLoc[attInd[[mod]]],
+      #                     attObs=attObs[attInd[[mod]]],
+      #                     lambda.mult=optimArgs$lambda.mult,
+      #                     simSeed=setSeed,
+      #                     wdSeries=wdStatus,   #selecting rainfall  if needed
+      #                     resid_ts=NULL)
+      # }
+
+      # if (optimArgs$optimizer=='GA'){
+      #   nIter = optTest$opt@iter
+      #   out$ga_runtime=optTest$runtime
+      #   out$ga_fitness=optTest$fitness
+      #   out$ga_iter=optTest$opt@iter
+      #   out$ga_summary=optTest$opt@summary
+      # } else if (optimArgs$optimizer=='RGN'){
+      #   nIter = optTest$opt$info$nIter
+      #   out$rgn = optTest
+      #   browser()
+      # }
+
+      out = optTest
+
+      #progress(p("    Best fitness: ",signif(optTest$fitness,digits=5), ". Optimisation stopped at iter ",nIter),file)
       #progress(p("    Note:",signif(summary(optTest$opt)$fitness,digits=5)),file)
       #plot(optTest$opt)
 
