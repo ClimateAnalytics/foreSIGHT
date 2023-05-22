@@ -30,7 +30,13 @@ func_tot = function(data) sum(data)
 #' @param attArgs is a list, with attArgs$indexWet corresponding to wet season and attArgs$indexDry dry season
 # seasonality ratio
 #' @export
-func_seasRatio = function(data,attArgs) sum(data=data[attArgs$indexWet])/sum(data=data[attArgs$indexDry])
+func_seasRatio = function(data,attArgs){
+  Pdry = sum(data=data[attArgs$indexDry])
+  Pwet = sum(data=data[attArgs$indexWet])
+  Pdry = max(Pdry,0.001)
+  seasRatio = Pwet/Pdry
+  return(seasRatio)
+}
 
 #' Calculates number of wet days (above threshold)
 #' @param data is a vector, representing a time series
@@ -211,6 +217,18 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
                                            attArgs=attCalcInfo[[att]]$attArgs)
       } else {
         out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryMean,
+                           func=attCalcInfo[[att]]$func,
+                           indx=attCalcInfo[[att]]$indx,
+                           attArgs=attCalcInfo[[att]]$attArgs)
+      }
+    } else if (attCalcInfo[[att]]$opName=='sd'){ # sd of values calculated in each year
+      if (is.null(dim(data))){
+        out[[att]] = extractor.summarySD(func=attCalcInfo[[att]]$func,
+                                           data=data,
+                                           indx=attCalcInfo[[att]]$indx,
+                                           attArgs=attCalcInfo[[att]]$attArgs)
+      } else {
+        out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summarySD,
                            func=attCalcInfo[[att]]$func,
                            indx=attCalcInfo[[att]]$indx,
                            attArgs=attCalcInfo[[att]]$attArgs)
@@ -469,7 +487,7 @@ calcStratIndex = function(indexName,opName,datInd){
     indx = stratIndx
   } else { # here we calculate stratification for each year (later used to calculate mean/max values over all years)
     yrIndx = list()
-    if (opName=='m'){
+    if (opName%in%c('m','sd')){
       for (y in 1:length(datInd$i.yy)){
         yrIndx[[y]] = intersect(datInd$i.yy[[y]],stratIndx)
       }
@@ -768,6 +786,8 @@ tagBlender<-function(attLab=NULL
     stype = ''
   } else if (opName=='m'){
     stype="Mean"
+  } else if (opName=='sd'){
+    stype="Sdev"
   }
 
   #stitch togther
