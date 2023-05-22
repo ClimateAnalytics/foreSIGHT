@@ -30,6 +30,7 @@ optimArgsdefault=list(pcrossover= 0.8,   # list of a parameters used by the ga o
                       lambda.mult=0.0,
                       suggestions=NULL,
                       optimizer='GA',
+                      nMultiStart=1,
                       rgnSettings=NULL)
 
 varShortToLong <- c("P" = "Precipitation",
