@@ -10,6 +10,479 @@
         # outBound()
 
 #-----------------------------------------------
+
+findFixedPars = function(xLo,xHi){
+  fixParLoc = fixParVal = fitParLoc = c()
+  for (i in 1:length(xLo)){
+    if (xLo[i]==xHi[i]){
+      fixParLoc = c(fixParLoc,i)
+      fixParVal = c(fixParVal,xLo[i])
+    } else{
+      fitParLoc = c(fitParLoc,i)
+    }
+  }
+return(list(fixParLoc=fixParLoc,fixParVal=fixParVal,fitParLoc=fitParLoc))
+}
+
+#-----------------------------------------------
+
+calcParFixedPars = function(x,fixedPars){
+  if (!is.null(fixedPars$fixParLoc)){
+    xAll = c()
+    xAll[fixedPars$fixParLoc] = fixedPars$fixParVal
+    xAll[fixedPars$fitParLoc] = x
+  } else {
+    xAll = x
+  }
+#  browser()
+  return(xAll)
+}
+
+#-----------------------------------------------
+
+targetFinderFixPars = function(x,fixedPars=NULL,...){
+  # deal with fixed and fitted pars
+  xAll = calcParFixedPars(x,fixedPars)
+  target = targetFinder(x=xAll,...)
+#  print(x)
+#  print(target)
+#  browser()
+  return(target)
+}
+
+#-----------------------------------------------
+
+negTargetFinder = function(x,...){
+  target = -targetFinder(x=x,...)
+  return(target)
+}
+
+#-----------------------------------------------
+
+negTargetFinderFixPars = function(x,fixedPars=NULL,...){
+  target = -targetFinderFixPars(x=x,fixedPars=fixedPars,...)
+  return(target)
+}
+
+#-----------------------------------------------
+
+# multiStartOptim = function(optimArgs=NULL,
+#                            modelEnv = NULL,
+#                            modelInfo=NULL,     # information related to modelTags
+#                            attSel=NULL,        # attributes selected (vector of strings)
+#                            attPrim=NULL,       # primary attribute label
+#                            attInfo=NULL,       # added info regarding attributes
+#                            datInd=NULL,
+#                            randomVector = NULL,
+#                            randomUnitNormalVector = NULL,
+#                            parSuggest=NULL,    # paramater suggestions
+#                            target=NULL,        # target locations: desired changes in climate to be simulated, in % relative or abs diff to baseline levels (vector)
+#                            attObs=NULL,        # observed series attribute values
+#                            lambda.mult=NULL,   # lambda multiplier for penalty function
+#                            simSeed=NULL,       # seeds
+#                            wdSeries=NULL,
+#                            resid_ts=NULL
+#                            ){
+
+  multiStartOptim = function(optimArgs=NULL,
+                             modelInfo=NULL,
+                             lambda.mult=NULL,
+                             target=NULL,
+                             parSuggest=NULL,
+                             simSeed=NULL,
+                             ...){
+
+  timeStart=Sys.time()
+
+  ##################################
+
+  xLo = modelInfo$minBound
+  xHi = modelInfo$maxBound
+
+  fixedPars = findFixedPars(xLo,xHi)
+
+  fBest = 9e9
+
+  ######## THESE DEFAULT SETTINGS SHOULD BE INCORPORATED INTO optimArgsdefault() in default_parameters.R . This will require a bit of work to separate GA from RGN settings
+
+
+  if(!is.null(optimArgs$iterMax)){
+    iterMax = optimArgs$iterMax
+  } else {
+    iterMax = 100
+  }
+
+  if(!is.null(optimArgs$suggestions)){
+    sugg = optimArgs$suggestions
+    nSugg = nrow(sugg)
+  } else {
+    nSugg = 0
+  }
+
+  fMulti = timeMulti = callsMulti = c()
+  parsMulti = onBoundsMulti = matrix(nrow=optimArgs$nMultiStart,ncol=length(xLo))
+
+  for (r in 1:optimArgs$nMultiStart){
+
+    time1 = Sys.time()
+    assign("WG_calls",0,envir = .GlobalEnv)
+
+    print(r)
+
+    if (optimArgs$optimizer!='GA') {
+      if (r<=nSugg){
+        x0 = sugg[r,]
+      } else {
+        set.seed(r) # set the random seed for selecting initial parameter values. note same set of seeds will be used for each target/replicate.
+        x0 = xLo + runif(length(xLo))*(xHi-xLo)
+      }
+    } else {
+      if(!is.null(optimArgs$seed)){
+        seed=optimArgs$seed[r]
+      } else {
+        seed = r
+      }
+    }
+
+    if (optimArgs$optimizer=='RGN') {
+
+#      browser()
+
+      # outTmp <- rgn(simFunc=targetFinderFixPars,
+      #                       fixedPars=fixedPars,
+      #                       x0 = x0[fixedPars$fitParLoc],
+      #                       xHi = xHi[fixedPars$fitParLoc],
+      #                       xLo = xLo[fixedPars$fitParLoc],
+      #                       simTarget = unlist(target),
+      #                       weights=1.+lambda.mult,
+      #                       modelInfo=modelInfo,
+      #                       target=target,
+      #                       returnThis='sim',
+      #                       simSeed=simSeed,
+      #                       ...)
+
+      outTmp <- rgn(simFunc=targetFinderFixPars,
+                            fixedPars=fixedPars,
+                            x0 = x0[fixedPars$fitParLoc],
+                            xHi = xHi[fixedPars$fitParLoc],
+                            xLo = xLo[fixedPars$fitParLoc],
+                            simTarget = rep(0.,length(target)),
+                            lambda.mult=lambda.mult,
+                            modelInfo=modelInfo,
+                            target=target,
+                            returnThis='resid',
+                            simSeed=simSeed,
+                            ...)
+
+      fSingle = sqrt(2*outTmp$info$f)
+      parsSingle = calcParFixedPars(outTmp$x,fixedPars)
+
+     } else if (optimArgs$optimizer=='CMAES') {
+
+#       browser()
+
+       set.seed(r)
+        outTmp <- cmaes::cma_es(fn=targetFinderFixPars,
+                              par = x0[fixedPars$fitParLoc],
+                              fixedPars=fixedPars,
+                              modelInfo=modelInfo,
+                              target=target,
+                              lambda.mult=lambda.mult,
+                              simSeed=simSeed,
+                         ...,
+                         lower = xLo[fixedPars$fitParLoc],
+                         upper = xHi[fixedPars$fitParLoc],
+                         control=list(fnscale=-1,keep.best=T,stopfitness=1e-5))#,maxit=100))
+
+       # outTmp1 <- cmaesr::cmaes(objective.fun=targetFinderFixPars,
+       #                         start.point = x0[fixedPars$fitParLoc],
+       #                         fixedPars=fixedPars,
+       #                         modelInfo=modelInfo,
+       #                         target=target,
+       #                         lambda.mult=lambda.mult,
+       #                         simSeed=simSeed,
+       #                         ...)
+
+
+#        browser()
+
+        fSingle = -outTmp$value
+        if (is.null(outTmp$par)){
+          fSingle=9e9
+          parSingle = NULL
+        } else {
+          parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+        }
+
+#        browser()
+
+     } else if (optimArgs$optimizer=='NLSLM') {
+
+       outTmp = minpack.lm::nls.lm(par=x0[fixedPars$fitParLoc],
+                                lower=xLo[fixedPars$fitParLoc],
+                                upper=xHi[fixedPars$fitParLoc],
+                                fn=targetFinderFixPars,
+                                fixedPars=fixedPars,
+                                control=list(fnscale=1),
+                                target=target,
+                                lambda.mult=lambda.mult,
+                                modelInfo=modelInfo,
+                                simSeed=simSeed,
+                                returnThis='resid',
+                                ...)
+
+
+       fSingle = sqrt(sum(outTmp$fvec^2))
+
+       parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+
+      } else if (optimArgs$optimizer=='GA') {
+
+      # outTmp = ga(type = "real-valued",
+      #             fitness=targetFinder,
+      #             lower = xLo,
+      #             upper = xHi,
+      #             pcrossover= optimArgs$pcrossover,
+      #             pmutation=optimArgs$pmutation,
+      #             maxiter=optimArgs$maxiter,
+      #             popSize = optimArgs$popSize,
+      #             maxFitness = optimArgs$maxFitness,
+      #             run=optimArgs$run,
+      #             seed = r,
+      #             parallel = optimArgs$parallel,
+      #             keepBest=optimArgs$keepBest,
+      #             suggestions = parSuggest,
+      #             monitor = FALSE,             #switchback
+      #             target=target,
+      #             lambda.mult=lambda.mult,
+      #             modelInfo=modelInfo,
+      #             simSeed=simSeed,
+      #             ...)
+      #
+      # fSingle = -outTmp@fitnessValue
+      # parsSingle = outTmp@solution[1,]
+
+      outTmp = ga(type = "real-valued",
+                  fitness=targetFinderFixPars,
+                  lower = xLo[fixedPars$fitParLoc],
+                  upper = xHi[fixedPars$fitParLoc],
+                  pcrossover= optimArgs$pcrossover,
+                  pmutation=optimArgs$pmutation,
+                  maxiter=optimArgs$maxiter,
+                  popSize = optimArgs$popSize,
+                  maxFitness = optimArgs$maxFitness,
+                  run=optimArgs$run,
+                  seed = r,
+                  parallel = optimArgs$parallel,
+                  keepBest=optimArgs$keepBest,
+                  suggestions = parSuggest,
+                  monitor = FALSE,             #switchback
+                  fixedPars=fixedPars,
+                  target=target,
+                  lambda.mult=lambda.mult,
+                  modelInfo=modelInfo,
+                  simSeed=simSeed,
+                  ...)
+
+      fSingle = -outTmp@fitnessValue
+      parsSingle = calcParFixedPars(outTmp@solution[1,],fixedPars)
+
+      } else if (optimArgs$optimizer=='SCE') {
+
+      # outTmp = SoilHyP::SCEoptim(
+      #             FUN=targetFinder,
+      #             par=x0,
+      #             lower = xLo,
+      #             upper = xHi,
+      #             control=list(fnscale=-1,initsample='random'),
+      #             target=target,
+      #             lambda.mult=lambda.mult,
+      #             modelInfo=modelInfo,
+      #             simSeed=simSeed,
+      #             ...)
+      #
+      # fSingle = outTmp$value
+      # parsSingle = outTmp$par
+
+      outTmp = SoilHyP::SCEoptim(
+        FUN=targetFinderFixPars,
+        par=x0[fixedPars$fitParLoc],
+        lower = xLo[fixedPars$fitParLoc],
+        upper = xHi[fixedPars$fitParLoc],
+        control=list(fnscale=-1,initsample='random'),
+        fixedPars=fixedPars,
+        target=target,
+        lambda.mult=lambda.mult,
+        modelInfo=modelInfo,
+        simSeed=simSeed,
+        ...)
+
+      fSingle = outTmp$value
+      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+
+    } else if (optimArgs$optimizer=='BOBYQA') {
+
+      # outTmp = nloptr::bobyqa(
+      #   fn=negTargetFinder,
+      #   x0=x0,
+      #   lower = xLo,
+      #   upper = xHi,
+      #   target=target,
+      #   lambda.mult=lambda.mult,
+      #   modelInfo=modelInfo,
+      #   simSeed=simSeed,
+      #   ...)
+      #
+      # fSingle = outTmp$value
+      # parsSingle = outTmp$par
+
+      outTmp = nloptr::bobyqa(
+        fn=negTargetFinderFixPars,
+        x0=x0[fixedPars$fitParLoc],
+        lower = xLo[fixedPars$fitParLoc],
+        upper = xHi[fixedPars$fitParLoc],
+        fixedPars=fixedPars,
+        target=target,
+        lambda.mult=lambda.mult,
+        modelInfo=modelInfo,
+        simSeed=simSeed,
+        ...)
+
+      fSingle = outTmp$value
+      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+
+    # } else if (optimArgs$optimizer=='HJK') {
+    #
+    #   outTmp = dfoptim::hjkb(
+    #     fn=targetFinder,
+    #     par=x0,
+    #     lower = xLo,
+    #     upper = xHi,
+    #     control=list(maximize=T),
+    #     target=target,
+    #     lambda.mult=lambda.mult,
+    #     modelInfo=modelInfo,
+    #     simSeed=simSeed,
+    #     ...)
+    #
+    #   fSingle = -outTmp$value
+    #   parsSingle = outTmp$par
+    #
+    # } else if (optimArgs$optimizer=='NMK') {
+    #   outTmp = dfoptim::nmkb(
+    #     fn=targetFinderFixPars,
+    #     fixedPars=fixedPars,
+    #     par=x0[fixedPars$fitParLoc],
+    #     lower = xLo[fixedPars$fitParLoc],
+    #     upper = xHi[fixedPars$fitParLoc],
+    #     control=list(maximize=T),
+    #     target=target,
+    #     lambda.mult=lambda.mult,
+    #     modelInfo=modelInfo,
+    #     simSeed=simSeed,
+    #     ...)
+    #
+    #   fSingle = -outTmp$value
+    #   parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+    #
+    #   browser()
+
+    } else if (optimArgs$optimizer=='optim.LBFGSB') {
+
+      # outTmp<- optim(par=x0,
+      #                fn=targetFinder,
+      #                method='L-BFGS-B',
+      #                lower=xLo-1e-6,
+      #                upper=xHi+1e-6,
+      #                target=target,
+      #                control=list(fnscale=-1),
+      #                lambda.mult=lambda.mult,
+      #                modelInfo=modelInfo,
+      #                simSeed=simSeed,
+      #                ...)
+      #
+      # fSingle = -outTmp$value
+      # parsSingle = outTmp$par
+
+      outTmp<- optim(par=x0[fixedPars$fitParLoc],
+                     fn=targetFinderFixPars,
+                     method='L-BFGS-B',
+                     lower=xLo[fixedPars$fitParLoc]-1e-6,
+                     upper=xHi[fixedPars$fitParLoc]+1e-6,
+                     fixedPars=fixedPars,
+                     target=target,
+                     control=list(fnscale=-1),
+                     lambda.mult=lambda.mult,
+                     modelInfo=modelInfo,
+                     simSeed=simSeed,
+                     ...)
+
+      fSingle = -outTmp$value
+      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+
+#      browser()
+
+    # } else if (optimArgs$optimizer=='optim.NM') {
+    #
+    #   outTmp<- optim(par=x0,
+    #                  fn=targetFinder,
+    #                  method='Nelder-Mead',
+    #                  target=target,
+    #                  control=list(fnscale=-1),
+    #                  lambda.mult=lambda.mult,
+    #                  modelInfo=modelInfo,
+    #                  simSeed=simSeed,
+    #                  ...)
+    #
+    #   fSingle = -outTmp$value
+    #   parsSingle = outTmp$par
+
+    }
+
+    time2 = Sys.time()
+    timeSingle=time2-time1    #optimisation runtime
+
+    onBoundsSingle = (abs(parsSingle-xLo)<1e-6) | (abs(parsSingle-xHi)<1e-6)
+
+    print(parsSingle)
+
+#    browser()
+
+    fMulti[r] = fSingle
+    parsMulti[r,] = parsSingle
+    timeMulti[r] = timeSingle
+    callsMulti[r] = WG_calls
+    onBoundsMulti[r,] = onBoundsSingle
+    if (fSingle<fBest){
+      fBest = fSingle
+      parsBest = parsSingle
+      optOut=outTmp
+    }
+
+    cat(fSingle,fBest,'\n')
+
+  }
+
+  timeFin=Sys.time()
+  timeRun=timeFin-timeStart    #optimisation runtime
+
+  out=list(par=as.vector(parsBest),
+           fitness=as.numeric(fBest),
+           seed=simSeed,
+           opt=optOut,
+           runtime=timeRun,
+           fMulti=fMulti,
+           parsMulti=parsMulti,
+           onBoundsMulti=onBoundsMulti,
+           callsMulti=callsMulti,
+           timeMulti=timeMulti)
+
+  return(out)
+
+}
+
+#-----------------------------------------------
+
 gaWrapper<-function(gaArgs=NULL,        # can specify your own outside
                     modelEnv=NULL,
                     modelInfo=NULL,     # information related to modelTags
@@ -31,37 +504,67 @@ gaWrapper<-function(gaArgs=NULL,        # can specify your own outside
   #MEMOISE YAY OR NAY - TBC
   #USER SPECIFIED PARALLEL CONTROLS
   timeStart=Sys.time()
-  optpar<- ga(type = "real-valued",
-              fitness=targetFinder,
-              lower = modelInfo$minBound,
-              upper = modelInfo$maxBound,
-              pcrossover= gaArgs$pcrossover,
-              pmutation=gaArgs$pmutation,
-              maxiter=gaArgs$maxiter,
-              popSize = gaArgs$popSize,
-              maxFitness = gaArgs$maxFitness,
-              run=gaArgs$run,
-              seed = gaArgs$seed,
-              parallel = gaArgs$parallel,
-              keepBest=gaArgs$keepBest,
-              suggestions = parSuggest,
-              monitor = FALSE,             #switchback
-              #BELOW RELATED TO TARGETFINDER()
-              modelInfo=modelInfo,
-              modelEnv=modelEnv,
-              attSel=attSel,
-              attPrim=attPrim,
-              attInfo=attInfo,
-              datInd=datInd,
-              randomVector = randomVector,
-              randomUnitNormalVector = randomUnitNormalVector,
-              target=target,
-              attObs=attObs,
-              lambda.mult=lambda.mult,
-              simSeed=simSeed,
-              wdSeries=wdSeries,
-              resid_ts=resid_ts
-              )
+
+  if(!is.null(gaArgs$nMultiStart)){
+    nMultiStart = gaArgs$nMultiStart
+  } else {
+    nMultiStart = 1
+  }
+
+  if(!is.null(gaArgs$seed)){
+    seedList=gaArgs$seed
+  } else {
+    seedList = 1:nMultiStart
+  }
+
+  fBest = -9e9
+
+  for (r in 1:nMultiStart){     ####### NOTE multi-starts should be done in separate wrapper
+
+    print(r)
+    print(seedList[r])
+
+    optparTmp<- ga(type = "real-valued",
+                fitness=targetFinder,
+                lower = modelInfo$minBound,
+                upper = modelInfo$maxBound,
+                pcrossover= gaArgs$pcrossover,
+                pmutation=gaArgs$pmutation,
+                maxiter=gaArgs$maxiter,
+                popSize = gaArgs$popSize,
+                maxFitness = gaArgs$maxFitness,
+                run=gaArgs$run,
+                seed = seedList[r],
+                parallel = gaArgs$parallel,
+                keepBest=gaArgs$keepBest,
+                suggestions = parSuggest,
+                monitor = FALSE,             #switchback
+                #BELOW RELATED TO TARGETFINDER()
+                modelInfo=modelInfo,
+                modelEnv=modelEnv,
+                attSel=attSel,
+                attPrim=attPrim,
+                attInfo=attInfo,
+                datInd=datInd,
+                randomVector = randomVector,
+                randomUnitNormalVector = randomUnitNormalVector,
+                target=target,
+                attObs=attObs,
+                lambda.mult=lambda.mult,
+                simSeed=simSeed,
+                wdSeries=wdSeries,
+                resid_ts=resid_ts
+    )
+
+    if (optparTmp@fitnessValue>fBest){
+      fBest = optparTmp@fitnessValue
+      optpar=optparTmp
+    }
+
+    print(paste(optparTmp@fitnessValue,fBest))
+
+  }
+
   timeFin=Sys.time()
   timeRun=timeFin-timeStart    #optimisation runtime
   #print(summary(optpar)$fitness)
@@ -87,7 +590,7 @@ rgnWrapper<-function(rgnArgs=NULL,        # can specify your own outside
                     datInd=NULL,
                     randomVector = NULL,
                     randomUnitNormalVector = NULL,
-                    parSuggest=NULL,    # paramater suggestions
+                    parSuggest=NULL,    # parameter suggestions
                     target=NULL,        # target locations: desired changes in climate to be simulated, in % relative or abs diff to baseline levels (vector)
                     attObs=NULL,        # observed series attribute values
                     lambda.mult=NULL,   # lambda multiplier for penalty function
@@ -106,11 +609,6 @@ rgnWrapper<-function(rgnArgs=NULL,        # can specify your own outside
 
   ######## THESE DEFAULT SETTINGS SHOULD BE INCORPORATED INTO optimArgsdefault() in default_parameters.R . This will require a bit of work to separate GA from RGN settings
 
-  if(!is.null(rgnArgs$nMultiStart)){
-    nMultiStart = rgnArgs$nMultiStart
-  } else {
-    nMultiStart = 10
-  }
 
   if(!is.null(rgnArgs$iterMax)){
     iterMax = rgnArgs$iterMax
@@ -118,14 +616,24 @@ rgnWrapper<-function(rgnArgs=NULL,        # can specify your own outside
     iterMax = 100
   }
 
-  for (r in 1:nMultiStart){
+  if(!is.null(rgnArgs$rgnSettings$suggestions)){
+    sugg = rgnArgs$rgnSettings$suggestions
+    nSugg = nrow(sugg)
+  } else {
+    nSugg = 0
+  }
 
-    set.seed(r+simSeed*2222) # set the random seed for selecting initial parameter values. note same set of seeds will be used for each target/replicate.
+  fMulti = c()
+  for (r in 1:rgnArgs$nMultiStart){
 
     print(r)
-    x0 = xLo + runif(length(xLo))*(xHi-xLo)
-
-    rgnOutTmp <- rgn_fixPars(simFunc=targetFinder,
+    if (r<=nSugg){
+      x0 = sugg[r,]
+    } else {
+      set.seed(r) # set the random seed for selecting initial parameter values. note same set of seeds will be used for each target/replicate.
+      x0 = xLo + runif(length(xLo))*(xHi-xLo)
+    }
+  rgnOutTmp <- rgn_fixPars(simFunc=targetFinder,
                      x0 = x0,
                      xHi = xHi,
                      xLo = xLo,
@@ -146,6 +654,7 @@ rgnWrapper<-function(rgnArgs=NULL,        # can specify your own outside
                      resid_ts=resid_ts,
                      attObs=attObs,target=target,return_sim_only=T)
 
+    fMulti[r] = rgnOutTmp$info$f
     if (rgnOutTmp$info$f<fBest){
       fBest = rgnOutTmp$info$f
       rgnOut=rgnOutTmp
@@ -162,7 +671,8 @@ rgnWrapper<-function(rgnArgs=NULL,        # can specify your own outside
            fitness=as.numeric(rgnOut$info$f),
            seed=simSeed,
            opt=rgnOut,
-           runtime=timeRun)
+           runtime=timeRun,
+           fMulti=fMulti)
 
   return(out)
 
