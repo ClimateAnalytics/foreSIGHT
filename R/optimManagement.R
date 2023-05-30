@@ -44,9 +44,6 @@ targetFinderFixPars = function(x,fixedPars=NULL,...){
   # deal with fixed and fitted pars
   xAll = calcParFixedPars(x,fixedPars)
   target = targetFinder(x=xAll,...)
-#  print(x)
-#  print(target)
-#  browser()
   return(target)
 }
 
@@ -65,24 +62,6 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 }
 
 #-----------------------------------------------
-
-# multiStartOptim = function(optimArgs=NULL,
-#                            modelEnv = NULL,
-#                            modelInfo=NULL,     # information related to modelTags
-#                            attSel=NULL,        # attributes selected (vector of strings)
-#                            attPrim=NULL,       # primary attribute label
-#                            attInfo=NULL,       # added info regarding attributes
-#                            datInd=NULL,
-#                            randomVector = NULL,
-#                            randomUnitNormalVector = NULL,
-#                            parSuggest=NULL,    # paramater suggestions
-#                            target=NULL,        # target locations: desired changes in climate to be simulated, in % relative or abs diff to baseline levels (vector)
-#                            attObs=NULL,        # observed series attribute values
-#                            lambda.mult=NULL,   # lambda multiplier for penalty function
-#                            simSeed=NULL,       # seeds
-#                            wdSeries=NULL,
-#                            resid_ts=NULL
-#                            ){
 
   multiStartOptim = function(optimArgs=NULL,
                              modelInfo=NULL,
@@ -119,8 +98,10 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
     nSugg = 0
   }
 
-  fMulti = timeMulti = callsMulti = c()
+  fMulti = timeMulti = callsMulti = convergedMulti = convergenceCodeMulti = messageMulti = c()
   parsMulti = onBoundsMulti = matrix(nrow=optimArgs$nMultiStart,ncol=length(xLo))
+
+  convergenceCodeSingle = messageSingle = NA
 
   for (r in 1:optimArgs$nMultiStart){
 
@@ -146,21 +127,6 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 
     if (optimArgs$optimizer=='RGN') {
 
-#      browser()
-
-      # outTmp <- rgn(simFunc=targetFinderFixPars,
-      #                       fixedPars=fixedPars,
-      #                       x0 = x0[fixedPars$fitParLoc],
-      #                       xHi = xHi[fixedPars$fitParLoc],
-      #                       xLo = xLo[fixedPars$fitParLoc],
-      #                       simTarget = unlist(target),
-      #                       weights=1.+lambda.mult,
-      #                       modelInfo=modelInfo,
-      #                       target=target,
-      #                       returnThis='sim',
-      #                       simSeed=simSeed,
-      #                       ...)
-
       outTmp <- rgn(simFunc=targetFinderFixPars,
                             fixedPars=fixedPars,
                             x0 = x0[fixedPars$fitParLoc],
@@ -176,10 +142,9 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 
       fSingle = sqrt(2*outTmp$info$f)
       parsSingle = calcParFixedPars(outTmp$x,fixedPars)
+      convergedSingle = (outTmp$error==0)
 
      } else if (optimArgs$optimizer=='CMAES') {
-
-#       browser()
 
        set.seed(r)
         outTmp <- cmaes::cma_es(fn=targetFinderFixPars,
@@ -194,18 +159,6 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
                          upper = xHi[fixedPars$fitParLoc],
                          control=list(fnscale=-1,keep.best=T,stopfitness=1e-5))#,maxit=100))
 
-       # outTmp1 <- cmaesr::cmaes(objective.fun=targetFinderFixPars,
-       #                         start.point = x0[fixedPars$fitParLoc],
-       #                         fixedPars=fixedPars,
-       #                         modelInfo=modelInfo,
-       #                         target=target,
-       #                         lambda.mult=lambda.mult,
-       #                         simSeed=simSeed,
-       #                         ...)
-
-
-#        browser()
-
         fSingle = -outTmp$value
         if (is.null(outTmp$par)){
           fSingle=9e9
@@ -214,7 +167,8 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
           parsSingle = calcParFixedPars(outTmp$par,fixedPars)
         }
 
-#        browser()
+        convergedSingle = (outTmp$convergence==0)
+        convergenceCodeSingle = outTmp$convergence
 
      } else if (optimArgs$optimizer=='NLSLM') {
 
@@ -236,31 +190,11 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 
        parsSingle = calcParFixedPars(outTmp$par,fixedPars)
 
-      } else if (optimArgs$optimizer=='GA') {
+       convergedSingle = (outTmp$info%in%c(1,2,3,4))
+       messageSingle = outTmp$message
+       convergenceCodeSingle = outTmp$info
 
-      # outTmp = ga(type = "real-valued",
-      #             fitness=targetFinder,
-      #             lower = xLo,
-      #             upper = xHi,
-      #             pcrossover= optimArgs$pcrossover,
-      #             pmutation=optimArgs$pmutation,
-      #             maxiter=optimArgs$maxiter,
-      #             popSize = optimArgs$popSize,
-      #             maxFitness = optimArgs$maxFitness,
-      #             run=optimArgs$run,
-      #             seed = r,
-      #             parallel = optimArgs$parallel,
-      #             keepBest=optimArgs$keepBest,
-      #             suggestions = parSuggest,
-      #             monitor = FALSE,             #switchback
-      #             target=target,
-      #             lambda.mult=lambda.mult,
-      #             modelInfo=modelInfo,
-      #             simSeed=simSeed,
-      #             ...)
-      #
-      # fSingle = -outTmp@fitnessValue
-      # parsSingle = outTmp@solution[1,]
+      } else if (optimArgs$optimizer=='GA') {
 
       outTmp = ga(type = "real-valued",
                   fitness=targetFinderFixPars,
@@ -287,22 +221,9 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
       fSingle = -outTmp@fitnessValue
       parsSingle = calcParFixedPars(outTmp@solution[1,],fixedPars)
 
-      } else if (optimArgs$optimizer=='SCE') {
+      convergedSingle = NA
 
-      # outTmp = SoilHyP::SCEoptim(
-      #             FUN=targetFinder,
-      #             par=x0,
-      #             lower = xLo,
-      #             upper = xHi,
-      #             control=list(fnscale=-1,initsample='random'),
-      #             target=target,
-      #             lambda.mult=lambda.mult,
-      #             modelInfo=modelInfo,
-      #             simSeed=simSeed,
-      #             ...)
-      #
-      # fSingle = outTmp$value
-      # parsSingle = outTmp$par
+      } else if (optimArgs$optimizer=='SCE') {
 
       outTmp = SoilHyP::SCEoptim(
         FUN=targetFinderFixPars,
@@ -320,21 +241,9 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
       fSingle = outTmp$value
       parsSingle = calcParFixedPars(outTmp$par,fixedPars)
 
-    } else if (optimArgs$optimizer=='BOBYQA') {
+      convergedSingle = (outTmp$convergence==0)
 
-      # outTmp = nloptr::bobyqa(
-      #   fn=negTargetFinder,
-      #   x0=x0,
-      #   lower = xLo,
-      #   upper = xHi,
-      #   target=target,
-      #   lambda.mult=lambda.mult,
-      #   modelInfo=modelInfo,
-      #   simSeed=simSeed,
-      #   ...)
-      #
-      # fSingle = outTmp$value
-      # parsSingle = outTmp$par
+    } else if (optimArgs$optimizer=='BOBYQA') {
 
       outTmp = nloptr::bobyqa(
         fn=negTargetFinderFixPars,
@@ -350,6 +259,10 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 
       fSingle = outTmp$value
       parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+
+      convergedSingle = (outTmp$convergence>0)
+      messageSingle = outTmp$message
+      convergenceCodeSingle = outTmp$convergence
 
     # } else if (optimArgs$optimizer=='HJK') {
     #
@@ -389,21 +302,6 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 
     } else if (optimArgs$optimizer=='optim.LBFGSB') {
 
-      # outTmp<- optim(par=x0,
-      #                fn=targetFinder,
-      #                method='L-BFGS-B',
-      #                lower=xLo-1e-6,
-      #                upper=xHi+1e-6,
-      #                target=target,
-      #                control=list(fnscale=-1),
-      #                lambda.mult=lambda.mult,
-      #                modelInfo=modelInfo,
-      #                simSeed=simSeed,
-      #                ...)
-      #
-      # fSingle = -outTmp$value
-      # parsSingle = outTmp$par
-
       outTmp<- optim(par=x0[fixedPars$fitParLoc],
                      fn=targetFinderFixPars,
                      method='L-BFGS-B',
@@ -420,22 +318,71 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
       fSingle = -outTmp$value
       parsSingle = calcParFixedPars(outTmp$par,fixedPars)
 
-#      browser()
+      convergedSingle = (outTmp$convergence==0)
+      messageSingle = outTmp$message
+      convergenceCodeSingle = outTmp$convergence
 
-    # } else if (optimArgs$optimizer=='optim.NM') {
-    #
-    #   outTmp<- optim(par=x0,
-    #                  fn=targetFinder,
-    #                  method='Nelder-Mead',
-    #                  target=target,
-    #                  control=list(fnscale=-1),
-    #                  lambda.mult=lambda.mult,
-    #                  modelInfo=modelInfo,
-    #                  simSeed=simSeed,
-    #                  ...)
-    #
-    #   fSingle = -outTmp$value
-    #   parsSingle = outTmp$par
+    } else if (optimArgs$optimizer=='Rvmmin') {
+
+      outTmp<- Rvmmin::Rvmmin(par=x0[fixedPars$fitParLoc],
+                     fn=targetFinderFixPars,
+                     lower=xLo[fixedPars$fitParLoc],
+                     upper=xHi[fixedPars$fitParLoc],
+                     fixedPars=fixedPars,
+                     target=target,
+                     control=list(maximize=T),
+                     lambda.mult=lambda.mult,
+                     modelInfo=modelInfo,
+                     simSeed=simSeed,
+                     ...)
+
+      fSingle = -outTmp$value
+      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+
+      convergedSingle = (outTmp$convergence==0)
+      messageSingle = outTmp$message
+      convergenceCodeSingle = outTmp$convergence
+
+    } else if (optimArgs$optimizer=='Rcgmin') {
+
+      outTmp<- Rcgmin::Rcgmin(par=x0[fixedPars$fitParLoc],
+                              fn=negTargetFinderFixPars,
+                              lower=xLo[fixedPars$fitParLoc],
+                              upper=xHi[fixedPars$fitParLoc],
+                              fixedPars=fixedPars,
+                              target=target,
+                              lambda.mult=lambda.mult,
+                              modelInfo=modelInfo,
+                              simSeed=simSeed,
+                              ...)
+
+      fSingle = outTmp$value
+      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+
+      convergedSingle = (outTmp$convergence==0)
+      messageSingle = outTmp$message
+      convergenceCodeSingle = outTmp$convergence
+
+    } else if (optimArgs$optimizer=='NMKB') {
+
+      outTmp<- dfoptim::nmkb(par=x0[fixedPars$fitParLoc],
+                     fn=targetFinderFixPars,
+                     lower=xLo[fixedPars$fitParLoc],
+                     upper=xHi[fixedPars$fitParLoc],
+                     fixedPars=fixedPars,
+                     target=target,
+                     control=list(maximize=T),
+                     lambda.mult=lambda.mult,
+                     modelInfo=modelInfo,
+                     simSeed=simSeed,
+                     ...)
+
+      fSingle = -outTmp$value
+      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+
+      convergedSingle = (outTmp$convergence==0)
+      messageSingle = outTmp$message
+      convergenceCodeSingle = outTmp$convergence
 
     }
 
@@ -446,13 +393,14 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 
     print(parsSingle)
 
-#    browser()
-
     fMulti[r] = fSingle
     parsMulti[r,] = parsSingle
     timeMulti[r] = timeSingle
     callsMulti[r] = WG_calls
     onBoundsMulti[r,] = onBoundsSingle
+    convergedMulti[r] = convergedSingle
+    convergenceCodeMulti[r] = convergenceCodeSingle
+    messageMulti[r] = messageSingle
     if (fSingle<fBest){
       fBest = fSingle
       parsBest = parsSingle
@@ -462,6 +410,7 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
     cat(fSingle,fBest,'\n')
 
   }
+
 
   timeFin=Sys.time()
   timeRun=timeFin-timeStart    #optimisation runtime
@@ -475,7 +424,10 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
            parsMulti=parsMulti,
            onBoundsMulti=onBoundsMulti,
            callsMulti=callsMulti,
-           timeMulti=timeMulti)
+           timeMulti=timeMulti,
+           convergedMulti=convergedMulti,
+           convergenceCodeMulti=convergenceCodeMulti,
+           messageMulti=messageMulti)
 
   return(out)
 
