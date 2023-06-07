@@ -168,7 +168,7 @@ For example, “P_ann_tot_m” is the mean of the total rainfall calculated over
 
 -	“tot”: total
 -	“P99”: 99th percentile
--	“maxDSDthresh1”: maximum dry-spell duration (with threshold above 1mm)
+-	“maxDSDT1”: maximum dry-spell duration (with threshold above 1mm)
 
 A full list of attribute functions supported in *fore*SIGHT can be viewed using the helper functions `viewAttributeFuncs()`.
 
