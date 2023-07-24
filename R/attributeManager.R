@@ -209,7 +209,7 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
                            indx=attCalcInfo[[att]]$indx,
                            attArgs=attCalcInfo[[att]]$attArgs)
       }
-    } else if (attCalcInfo[[att]]$opName=='m'){ # mean of values calculated in each year
+    } else if (attCalcInfo[[att]]$opName%in%c('m','m10yrBlock')){ # mean of values calculated in each year
       if (is.null(dim(data))){
         out[[att]] = extractor.summaryMean(func=attCalcInfo[[att]]$func,
                                            data=data,
@@ -449,12 +449,12 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
 # calculate stratification index
 
 calcStratIndex = function(indexName,opName,datInd){
-  
+
   # abbreviate for season names
   season.abb = c('SON','DJF','MAM','JJA')
-  month.str.abb <- c("JFMAMJJASONDJFMAMJJASOND") #2 year month abbreviation to allow for wrap around months 
-  month_number <- c(1:12,1:12)   #month.str.abb as month numbers 
-  
+  month.str.abb <- c("JFMAMJJASONDJFMAMJJASOND") #2 year month abbreviation to allow for wrap around months
+  month_number <- c(1:12,1:12)   #month.str.abb as month numbers
+
   stratIndx = NULL
   if (indexName=='ann'){ # this uses all data
     stratIndx = 1:datInd$ndays
@@ -465,7 +465,7 @@ calcStratIndex = function(indexName,opName,datInd){
     sSel = match(indexName,season.abb)
     stratIndx = datInd$i.ss[[sSel]]
   } else if (regexpr(indexName,month.str.abb)[1]!=-1 & nchar(indexName) > 1 & nchar(indexName) < 12) { #check if string is sequential months and are greater than 1 month and less than 12
-    indexName_posit <- regexpr(indexName,month.str.abb)   #find position of month string in 2 year abbreviation 
+    indexName_posit <- regexpr(indexName,month.str.abb)   #find position of month string in 2 year abbreviation
     mSel <- sort(month_number[seq(indexName_posit[1],length=attr(indexName_posit,"match.length"),by=1)])  #match month letter index to number index and sort months sequentially
     for (n in 1:nchar(indexName)){
       stratIndx = c(stratIndx,datInd$i.mm[[mSel[n]]])
@@ -473,7 +473,7 @@ calcStratIndex = function(indexName,opName,datInd){
   } else {
     invalidStratificationStop(strat=indexName)
   }
-  
+
   if (is.null(opName)){
     indx = stratIndx
   } else { # here we calculate stratification for each year (later used to calculate mean/max values over all years)
@@ -487,14 +487,19 @@ calcStratIndex = function(indexName,opName,datInd){
       for (y in 1:length(datInd$i.5yy)){
         yrIndx[[y]] = intersect(datInd$i.5yy[[y]],stratIndx)
       }
+    } else if (opName=='m10yrBlock'){ # note this is binned average, not moving average (unlike max5yr)
+      yrIndx = list()
+      for (y in 1:length(datInd$i.10yyBlock)){
+        yrIndx[[y]] = intersect(datInd$i.10yyBlock[[y]],stratIndx)
+      }
     } else {
       invalidOperationStop(opName=opName)
     }
     indx = yrIndx
   }
-  
+
   return(indx)
-  
+
 }
 
 ####################################
