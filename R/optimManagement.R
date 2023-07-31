@@ -40,10 +40,16 @@ calcParFixedPars = function(x,fixedPars){
 
 #-----------------------------------------------
 
-targetFinderFixPars = function(x,fixedPars=NULL,...){
-  # deal with fixed and fitted pars
+targetFinderFixPars = function(x,fixedPars=NULL,returnThis='objFunc',...){
+    # deal with fixed and fitted pars
   xAll = calcParFixedPars(x,fixedPars)
-  target = targetFinder(x=xAll,...)
+  target = targetFinder(x=xAll,returnThis=returnThis,...)
+  # save obj func value to vector
+ if (returnThis=='objFunc'){
+   assign("fTrace",c(fTrace,target),envir = .GlobalEnv)
+ } else if (returnThis=='resid'){
+   assign("fTrace",c(fTrace,-sqrt(sum(target^2))),envir = .GlobalEnv)
+ }
   return(target)
 }
 
@@ -100,6 +106,7 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 
   fMulti = timeMulti = callsMulti = convergedMulti = convergenceCodeMulti = messageMulti = c()
   parsMulti = onBoundsMulti = matrix(nrow=optimArgs$nMultiStart,ncol=length(xLo))
+  fTraceMulti = callsTraceMulti = list()
 
   convergenceCodeSingle = messageSingle = NA
 
@@ -107,6 +114,7 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 
     time1 = Sys.time()
     assign("WG_calls",0,envir = .GlobalEnv)
+    assign("fTrace",c(),envir = .GlobalEnv)
 
     print(r)
 
@@ -243,26 +251,26 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 
       convergedSingle = (outTmp$convergence==0)
 
-    } else if (optimArgs$optimizer=='BOBYQA') {
-
-      outTmp = nloptr::bobyqa(
-        fn=negTargetFinderFixPars,
-        x0=x0[fixedPars$fitParLoc],
-        lower = xLo[fixedPars$fitParLoc],
-        upper = xHi[fixedPars$fitParLoc],
-        fixedPars=fixedPars,
-        target=target,
-        lambda.mult=lambda.mult,
-        modelInfo=modelInfo,
-        simSeed=simSeed,
-        ...)
-
-      fSingle = outTmp$value
-      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
-
-      convergedSingle = (outTmp$convergence>0)
-      messageSingle = outTmp$message
-      convergenceCodeSingle = outTmp$convergence
+    # } else if (optimArgs$optimizer=='BOBYQA') {
+    #
+    #   outTmp = nloptr::bobyqa(
+    #     fn=negTargetFinderFixPars,
+    #     x0=x0[fixedPars$fitParLoc],
+    #     lower = xLo[fixedPars$fitParLoc],
+    #     upper = xHi[fixedPars$fitParLoc],
+    #     fixedPars=fixedPars,
+    #     target=target,
+    #     lambda.mult=lambda.mult,
+    #     modelInfo=modelInfo,
+    #     simSeed=simSeed,
+    #     ...)
+    #
+    #   fSingle = outTmp$value
+    #   parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+    #
+    #   convergedSingle = (outTmp$convergence>0)
+    #   messageSingle = outTmp$message
+    #   convergenceCodeSingle = outTmp$convergence
 
     # } else if (optimArgs$optimizer=='HJK') {
     #
@@ -322,46 +330,46 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
       messageSingle = outTmp$message
       convergenceCodeSingle = outTmp$convergence
 
-    } else if (optimArgs$optimizer=='Rvmmin') {
-
-      outTmp<- Rvmmin::Rvmmin(par=x0[fixedPars$fitParLoc],
-                     fn=targetFinderFixPars,
-                     lower=xLo[fixedPars$fitParLoc],
-                     upper=xHi[fixedPars$fitParLoc],
-                     fixedPars=fixedPars,
-                     target=target,
-                     control=list(maximize=T),
-                     lambda.mult=lambda.mult,
-                     modelInfo=modelInfo,
-                     simSeed=simSeed,
-                     ...)
-
-      fSingle = -outTmp$value
-      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
-
-      convergedSingle = (outTmp$convergence==0)
-      messageSingle = outTmp$message
-      convergenceCodeSingle = outTmp$convergence
-
-    } else if (optimArgs$optimizer=='Rcgmin') {
-
-      outTmp<- Rcgmin::Rcgmin(par=x0[fixedPars$fitParLoc],
-                              fn=negTargetFinderFixPars,
-                              lower=xLo[fixedPars$fitParLoc],
-                              upper=xHi[fixedPars$fitParLoc],
-                              fixedPars=fixedPars,
-                              target=target,
-                              lambda.mult=lambda.mult,
-                              modelInfo=modelInfo,
-                              simSeed=simSeed,
-                              ...)
-
-      fSingle = outTmp$value
-      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
-
-      convergedSingle = (outTmp$convergence==0)
-      messageSingle = outTmp$message
-      convergenceCodeSingle = outTmp$convergence
+    # } else if (optimArgs$optimizer=='Rvmmin') {
+    #
+    #   outTmp<- Rvmmin::Rvmmin(par=x0[fixedPars$fitParLoc],
+    #                  fn=targetFinderFixPars,
+    #                  lower=xLo[fixedPars$fitParLoc],
+    #                  upper=xHi[fixedPars$fitParLoc],
+    #                  fixedPars=fixedPars,
+    #                  target=target,
+    #                  control=list(maximize=T),
+    #                  lambda.mult=lambda.mult,
+    #                  modelInfo=modelInfo,
+    #                  simSeed=simSeed,
+    #                  ...)
+    #
+    #   fSingle = -outTmp$value
+    #   parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+    #
+    #   convergedSingle = (outTmp$convergence==0)
+    #   messageSingle = outTmp$message
+    #   convergenceCodeSingle = outTmp$convergence
+    #
+    # } else if (optimArgs$optimizer=='Rcgmin') {
+    #
+    #   outTmp<- Rcgmin::Rcgmin(par=x0[fixedPars$fitParLoc],
+    #                           fn=negTargetFinderFixPars,
+    #                           lower=xLo[fixedPars$fitParLoc],
+    #                           upper=xHi[fixedPars$fitParLoc],
+    #                           fixedPars=fixedPars,
+    #                           target=target,
+    #                           lambda.mult=lambda.mult,
+    #                           modelInfo=modelInfo,
+    #                           simSeed=simSeed,
+    #                           ...)
+    #
+    #   fSingle = outTmp$value
+    #   parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+    #
+    #   convergedSingle = (outTmp$convergence==0)
+    #   messageSingle = outTmp$message
+    #   convergenceCodeSingle = outTmp$convergence
 
     } else if (optimArgs$optimizer=='NMKB') {
 
@@ -393,6 +401,27 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 
     print(parsSingle)
 
+    # calculate best OF value after each function call
+    nTrace = length(fTrace)
+    fTraceTmp = c()
+    fTraceBest = -999
+    callsTraceTmp = 1:nTrace
+    for (i in 1:nTrace){
+      if (fTrace[i]>fTraceBest){
+        fTraceBest = fTrace[i]
+      }
+      fTraceTmp[i] = fTraceBest
+    }
+    # remove best OF values when they are repeated
+    fTraceTrim = c(fTraceTmp[1])
+    callsTraceTrim = c(callsTraceTmp[1])
+    for (i in 2:(nTrace-1)){
+      if ((fTraceTmp[i]!=fTraceTmp[i-1])|(fTraceTmp[i]!=fTraceTmp[i+1])){
+        fTraceTrim = c(fTraceTrim,fTraceTmp[i])
+        callsTraceTrim = c(callsTraceTrim,callsTraceTmp[i])
+      }
+    }
+
     fMulti[r] = fSingle
     parsMulti[r,] = parsSingle
     timeMulti[r] = timeSingle
@@ -406,9 +435,9 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
       parsBest = parsSingle
       optOut=outTmp
     }
-
     cat(fSingle,fBest,'\n')
-
+    fTraceMulti[[r]] = fTraceTrim
+    callsTraceMulti[[r]] = callsTraceTrim
   }
 
 
@@ -427,209 +456,15 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
            timeMulti=timeMulti,
            convergedMulti=convergedMulti,
            convergenceCodeMulti=convergenceCodeMulti,
-           messageMulti=messageMulti)
+           messageMulti=messageMulti,
+           fTraceMulti=fTraceMulti,
+           callsTraceMulti=callsTraceMulti)
 
   return(out)
 
 }
 
 #-----------------------------------------------
-
-gaWrapper<-function(gaArgs=NULL,        # can specify your own outside
-                    modelEnv=NULL,
-                    modelInfo=NULL,     # information related to modelTags
-                    attSel=NULL,        # attributes selected (vector of strings)
-                    attPrim=NULL,       # primary attribute label
-                    attInfo=NULL,       # added info regarding attributes
-                    datInd=NULL,
-                    randomVector = NULL,
-                    randomUnitNormalVector = NULL,
-                    parSuggest=NULL,    # paramater suggestions
-                    target=NULL,        # target locations: desired changes in climate to be simulated, in % relative or abs diff to baseline levels (vector)
-                    attObs=NULL,        # observed series attribute values
-                    lambda.mult=NULL,   # lambda multiplier for penalty function
-                    simSeed=NULL,       # seeds
-                    wdSeries=NULL,
-                    resid_ts=NULL
-                    ){
-
-  #MEMOISE YAY OR NAY - TBC
-  #USER SPECIFIED PARALLEL CONTROLS
-  timeStart=Sys.time()
-
-  if(!is.null(gaArgs$nMultiStart)){
-    nMultiStart = gaArgs$nMultiStart
-  } else {
-    nMultiStart = 1
-  }
-
-  if(!is.null(gaArgs$seed)){
-    seedList=gaArgs$seed
-  } else {
-    seedList = 1:nMultiStart
-  }
-
-  fBest = -9e9
-
-  for (r in 1:nMultiStart){     ####### NOTE multi-starts should be done in separate wrapper
-
-    print(r)
-    print(seedList[r])
-
-    optparTmp<- ga(type = "real-valued",
-                fitness=targetFinder,
-                lower = modelInfo$minBound,
-                upper = modelInfo$maxBound,
-                pcrossover= gaArgs$pcrossover,
-                pmutation=gaArgs$pmutation,
-                maxiter=gaArgs$maxiter,
-                popSize = gaArgs$popSize,
-                maxFitness = gaArgs$maxFitness,
-                run=gaArgs$run,
-                seed = seedList[r],
-                parallel = gaArgs$parallel,
-                keepBest=gaArgs$keepBest,
-                suggestions = parSuggest,
-                monitor = FALSE,             #switchback
-                #BELOW RELATED TO TARGETFINDER()
-                modelInfo=modelInfo,
-                modelEnv=modelEnv,
-                attSel=attSel,
-                attPrim=attPrim,
-                attInfo=attInfo,
-                datInd=datInd,
-                randomVector = randomVector,
-                randomUnitNormalVector = randomUnitNormalVector,
-                target=target,
-                attObs=attObs,
-                lambda.mult=lambda.mult,
-                simSeed=simSeed,
-                wdSeries=wdSeries,
-                resid_ts=resid_ts
-    )
-
-    if (optparTmp@fitnessValue>fBest){
-      fBest = optparTmp@fitnessValue
-      optpar=optparTmp
-    }
-
-    print(paste(optparTmp@fitnessValue,fBest))
-
-  }
-
-  timeFin=Sys.time()
-  timeRun=timeFin-timeStart    #optimisation runtime
-  #print(summary(optpar)$fitness)
-
-  out=list(par=as.vector(optpar@solution[1,]),
-           fitness=as.numeric(optpar@fitnessValue),
-           seed=simSeed,
-           opt=optpar,
-           runtime=timeRun)
-
-  return(out)
-
-}
-
-#-----------------------------------------------
-
-rgnWrapper<-function(rgnArgs=NULL,        # can specify your own outside
-                    modelEnv=NULL,
-                    modelInfo=NULL,     # information related to modelTags
-                    attSel=NULL,        # attributes selected (vector of strings)
-                    attPrim=NULL,       # primary attribute label
-                    attInfo=NULL,       # added info regarding attributes
-                    datInd=NULL,
-                    randomVector = NULL,
-                    randomUnitNormalVector = NULL,
-                    parSuggest=NULL,    # parameter suggestions
-                    target=NULL,        # target locations: desired changes in climate to be simulated, in % relative or abs diff to baseline levels (vector)
-                    attObs=NULL,        # observed series attribute values
-                    lambda.mult=NULL,   # lambda multiplier for penalty function
-                    simSeed=NULL,       # seeds
-                    wdSeries=NULL,
-                    resid_ts=NULL){
-
-  timeStart=Sys.time()
-
-  ##################################
-
-  xLo = modelInfo$minBound
-  xHi = modelInfo$maxBound
-
-  fBest = 9e9
-
-  ######## THESE DEFAULT SETTINGS SHOULD BE INCORPORATED INTO optimArgsdefault() in default_parameters.R . This will require a bit of work to separate GA from RGN settings
-
-
-  if(!is.null(rgnArgs$iterMax)){
-    iterMax = rgnArgs$iterMax
-  } else {
-    iterMax = 100
-  }
-
-  if(!is.null(rgnArgs$rgnSettings$suggestions)){
-    sugg = rgnArgs$rgnSettings$suggestions
-    nSugg = nrow(sugg)
-  } else {
-    nSugg = 0
-  }
-
-  fMulti = c()
-  for (r in 1:rgnArgs$nMultiStart){
-
-    print(r)
-    if (r<=nSugg){
-      x0 = sugg[r,]
-    } else {
-      set.seed(r) # set the random seed for selecting initial parameter values. note same set of seeds will be used for each target/replicate.
-      x0 = xLo + runif(length(xLo))*(xHi-xLo)
-    }
-  rgnOutTmp <- rgn_fixPars(simFunc=targetFinder,
-                     x0 = x0,
-                     xHi = xHi,
-                     xLo = xLo,
-                     simTarget = unlist(target),
-                     weights=lambda.mult,
-                     info =rgnInfoType,
-                     cnv = setDefaultRgnConvergeSettings(dump=0, fail=0,iterMax = iterMax),
-                     modelInfo=modelInfo,
-                     modelEnv=modelEnv,
-                     attSel=attSel,
-                     attPrim=attPrim,
-                     attInfo=attInfo,
-                     datInd=datInd,
-                     randomVector = randomVector,
-                     randomUnitNormalVector = randomUnitNormalVector,
-                     simSeed=simSeed,
-                     wdSeries=wdSeries,
-                     resid_ts=resid_ts,
-                     attObs=attObs,target=target,return_sim_only=T)
-
-    fMulti[r] = rgnOutTmp$info$f
-    if (rgnOutTmp$info$f<fBest){
-      fBest = rgnOutTmp$info$f
-      rgnOut=rgnOutTmp
-    }
-
-    cat(rgnOutTmp$info$f,fBest,'\n')
-
-  }
-
-  timeFin=Sys.time()
-  timeRun=timeFin-timeStart    #optimisation runtime
-
-  out=list(par=as.vector(rgnOut$x),
-           fitness=as.numeric(rgnOut$info$f),
-           seed=simSeed,
-           opt=rgnOut,
-           runtime=timeRun,
-           fMulti=fMulti)
-
-  return(out)
-
-}
-
 #FUNCTION TO SCREEN SUGGESTED POPULATIONS (screen outside, screen once)
 screenSuggest<-function(modelInfo=NULL,
                         modelTag=NULL,
