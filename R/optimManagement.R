@@ -91,11 +91,11 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
   ######## THESE DEFAULT SETTINGS SHOULD BE INCORPORATED INTO optimArgsdefault() in default_parameters.R . This will require a bit of work to separate GA from RGN settings
 
 
-  if(!is.null(optimArgs$iterMax)){
-    iterMax = optimArgs$iterMax
-  } else {
-    iterMax = 100
-  }
+  # if(!is.null(optimArgs$iterMax)){
+  #   iterMax = optimArgs$iterMax
+  # } else {
+  #   iterMax = 100
+  # }
 
   if(!is.null(optimArgs$suggestions)){
     sugg = optimArgs$suggestions
@@ -238,7 +238,7 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
         par=x0[fixedPars$fitParLoc],
         lower = xLo[fixedPars$fitParLoc],
         upper = xHi[fixedPars$fitParLoc],
-        control=list(fnscale=-1,initsample='random'),
+        control=list(fnscale=-1,initsample='random',ncomplex=optimArgs$sceSettings$nComplex),
         fixedPars=fixedPars,
         target=target,
         lambda.mult=lambda.mult,
