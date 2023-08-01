@@ -127,12 +127,6 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
     set.seed(seed) # set the random seed for selecting initial parameter values. note same set of seeds will be used for each target/replicate.
     x0 = xLo + runif(length(xLo))*(xHi-xLo)
 
-    if (optimArgs$optimizer!='GA') {
-      if (r<=nSugg){
-        x0 = sugg[r,]
-      }
-    }
-
     if (optimArgs$optimizer=='RGN') {
 
       outTmp <- rgn(simFunc=targetFinderFixPars,
@@ -204,6 +198,11 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 
       } else if (optimArgs$optimizer=='GA') {
 
+        if (r<=nSugg){
+          x0 = sugg[r,]
+        }
+
+
       outTmp = ga(type = "real-valued",
                   fitness=targetFinderFixPars,
                   lower = xLo[fixedPars$fitParLoc],
@@ -214,7 +213,7 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
                   popSize = optimArgs$popSize,
                   maxFitness = optimArgs$maxFitness,
                   run=optimArgs$run,
-                  seed = r,
+                  seed = seed,
                   parallel = optimArgs$parallel,
                   keepBest=optimArgs$keepBest,
                   suggestions = parSuggest,
