@@ -118,18 +118,18 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 
     print(r)
 
+    if(!is.null(optimArgs$seed)){
+      seed=optimArgs$seed[r]
+    } else {
+      seed = r
+    }
+
+    set.seed(seed) # set the random seed for selecting initial parameter values. note same set of seeds will be used for each target/replicate.
+    x0 = xLo + runif(length(xLo))*(xHi-xLo)
+
     if (optimArgs$optimizer!='GA') {
       if (r<=nSugg){
         x0 = sugg[r,]
-      } else {
-        set.seed(r) # set the random seed for selecting initial parameter values. note same set of seeds will be used for each target/replicate.
-        x0 = xLo + runif(length(xLo))*(xHi-xLo)
-      }
-    } else {
-      if(!is.null(optimArgs$seed)){
-        seed=optimArgs$seed[r]
-      } else {
-        seed = r
       }
     }
 
