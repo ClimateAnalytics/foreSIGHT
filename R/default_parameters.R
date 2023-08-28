@@ -95,13 +95,12 @@ modelTaglist=c("Simple-ann",
                "P-ann-wgen",
                "P-seas-wgen",
                "P-har-wgen",
-               "Temp-har26-wgen",
-               "Temp-har26-wgen-wd",
-               "Temp-har26-wgen-wdsd",
-               "PET-har26-wgen",
-               #"PET-har12-wgen",  # Can I remove this?
-               "PET-har26-wgen-wd",
-               "Radn-har26-wgen",
+               "Temp-har-wgen",
+               "Temp-har-wgen-wd",
+               "Temp-har-wgen-wdsd",
+               "PET-har-wgen",
+               "PET-har-wgen-wd",
+               "Radn-har-wgen",
                "P-ann-latent",
                "P-har-latent")
 
@@ -126,9 +125,9 @@ modelTimeStep=c("daily",
 names(modelTimeStep) <- modelTaglist
 
 defaultModelTags <- c(P = "P-har-wgen",
-                      Temp = "Temp-har26-wgen",
-                      PET = "PET-har26-wgen",
-                      Radn = "Radn-har26-wgen")
+                      Temp = "Temp-har-wgen",
+                      PET = "PET-har-wgen",
+                      Radn = "Radn-har-wgen")
 
 # existing foreSIGHT variables
 fSVars <- unique(sapply(strsplit(modelTaglist[!(modelTaglist%in%c("Simple-ann","Simple-seas"))], "-"), `[[`, 1))
@@ -306,7 +305,7 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
                               0, 8, 6.28,
                               2, 0, 0)
          },
-         "Temp-har26-wgen-wd" = {modelInfo$simVar="Temp"
+         "Temp-har-wgen-wd" = {modelInfo$simVar="Temp"
          modelInfo$simPriority=2
          modelInfo$nAssocSeries=0
          modelInfo$WDcondition=TRUE  #conditioned on wet/dry status
@@ -324,7 +323,7 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
          modelInfo$minBound=c(0.45,7.0,1.0,-0.05,0.9,0.1,-1.6,7.0,1.0,-0.05,0.9,0.1,-1.6) #Placeholder bounds
          modelInfo$maxBound=c(0.90,28.0,9.0,0.81,4.9,1.4,3.15,28.0,9.0,0.81,4.9,1.4,3.15)
          },
-         "Temp-har26-wgen" = {modelInfo$simVar="Temp"
+         "Temp-har-wgen" = {modelInfo$simVar="Temp"
          modelInfo$simPriority=2
          modelInfo$nAssocSeries=0
          modelInfo$WDcondition=FALSE  #conditioned on wet/dry status
@@ -339,7 +338,7 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
          modelInfo$minBound=c(0.45,7.0,1.0,-0.05,0.9,0.1,-1.6) #Placeholder bounds
          modelInfo$maxBound=c(0.9,28.0,9.0,0.81,4.9,1.4,3.15)
          },
-         "Temp-har26-wgen-wdsd" = {modelInfo$simVar="Temp"
+         "Temp-har-wgen-wdsd" = {modelInfo$simVar="Temp"
          modelInfo$simPriority=2
          modelInfo$nAssocSeries=0
          modelInfo$WDcondition=TRUE  #conditioned on wet/dry status
@@ -374,7 +373,7 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
                               6,5,0.3,
                               3,3,0.3)
          },
-         "PET-har26-wgen" = {modelInfo$simVar="PET"
+         "PET-har-wgen" = {modelInfo$simVar="PET"
          modelInfo$simPriority=2
          modelInfo$nAssocSeries=0
          modelInfo$WDcondition=FALSE  #conditioned on wet/dry status
@@ -389,7 +388,7 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
          modelInfo$minBound=c(0.0  ,0  ,0.01 ,0.2 ,1 ,0.4 ,0.2)  #NB: Placeholder bounds
          modelInfo$maxBound=c(0.9  ,6  ,5    ,0.3 ,3    ,3    ,0.3)
          },
-         "PET-har26-wgen-wd" = {modelInfo$simVar="PET"
+         "PET-har-wgen-wd" = {modelInfo$simVar="PET"
          modelInfo$simPriority=2
          modelInfo$nAssocSeries=0
          modelInfo$WDcondition=TRUE  #conditioned on wet/dry status
@@ -415,7 +414,7 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
                               30.0,9.0,1.1,
                               10.0,10.0,1.05)
          },
-         "Radn-har26-wgen" = {modelInfo$simVar="Radn"
+         "Radn-har-wgen" = {modelInfo$simVar="Radn"
          modelInfo$simPriority=3
          modelInfo$nAssocSeries=0
          modelInfo$WDcondition=FALSE  #conditioned on wet/dry status
