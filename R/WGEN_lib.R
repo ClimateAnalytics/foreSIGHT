@@ -18,7 +18,8 @@
       # residualGenerator()
       #****NOT DONE YET Also other correlated series models (via residuals etc) ---
 
-assign("WG_calls",0,envir = .GlobalEnv)
+#assign("WG_calls",0,envir = foreSIGHT_optimizationDiagnosticsEnv)
+#foreSIGHT_optimizationDiagnosticsEnv$WG_calls=0
 
 #FUNCTIONS
 #-----------------------------------------------------------------------------------------------------------
@@ -34,8 +35,8 @@ switch_simulator<-function(type=NULL,          # what vartype is being simulated
                            ){
 
   # DM: keep track of calls to weather generator. this is short term solution. ideally we would have this info in optimizer output
-  WG_calls = WG_calls + 1
-  assign("WG_calls",WG_calls,envir = .GlobalEnv)
+  WG_calls = foreSIGHT_optimizationDiagnosticsEnv$WG_calls + 1
+  #assign("WG_calls",WG_calls,envir = foreSIGHT_optimizationDiagnosticsEnv)
 
   switch(type,
          "P" = {

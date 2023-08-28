@@ -11,28 +11,36 @@
 #' # To view the default optimisation arguments
 #' viewDefaultOptimArgs()
 #' @export
-viewDefaultOptimArgs <- function() {
-  optimArgs_toPrint <- optimArgsdefault
-  optimArgs_toPrint[["lambda.mult"]] <- NULL
-  optimArgs_toPrint[["suggestions"]] <- NULL
+viewDefaultOptimArgs <- function(optimizer='RGN') {
+  # optimArgs_toPrint <- optimArgsdefault
+  # optimArgs_toPrint[["lambda.mult"]] <- NULL
+  # optimArgs_toPrint[["suggestions"]] <- NULL
+  optimArgs_toPrint <- list(optimizer=optimizer,
+                            nMultiStart=optimArgsdefault$nMultiStart)
+  optimArgs_toPrint[[optimizer]] = optimArgsdefault[[optimizer]]
   print(optimArgs_toPrint)
 }
 
-optimArgsdefault=list(pcrossover= 0.8,   # list of a parameters used by the ga optimiser (if used)
-                      pmutation=0.1,
-                      maxiter=50,
-                      maxFitness=-0.001,
-                      popSize = 500,
-                      run=20,
-                      seed = NULL,
-                      parallel = FALSE,
-                      keepBest=TRUE,
+optimArgsdefault=list(optimizer='RGN',
+                      nMultiStart=5,
+                      seed=NULL,
+                      GA=list(pcrossover= 0.8,   # list of a parameters used by the ga optimiser (if used)
+                              pmutation=0.1,
+                              maxiter=50,
+                              maxFitness=-0.001,
+                              popSize = 500,
+                              run=20,
+                              parallel = FALSE,
+                              keepBest=TRUE),
+                      RGN=list(),
+                      SCE=list(control=list(fnscale=-1,
+                                            initsample='random')),
+                      CMAES=list(control=list(fnscale=-1,
+                                              stopfitness=1e-5)),
+                      NM = list(control=list(maximize=T)),
                       lambda.mult=0.0,
-                      suggestions=NULL,
-                      optimizer='GA',
-                      nMultiStart=1,
-                      sceSettings=NULL,
-                      rgnSettings=NULL)
+                      suggestions=NULL
+                      )
 
 varShortToLong <- c("P" = "Precipitation",
                    "Temp" = "Temperature",

@@ -118,11 +118,11 @@ func_F0 = function(data) F0calc(x=data) # could be made generic
 #' @param attArgs is a list, with attArgs$doy denoting the day of year for each value in the time series
 #' @export
 func_wettest6monPeakDay = function(data,attArgs=NULL){
-  if (is.null(attArgs$seas)){
-    seas = calc_meanClimDaily_dayOfYearWindow(obs=data,doy=attArgs$doy,inc=91)
-  } else {
+#  if (is.null(attArgs$seas)){
+#    seas = calc_meanClimDaily_dayOfYearWindow(obs=data,doy=attArgs$doy,inc=91)
+#  } else {
     seas = attArgs$seas
-  }
+#  }
   i = stats::median(which(seas==max(seas)))
   #  print(i)
   #  return(i-180)
@@ -133,11 +133,11 @@ func_wettest6monPeakDay = function(data,attArgs=NULL){
 #' @param attArgs is a list, with attArgs$doy denoting the day of year for each value in the time series
 #' @export
 func_wettest6monSeasRatio = function(data,attArgs=NULL){
-  if (is.null(attArgs$seas)){
-    seas = calc_meanClimDaily_dayOfYearWindow(obs=data,doy=attArgs$doy,inc=91)
-  } else {
+#  if (is.null(attArgs$seas)){
+#    seas = calc_meanClimDaily_dayOfYearWindow(obs=data,doy=attArgs$doy,inc=91)
+#  } else {
     seas = attArgs$seas
-  }
+#  }
   iwet = stats::median(which(seas==max(seas)))
   idry = stats::median(which(seas==min(seas)))
 #  wettest6monSeasRatio = seas[iwet]/seas[idry]
@@ -148,6 +148,7 @@ func_wettest6monSeasRatio = function(data,attArgs=NULL){
   return(wettest6monSeasRatio)
 }
 
+# for each doy calculate which dates have that doy, store results in matrix
 calc_keepMat = function(doy){
   keepMat = matrix(nrow=365,ncol=length(doy)/365)
   for (n in 1:365){
@@ -164,12 +165,11 @@ calc_mean_day_clim = function(obs,keepMat){
   return(mean_day_clim)
 }
 
-#' Calculates the seasonal pattern (i.e. climatological mean)
-#' @param obs is a vector, representing a time series
-#' @param doy is the day of year for each value in the time series
-#' @param inc is the half-window size used in moving average
-#' @export
-calc_meanClimDaily_dayOfYearWindow = function(obs,doy=NULL,keepMat=NULL,inc){
+# Calculates the seasonal pattern (i.e. climatological mean)
+calc_meanClimDaily_dayOfYearWindow = function(obs,  # vector representing a time series
+                                              keepMat, # matrix indexing days of year
+                                              inc) #the half-window size used in moving average
+{
   mean_day_clim = calc_mean_day_clim_cpp(obs,keepMat)
   indicesRM = c( (365-inc+1):365 , 1:365, 1:inc )
   run_mean_day_clim = ma(mean_day_clim[indicesRM],n=(2*inc+1))

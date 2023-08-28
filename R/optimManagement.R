@@ -46,9 +46,13 @@ targetFinderFixPars = function(x,fixedPars=NULL,returnThis='objFunc',...){
   target = targetFinder(x=xAll,returnThis=returnThis,...)
   # save obj func value to vector
  if (returnThis=='objFunc'){
-   assign("fTrace",c(fTrace,target),envir = .GlobalEnv)
+   assign("fTrace",c(foreSIGHT_optimizationDiagnosticsEnv$fTrace,
+                     target),
+          envir = foreSIGHT_optimizationDiagnosticsEnv)
  } else if (returnThis=='resid'){
-   assign("fTrace",c(fTrace,-sqrt(sum(target^2))),envir = .GlobalEnv)
+   assign("fTrace",c(foreSIGHT_optimizationDiagnosticsEnv$fTrace,
+                     -sqrt(sum(target^2))),
+          envir = foreSIGHT_optimizationDiagnosticsEnv)
  }
   return(target)
 }
@@ -66,6 +70,10 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
   target = -targetFinderFixPars(x=x,fixedPars=fixedPars,...)
   return(target)
 }
+
+#-----------------------------------------------
+#
+foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
 
 #-----------------------------------------------
 
@@ -88,18 +96,8 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 
   fBest = 9e9
 
-  ######## THESE DEFAULT SETTINGS SHOULD BE INCORPORATED INTO optimArgsdefault() in default_parameters.R . This will require a bit of work to separate GA from RGN settings
-
-
-  # if(!is.null(optimArgs$iterMax)){
-  #   iterMax = optimArgs$iterMax
-  # } else {
-  #   iterMax = 100
-  # }
-
-  if(!is.null(optimArgs$suggestions)){
-    sugg = optimArgs$suggestions
-    nSugg = nrow(sugg)
+  if(!is.null(parSuggest)){
+    nSugg = nrow(parSuggest)
   } else {
     nSugg = 0
   }
@@ -113,8 +111,10 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
   for (r in 1:optimArgs$nMultiStart){
 
     time1 = Sys.time()
-    assign("WG_calls",0,envir = .GlobalEnv)
-    assign("fTrace",c(),envir = .GlobalEnv)
+    assign("WG_calls",0,envir = foreSIGHT_optimizationDiagnosticsEnv)
+    assign("fTrace",c(),envir = foreSIGHT_optimizationDiagnosticsEnv)
+    #foreSIGHT_optimizationDiagnosticsEnv$WG_calls = 0
+    #foreSIGHT_optimizationDiagnosticsEnv$fTrace = c()
 
     print(r)
 
@@ -125,16 +125,22 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
     }
 
     set.seed(seed) # set the random seed for selecting initial parameter values. note same set of seeds will be used for each target/replicate.
-    x0 = xLo + runif(length(xLo))*(xHi-xLo)
+
+    if (r<=nSugg){
+      x0 = parSuggest[r,]
+    } else {
+      x0 = xLo + stats::runif(length(xLo))*(xHi-xLo)
+    }
 
     if (optimArgs$optimizer=='RGN') {
 
       outTmp <- rgn(simFunc=targetFinderFixPars,
                             fixedPars=fixedPars,
-                            x0 = x0[fixedPars$fitParLoc],
-                            xHi = xHi[fixedPars$fitParLoc],
-                            xLo = xLo[fixedPars$fitParLoc],
+                            par = x0[fixedPars$fitParLoc],
+                            upper = xHi[fixedPars$fitParLoc],
+                            lower = xLo[fixedPars$fitParLoc],
                             simTarget = rep(0.,length(target)),
+                            control=optimArgs$RGN$control,
                             lambda.mult=lambda.mult,
                             modelInfo=modelInfo,
                             target=target,
@@ -142,9 +148,9 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
                             simSeed=simSeed,
                             ...)
 
-      fSingle = sqrt(2*outTmp$info$f)
-      parsSingle = calcParFixedPars(outTmp$x,fixedPars)
-      convergedSingle = (outTmp$error==0)
+      fSingle = sqrt(2*outTmp$value)
+      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+      convergedSingle = (outTmp$convergence)
 
      } else if (optimArgs$optimizer=='CMAES') {
 
@@ -159,7 +165,7 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
                          ...,
                          lower = xLo[fixedPars$fitParLoc],
                          upper = xHi[fixedPars$fitParLoc],
-                         control=list(fnscale=-1,keep.best=T,stopfitness=1e-5))#,maxit=100))
+                         control=optimArgs$CMAES$control)
 
         fSingle = -outTmp$value
         if (is.null(outTmp$par)){
@@ -198,24 +204,19 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 
       } else if (optimArgs$optimizer=='GA') {
 
-        if (r<=nSugg){
-          x0 = sugg[r,]
-        }
-
-
       outTmp = ga(type = "real-valued",
                   fitness=targetFinderFixPars,
                   lower = xLo[fixedPars$fitParLoc],
                   upper = xHi[fixedPars$fitParLoc],
-                  pcrossover= optimArgs$pcrossover,
-                  pmutation=optimArgs$pmutation,
-                  maxiter=optimArgs$maxiter,
-                  popSize = optimArgs$popSize,
-                  maxFitness = optimArgs$maxFitness,
-                  run=optimArgs$run,
+                  pcrossover= optimArgs$GA$pcrossover,
+                  pmutation=optimArgs$GA$pmutation,
+                  maxiter=optimArgs$GA$maxiter,
+                  popSize = optimArgs$GA$popSize,
+                  maxFitness = optimArgs$GA$maxFitness,
+                  run=optimArgs$GA$run,
                   seed = seed,
-                  parallel = optimArgs$parallel,
-                  keepBest=optimArgs$keepBest,
+                  parallel = optimArgs$GA$parallel,
+                  keepBest=optimArgs$GA$keepBest,
                   suggestions = parSuggest,
                   monitor = FALSE,             #switchback
                   fixedPars=fixedPars,
@@ -237,7 +238,7 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
         par=x0[fixedPars$fitParLoc],
         lower = xLo[fixedPars$fitParLoc],
         upper = xHi[fixedPars$fitParLoc],
-        control=list(fnscale=-1,initsample='random',ncomplex=optimArgs$sceSettings$nComplex),
+        control=optimArgs$SCE$control,
         fixedPars=fixedPars,
         target=target,
         lambda.mult=lambda.mult,
@@ -309,7 +310,7 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
 
     } else if (optimArgs$optimizer=='optim.LBFGSB') {
 
-      outTmp<- optim(par=x0[fixedPars$fitParLoc],
+      outTmp<- stats::optim(par=x0[fixedPars$fitParLoc],
                      fn=targetFinderFixPars,
                      method='L-BFGS-B',
                      lower=xLo[fixedPars$fitParLoc]-1e-6,
@@ -370,7 +371,7 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
     #   messageSingle = outTmp$message
     #   convergenceCodeSingle = outTmp$convergence
 
-    } else if (optimArgs$optimizer=='NMKB') {
+    } else if (optimArgs$optimizer=='NM') {
 
       outTmp<- dfoptim::nmkb(par=x0[fixedPars$fitParLoc],
                      fn=targetFinderFixPars,
@@ -378,7 +379,7 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
                      upper=xHi[fixedPars$fitParLoc],
                      fixedPars=fixedPars,
                      target=target,
-                     control=list(maximize=T),
+                     control=optimArgs$NM$control,
                      lambda.mult=lambda.mult,
                      modelInfo=modelInfo,
                      simSeed=simSeed,
@@ -401,12 +402,13 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
     print(parsSingle)
 
     # calculate best OF value after each function call
+    fTrace = foreSIGHT_optimizationDiagnosticsEnv$fTrace
     nTrace = length(fTrace)
     fTraceTmp = c()
     fTraceBest = -999
     callsTraceTmp = 1:nTrace
     for (i in 1:nTrace){
-      if (fTrace[i]>fTraceBest){
+      if ( !is.na(fTrace[i]) & (fTrace[i]>fTraceBest) ){
         fTraceBest = fTrace[i]
       }
       fTraceTmp[i] = fTraceBest
@@ -424,7 +426,7 @@ negTargetFinderFixPars = function(x,fixedPars=NULL,...){
     fMulti[r] = fSingle
     parsMulti[r,] = parsSingle
     timeMulti[r] = timeSingle
-    callsMulti[r] = WG_calls
+    callsMulti[r] = foreSIGHT_optimizationDiagnosticsEnv$WG_calls
     onBoundsMulti[r,] = onBoundsSingle
     convergedMulti[r] = convergedSingle
     convergenceCodeMulti[r] = convergenceCodeSingle
@@ -474,6 +476,7 @@ screenSuggest<-function(modelInfo=NULL,
   ind=NULL
   for(mod in 1:nMod){
     parSel=suggest[,(parLoc[[mod]][1]:parLoc[[mod]][2])]              #grab par suggestions related to modelTag running
+    if (is.vector(parSel)){parSel=matrix(parSel,nrow=1)}
     tmpInd=enforceBounds(suggest=parSel,                              #matrix of suggestions
                          minBound=modelInfo[[modelTag[mod]]]$minBound,
                          maxBound=modelInfo[[modelTag[mod]]]$maxBound)

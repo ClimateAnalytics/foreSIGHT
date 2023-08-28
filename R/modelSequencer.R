@@ -37,10 +37,12 @@ simulateTarget<-function(
   #MERGE WITH ANY SUGGESTIONS SUPPLIED IN OPTIMARGS
   if(!is.null(optimArgs$suggestions)){
     parSugg=rbind(parSim,optimArgs$suggestions)
-    if(dim(parSugg)[1] > optimArgs$popSize){
-      parSugg=parSugg[(1:optimArgs$popSize),]  #make sure it doesn't exceed popSize
+    if(optimArgs$optimizer=='GA'){
+      if(dim(parSugg)[1] > optimArgs$popSize){
+        parSugg=parSugg[(1:optimArgs$popSize),]  #make sure it doesn't exceed popSize
+      }
     }
-  }else{
+  } else {
     parSugg=NULL
   }
 
@@ -103,6 +105,7 @@ simulateTarget<-function(
       #GRAB PAR SUGGESTIONS RELATED TO modelTag
       if(!is.null(parSugg)){
         parSel=parSugg[,(parLoc[[mod]][1]:parLoc[[mod]][2])] #grab par suggestions related to modelTag running
+        if (is.vector(parSel)){parSel=matrix(parSel,nrow=1)}
       }else{
         parSel=NULL      #no suggestions to be had
       }

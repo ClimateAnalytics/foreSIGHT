@@ -3,7 +3,6 @@ Version: 1.1.0
 Depends: R (>= 3.5.0),GA (>= 3.0.2)
 LinkingTo: Rcpp 
 Imports: 
-    doParallel,
     ggplot2 (>= 3.3.0),
     directlabels,
     cowplot,
@@ -12,18 +11,20 @@ Imports:
     grDevices,
     utils,
     moments,
-    Rcpp,
     jsonlite,
     progress,
     rcorpora,
     scales,
     viridisLite,
     fields,
-    RColorBrewer,
     rlang,
     lattice,
     mvtnorm,
-    Matrix
+    Matrix,
+    SoilHyP,
+    cmaes,
+    dfoptim,
+    minpack.lm,
 Suggests: knitr (>= 1.8), rmarkdown (>= 1.18),testthat, evd
 Title: Systems Insights from Generation of Hydroclimatic Timeseries
 Authors@R: 
@@ -76,4 +77,4 @@ License: GPL-3
 NeedsCompilation: no
 VignetteBuilder: knitr
 LazyData: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
