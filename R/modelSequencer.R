@@ -222,7 +222,7 @@ simulateTarget<-function(
                       attInfo=attInfo[[modelTag[mod]]],
                       simPt=simPt,
                       target=targetLoc[attInd[[mod]]],
-                      penalty.func=penaltyFunc_basic,   #make this changeable (auto calc lambda)
+                      obj.func=optimArgs$obj.func,
                       lambda=optimArgs$lambda.mult)
 
       #CONFIRMING SCORE FOR SIM SERIES

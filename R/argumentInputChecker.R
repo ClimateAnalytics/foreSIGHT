@@ -274,6 +274,13 @@ check_duplicates_mismatch<-function(obs=NULL,
     logfile(note,file)
   }
 
+  if((optimArgs$optimizer=='RGN')&(optimArgs$obj.func!='WSS')){
+    warn("Cannot use optimizer RGN with objective function other than WSS",file)
+    logfile("Error: change optimizer or obj.func",file)
+    logfile("Program terminated",file)
+    stop("Ensure optimizer RGN is only used with WSS objective function")
+  }
+
   # Anjana: Commented as I think these checks are not required after moving createExpSpace to separate function
   # # Add more checks for ExSpArgs - ?
   #

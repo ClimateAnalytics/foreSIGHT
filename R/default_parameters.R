@@ -22,6 +22,7 @@ viewDefaultOptimArgs <- function(optimizer='RGN') {
 }
 
 optimArgsdefault=list(optimizer='RGN',
+                      obj.func='WSS',
                       nMultiStart=5,
                       seed=NULL,
                       GA=list(pcrossover= 0.8,   # list of a parameters used by the ga optimiser (if used)

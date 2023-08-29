@@ -161,6 +161,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
                               modelInfo=modelInfo,
                               target=target,
                               lambda.mult=lambda.mult,
+                              obj.func=optimArgs$obj.func,
                               simSeed=simSeed,
                          ...,
                          lower = xLo[fixedPars$fitParLoc],
@@ -222,6 +223,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
                   fixedPars=fixedPars,
                   target=target,
                   lambda.mult=lambda.mult,
+                  obj.func=optimArgs$obj.func,
                   modelInfo=modelInfo,
                   simSeed=simSeed,
                   ...)
@@ -242,6 +244,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
         fixedPars=fixedPars,
         target=target,
         lambda.mult=lambda.mult,
+        obj.func=optimArgs$obj.func,
         modelInfo=modelInfo,
         simSeed=simSeed,
         ...)
@@ -319,6 +322,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
                      target=target,
                      control=list(fnscale=-1),
                      lambda.mult=lambda.mult,
+                     obj.func=optimArgs$obj.func,
                      modelInfo=modelInfo,
                      simSeed=simSeed,
                      ...)
@@ -381,6 +385,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
                      target=target,
                      control=optimArgs$NM$control,
                      lambda.mult=lambda.mult,
+                     obj.func=optimArgs$obj.func,
                      modelInfo=modelInfo,
                      simSeed=simSeed,
                      ...)

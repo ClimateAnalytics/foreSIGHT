@@ -20,7 +20,8 @@ targetFinder<- function(x,               # vector of pars (will change in optim)
                         simSeed=NULL,
                         wdSeries=NULL,
                         resid_ts=NULL,
-                        returnThis = 'objFunc'
+                        returnThis = 'objFunc',
+                        obj.func = 'SS_absPenalty'
                         #Nw=NULL,            # warmup period in days
                         # N=NULL,             # seeds
                         # seed1=NULL,
@@ -67,7 +68,7 @@ targetFinder<- function(x,               # vector of pars (will change in optim)
                       attInfo=attInfo,
                       simPt=simPt,
                       target=target,
-                      penalty.func=penaltyFunc_basic,   #make this changeable (auto calc lambda)
+                      obj.func=obj.func,   #make this changeable (auto calc lambda)
                       lambda=lambda.mult
       )
     }
