@@ -134,7 +134,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
 
     if (optimArgs$optimizer=='RGN') {
 
-      outTmp <- rgn(simFunc=targetFinderFixPars,
+      outTmp <- RGN::rgn(simFunc=targetFinderFixPars,
                             fixedPars=fixedPars,
                             par = x0[fixedPars$fitParLoc],
                             upper = xHi[fixedPars$fitParLoc],
