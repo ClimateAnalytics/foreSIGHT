@@ -43,7 +43,6 @@
 #' below.
 #' @param window moving average window to calibrate daily gamma parameters for
 #' the modelTag \code{"P-har-WGEN"}.
-#' @keywords functions
 #' @examples
 #'
 #' data(tankDat)                               #Load tank data (tank_obs)

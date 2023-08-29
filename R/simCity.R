@@ -40,7 +40,6 @@
 #' @param file Character. Specifies filename for simulation output.
 #' @param IOmode A string that specifies the input-output mode for the time
 #' series = "verbose", "dev" or "suppress".
-#' @keywords functions
 #' @examples
 #'
 #' \dontrun{
