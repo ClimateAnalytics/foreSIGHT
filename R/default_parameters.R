@@ -3,7 +3,8 @@
 #' Prints the default optimisation arguments
 #'
 #' \code{viewDefautOptimArgs()} prints the default values of optimisation arguments (\code{optimisationArguments}) used by \code{generateScenarios}
-#' @details The function does not take any input arguments. This a helper function that prints the default values of the optimisation arguments.
+#' @param optimizer A string for the numerical optimizer. Default optimizer is 'RGN'.
+#' @details This a helper function that prints the default values of the optimisation arguments.
 #' The user may specify alternate values of these arguments in fields named according to the corresponding argument name nested under
 #' \code{optimisationArguments} in a JSON file to use as the \code{controlFile} input to the \code{generateScenarios} function.
 #' @seealso \code{writeControlFile}
@@ -446,22 +447,22 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
 
 }
 
-get.attribute.info <- function(modelTag = NULL){
-
-  if (modelTag == "Simple-ann") {
-    validAttributes <- c("P_ann_tot_m", "Temp_ann_avg_m", "PET_ann_avg_m", "Radn_ann_avg_m")
-  } else {
-
-    # Identify variable
-    varType <- get.varType(modelTag, sep = "-")
-
-    # Use the appropriate data.frame to read the validAttributes
-    valid_indices <- which(model_attribute_comb[[varType]][[modelTag]] == TRUE)
-    validAttributes <- model_attribute_comb[[varType]]$validAttributes[valid_indices]
-
-  }
-  return(validAttributes)
-}
+# get.attribute.info <- function(modelTag = NULL){
+#
+#   if (modelTag == "Simple-ann") {
+#     validAttributes <- c("P_ann_tot_m", "Temp_ann_avg_m", "PET_ann_avg_m", "Radn_ann_avg_m")
+#   } else {
+#
+#     # Identify variable
+#     varType <- get.varType(modelTag, sep = "-")
+#
+#     # Use the appropriate data.frame to read the validAttributes
+#     valid_indices <- which(model_attribute_comb[[varType]][[modelTag]] == TRUE)
+#     validAttributes <- model_attribute_comb[[varType]]$validAttributes[valid_indices]
+#
+#   }
+#   return(validAttributes)
+# }
 
 
 
