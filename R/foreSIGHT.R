@@ -1,8 +1,19 @@
+#' foreSIGHT: A package for Systems Insights from Generation of Hydroclimatic Timeseries
+#'
+#' A tool to create hydroclimate scenarios, stress test systems and visualize
+#' system performance in scenario-neutral climate change impact assessments.
+#' @docType package
+#' @name foreSIGHT
+#' @useDynLib foreSIGHT
+NULL
+#> NULL
+
+
 # globalVariables(c(".", "!!"))
 
 #' Climate attributes from projections.
 #'
-#' A example dataset containing the climate attribute values 
+#' A example dataset containing the climate attribute values
 #' in fraction/additive change
 #'
 #' @format A data frame with 6 rows and 6 variables:
