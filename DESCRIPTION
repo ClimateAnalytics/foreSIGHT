@@ -1,5 +1,5 @@
 Package: foreSIGHT
-Version: 1.1.0
+Version: 1.2.0
 Depends: R (>= 3.5.0),GA (>= 3.0.2)
 LinkingTo: Rcpp 
 Imports: 
@@ -25,6 +25,7 @@ Imports:
     cmaes,
     dfoptim,
     minpack.lm,
+    RGN,
 Suggests: knitr (>= 1.8), rmarkdown (>= 1.18),testthat, evd
 Title: Systems Insights from Generation of Hydroclimatic Timeseries
 Authors@R: 
