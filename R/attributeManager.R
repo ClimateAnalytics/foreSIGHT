@@ -387,7 +387,9 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
         midWet = stats::median(mWet)-0.5
         monTop = (midWet - 6)/12
       }
-      phi = monTop*2*pi + pi/2.
+#      phi = monTop*2*pi + pi/2.
+      phi = monTop*2*pi
+      browser()
       attArgs=list(indexWet=unlist(datInd$i.mm[mWet]),indexDry=unlist(datInd$i.mm[mDry]),phi=phi)
     } else {
       invalidSuffixStop(funcName=funcName,suffix=suffix)
