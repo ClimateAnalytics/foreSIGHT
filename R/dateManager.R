@@ -110,6 +110,7 @@ get.date.ind<-function(dd=NULL,
   nyr=yy[ndays]-yy[1]+1             # get number of years on record
   i.mm=get.month.ind(mm=mm)         #get indices for months
   i.yy=get.year.ind(yy=yy,nyr=nyr,n=ndays)  #get indices for years
+  i.3yy=get.nyear.ind(yy=yy,nyrEitherSide = 1)  #get indices for 3 year moving window
   i.5yy=get.nyear.ind(yy=yy,nyrEitherSide = 2)  #get indices for 5 year moving window
   i.10yyBlock=get.nyearBlock.ind(yy=yy,inc=10)  #get indices for 10 year window
   if(southHemi==TRUE){

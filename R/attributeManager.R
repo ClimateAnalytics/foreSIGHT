@@ -233,7 +233,7 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
                            indx=attCalcInfo[[att]]$indx,
                            attArgs=attCalcInfo[[att]]$attArgs)
       }
-    } else if (attCalcInfo[[att]]$opName=='max5yr'){ # maximum of 5-year values
+    } else if (attCalcInfo[[att]]$opName%in%c('max3yr','max5yr')){ # maximum of 3 or 5 year values
       if (is.null(dim(data))){
         out[[att]] = extractor.summaryMax(func=attCalcInfo[[att]]$func,
                                           data=data,
@@ -241,6 +241,18 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
                                           attArgs=attCalcInfo[[att]]$attArgs)
       } else {
         out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryMax,
+                           func=attCalcInfo[[att]]$func,
+                           indx=attCalcInfo[[att]]$indx,
+                           attArgs=attCalcInfo[[att]]$attArgs)
+      }
+    } else if (attCalcInfo[[att]]$opName%in%c('min3yr','min5yr')){ # maximum of 3 or 5 year values
+      if (is.null(dim(data))){
+        out[[att]] = extractor.summaryMin(func=attCalcInfo[[att]]$func,
+                                          data=data,
+                                          indx=attCalcInfo[[att]]$indx,
+                                          attArgs=attCalcInfo[[att]]$attArgs)
+      } else {
+        out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryMin,
                            func=attCalcInfo[[att]]$func,
                            indx=attCalcInfo[[att]]$indx,
                            attArgs=attCalcInfo[[att]]$attArgs)
@@ -484,8 +496,11 @@ calcStratIndex = function(indexName,opName,datInd){
       for (y in 1:length(datInd$i.yy)){
         yrIndx[[y]] = intersect(datInd$i.yy[[y]],stratIndx)
       }
-    } else if (opName=='max5yr'){ # can generalize this to include other 5 yr summaries (e.g. min)
-      yrIndx = list()
+    } else if ((opName=='max3yr')|(opName=='min3yr')){
+      for (y in 1:length(datInd$i.3yy)){
+        yrIndx[[y]] = intersect(datInd$i.3yy[[y]],stratIndx)
+      }
+    } else if ((opName=='max5yr')|(opName=='min5yr')){
       for (y in 1:length(datInd$i.5yy)){
         yrIndx[[y]] = intersect(datInd$i.5yy[[y]],stratIndx)
       }
@@ -786,6 +801,8 @@ tagBlender<-function(attLab=NULL
     stype="Mean"
   } else if (opName=='sd'){
     stype="Sdev"
+  } else if (opName=='min5yr'){
+    stype="Min 5yr total"
   }
 
   #stitch togther
