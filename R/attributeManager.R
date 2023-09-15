@@ -386,7 +386,7 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
       if (wet1<wet2){
         mWet = seq(wet1,wet2)
       } else { # handle case where wet season ends in next year
-        mWet = seq(wet1,wet2+12) %% 12
+        mWet = (seq(wet1,wet2+12)-1)%%12 + 1
       }
       mAll = 1:12
       # calculate dry months
@@ -401,7 +401,6 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
       }
 #      phi = monTop*2*pi + pi/2.
       phi = monTop*2*pi
-      browser()
       attArgs=list(indexWet=unlist(datInd$i.mm[mWet]),indexDry=unlist(datInd$i.mm[mDry]),phi=phi)
     } else {
       invalidSuffixStop(funcName=funcName,suffix=suffix)
