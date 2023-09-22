@@ -167,13 +167,32 @@ calc_mean_day_clim = function(obs,keepMat){
 
 # Calculates the seasonal pattern (i.e. climatological mean)
 calc_meanClimDaily_dayOfYearWindow = function(obs,  # vector representing a time series
-                                              keepMat, # matrix indexing days of year
+                                              dates=NULL,
+                                              keepMat=NULL, # matrix indexing days of year
                                               inc) #the half-window size used in moving average
 {
+  if (is.null(keepMat)){
+    doy = as.integer(format(dates,'%j'))
+    keepMat = calc_keepMat(doy)
+  }
   mean_day_clim = calc_mean_day_clim_cpp(obs,keepMat)
   indicesRM = c( (365-inc+1):365 , 1:365, 1:inc )
   run_mean_day_clim = ma(mean_day_clim[indicesRM],n=(2*inc+1))
   return(run_mean_day_clim[(inc+1):(inc+365)])
+}
+
+# Calculates the seasonal pattern (i.e. climatological mean) over all dates (not just single year)
+calc_meanClimDaily_dayOfYearWindow_allDates = function(obs,  # vector representing a time series
+                                              dates,
+                                              inc) #the half-window size used in moving average
+{
+
+  obsClim = calc_meanClimDaily_dayOfYearWindow (obs=obs,dates = dates,inc = inc)
+  obsClim[366] = obsClim[365]
+  doy = as.integer(format(dates,'%j'))
+  obsClimAll = obsClim[doy]
+
+  return(obsClimAll)
 }
 
 ####################################
