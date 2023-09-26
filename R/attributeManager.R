@@ -413,13 +413,12 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
       # use middle of dry/wet season to calculate phase of harmonic used in seasonla scaling
       if(max(diff(mDry))==1){
         midDry = stats::median(mDry)-0.5
-        monTop = midDry/12
+        monBottom = midDry/12
       } else if (max(diff(mWet))==1) {
         midWet = stats::median(mWet)-0.5
-        monTop = (midWet - 6)/12
+        monBottom = (midWet - 6)/12
       }
-#      phi = monTop*2*pi + pi/2.
-      phi = monTop*2*pi
+      phi = monBottom*2*pi - pi/2
       attArgs=list(indexWet=unlist(datInd$i.mm[mWet]),indexDry=unlist(datInd$i.mm[mDry]),phi=phi)
     } else {
       invalidSuffixStop(funcName=funcName,suffix=suffix)
