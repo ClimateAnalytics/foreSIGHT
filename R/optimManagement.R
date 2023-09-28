@@ -108,6 +108,12 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
 
   convergenceCodeSingle = messageSingle = NA
 
+  if(!is.null(optimArgs$seed)){
+    seed1=optimArgs$seed
+  } else {
+    seed1 = 1
+  }
+
   for (r in 1:optimArgs$nMultiStart){
 
     time1 = Sys.time()
@@ -118,11 +124,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
 
     print(r)
 
-    if(!is.null(optimArgs$seed)){
-      seed=optimArgs$seed[r]
-    } else {
-      seed = r
-    }
+    seed = seed1 + r - 1
 
     set.seed(seed) # set the random seed for selecting initial parameter values. note same set of seeds will be used for each target/replicate.
 
@@ -140,7 +142,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
                             upper = xHi[fixedPars$fitParLoc],
                             lower = xLo[fixedPars$fitParLoc],
                             simTarget = rep(0.,length(target)),
-                            control=optimArgs$RGN$control,
+                            control=optimArgs$RGN.control,
                             lambda.mult=lambda.mult,
                             modelInfo=modelInfo,
                             target=target,
@@ -166,7 +168,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
                          ...,
                          lower = xLo[fixedPars$fitParLoc],
                          upper = xHi[fixedPars$fitParLoc],
-                         control=optimArgs$CMAES$control)
+                         control=optimArgs$CMAES.control)
 
         fSingle = -outTmp$value
         if (is.null(outTmp$par)){
@@ -179,45 +181,45 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
         convergedSingle = (outTmp$convergence==0)
         convergenceCodeSingle = outTmp$convergence
 
-     } else if (optimArgs$optimizer=='NLSLM') {
-
-       outTmp = minpack.lm::nls.lm(par=x0[fixedPars$fitParLoc],
-                                lower=xLo[fixedPars$fitParLoc],
-                                upper=xHi[fixedPars$fitParLoc],
-                                fn=targetFinderFixPars,
-                                fixedPars=fixedPars,
-                                control=list(fnscale=1),
-                                target=target,
-                                lambda.mult=lambda.mult,
-                                modelInfo=modelInfo,
-                                simSeed=simSeed,
-                                returnThis='resid',
-                                ...)
-
-
-       fSingle = sqrt(sum(outTmp$fvec^2))
-
-       parsSingle = calcParFixedPars(outTmp$par,fixedPars)
-
-       convergedSingle = (outTmp$info%in%c(1,2,3,4))
-       messageSingle = outTmp$message
-       convergenceCodeSingle = outTmp$info
+     # } else if (optimArgs$optimizer=='NLSLM') {
+     #
+     #   outTmp = minpack.lm::nls.lm(par=x0[fixedPars$fitParLoc],
+     #                            lower=xLo[fixedPars$fitParLoc],
+     #                            upper=xHi[fixedPars$fitParLoc],
+     #                            fn=targetFinderFixPars,
+     #                            fixedPars=fixedPars,
+     #                            control=list(fnscale=1),
+     #                            target=target,
+     #                            lambda.mult=lambda.mult,
+     #                            modelInfo=modelInfo,
+     #                            simSeed=simSeed,
+     #                            returnThis='resid',
+     #                            ...)
+     #
+     #
+     #   fSingle = sqrt(sum(outTmp$fvec^2))
+     #
+     #   parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+     #
+     #   convergedSingle = (outTmp$info%in%c(1,2,3,4))
+     #   messageSingle = outTmp$message
+     #   convergenceCodeSingle = outTmp$info
 
       } else if (optimArgs$optimizer=='GA') {
 
-      outTmp = ga(type = "real-valued",
+      outTmp = GA::ga(type = "real-valued",
                   fitness=targetFinderFixPars,
                   lower = xLo[fixedPars$fitParLoc],
                   upper = xHi[fixedPars$fitParLoc],
                   pcrossover= optimArgs$GA$pcrossover,
-                  pmutation=optimArgs$GA$pmutation,
-                  maxiter=optimArgs$GA$maxiter,
-                  popSize = optimArgs$GA$popSize,
-                  maxFitness = optimArgs$GA$maxFitness,
-                  run=optimArgs$GA$run,
+                  pmutation=optimArgs$GA.args$pmutation,
+                  maxiter=optimArgs$GA.args$maxiter,
+                  popSize = optimArgs$GA.args$popSize,
+                  maxFitness = optimArgs$GA.args$maxFitness,
+                  run=optimArgs$GA.args$run,
                   seed = seed,
-                  parallel = optimArgs$GA$parallel,
-                  keepBest=optimArgs$GA$keepBest,
+                  parallel = optimArgs$GA.args$parallel,
+                  keepBest=optimArgs$GA.args$keepBest,
                   suggestions = parSuggest,
                   monitor = FALSE,             #switchback
                   fixedPars=fixedPars,
@@ -240,7 +242,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
         par=x0[fixedPars$fitParLoc],
         lower = xLo[fixedPars$fitParLoc],
         upper = xHi[fixedPars$fitParLoc],
-        control=optimArgs$SCE$control,
+        control=optimArgs$SCE.control,
         fixedPars=fixedPars,
         target=target,
         lambda.mult=lambda.mult,
@@ -383,7 +385,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
                      upper=xHi[fixedPars$fitParLoc],
                      fixedPars=fixedPars,
                      target=target,
-                     control=optimArgs$NM$control,
+                     control=optimArgs$NM.control,
                      lambda.mult=lambda.mult,
                      obj.func=optimArgs$obj.func,
                      modelInfo=modelInfo,
@@ -404,7 +406,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
 
     onBoundsSingle = (abs(parsSingle-xLo)<1e-6) | (abs(parsSingle-xHi)<1e-6)
 
-    print(parsSingle)
+#    print(parsSingle)
 
     # calculate best OF value after each function call
     fTrace = foreSIGHT_optimizationDiagnosticsEnv$fTrace
@@ -441,11 +443,11 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
       parsBest = parsSingle
       optOut=outTmp
     }
-    cat(fSingle,fBest,'\n')
+#    cat(fSingle,fBest,'\n')
     fTraceMulti[[r]] = fTraceTrim
     callsTraceMulti[[r]] = callsTraceTrim
+    if(fBest<optimArgs$OFtol){break()}
   }
-
 
   timeFin=Sys.time()
   timeRun=timeFin-timeStart    #optimisation runtime
@@ -479,6 +481,7 @@ screenSuggest<-function(modelInfo=NULL,
 ){
   nMod=length(modelTag)
   ind=NULL
+  if (is.vector(suggest)){suggest=matrix(suggest,nrow=1)}
   for(mod in 1:nMod){
     parSel=suggest[,(parLoc[[mod]][1]:parLoc[[mod]][2])]              #grab par suggestions related to modelTag running
     if (is.vector(parSel)){parSel=matrix(parSel,nrow=1)}
@@ -525,7 +528,7 @@ outBound<-function(ind=NULL,      #index of pars being evaluated
                    maxBound=NULL
 ){
   npar=length(minBound)  #No. of pars that should be inside bound
-  ntest=length(which((inVector>minBound)&(inVector<maxBound)))
+  ntest=length(which((inVector>=minBound)&(inVector<=maxBound)))
   if(ntest==npar){ok=ind}else{ok=NA}
   return(ok)
 }

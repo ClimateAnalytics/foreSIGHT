@@ -16,17 +16,29 @@ viewDefaultOptimArgs <- function(optimizer='RGN') {
   # optimArgs_toPrint <- optimArgsdefault
   # optimArgs_toPrint[["lambda.mult"]] <- NULL
   # optimArgs_toPrint[["suggestions"]] <- NULL
+  #optimArgs_toPrint <- list(optimizer=optimizer,
+  #                          nMultiStart=optimArgsdefault$nMultiStart)
+  #optimArgs_toPrint[[optimizer]] = optimArgsdefault[[optimizer]]
+
+  allArgs = names(optimArgsdefault)
   optimArgs_toPrint <- list(optimizer=optimizer,
+                            obj.func=optimArgsdefault$obj.func,
+                            seed=optimArgsdefault$seed,
                             nMultiStart=optimArgsdefault$nMultiStart)
-  optimArgs_toPrint[[optimizer]] = optimArgsdefault[[optimizer]]
+
+  controlName = allArgs[grepl(optimizer,allArgs)]
+  optimArgs_toPrint[[controlName]] = optimArgsdefault[[controlName]]
+  optimArgs_toPrint[[controlName]]$fnscale = NULL
+  optimArgs_toPrint[[controlName]]$maximize = NULL
   print(optimArgs_toPrint)
 }
 
 optimArgsdefault=list(optimizer='RGN',
                       obj.func='WSS',
                       nMultiStart=5,
+                      OFtol=0.,
                       seed=NULL,
-                      GA=list(pcrossover= 0.8,   # list of a parameters used by the ga optimiser (if used)
+                      GA.args=list(pcrossover= 0.8,   # list of a parameters used by the ga optimiser (if used)
                               pmutation=0.1,
                               maxiter=50,
                               maxFitness=-0.001,
@@ -34,12 +46,14 @@ optimArgsdefault=list(optimizer='RGN',
                               run=20,
                               parallel = FALSE,
                               keepBest=TRUE),
-                      RGN=list(),
-                      SCE=list(control=list(fnscale=-1,
-                                            initsample='random')),
-                      CMAES=list(control=list(fnscale=-1,
-                                              stopfitness=1e-5)),
-                      NM = list(control=list(maximize=T)),
+                      RGN.control=list(iterMax=100),
+                      SCE.control=list(fnscale=-1,
+                                       initsample='random',
+                                       ncomplex=5),
+                      CMAES.control=list(fnscale=-1,
+                                         stopfitness=1e-5),
+                      NM.control = list(maximize=T,
+                                        tol=1e-6),
                       lambda.mult=0.0,
                       suggestions=NULL
                       )
