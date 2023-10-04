@@ -242,7 +242,18 @@ getAttPenalty <- function(nml) {
 
 }
 
+# remove arguments for other optimizers that are not used
+cleanOptimArgs = function(optimArgs){
 
+  if(optimArgs$optimizer!='RGN'){optimArgs$RGN.control=NULL}
+  if(optimArgs$optimizer!='SCE'){optimArgs$SCE.control=NULL}
+  if(optimArgs$optimizer!='CMAES'){optimArgs$CMAES.control=NULL}
+  if(optimArgs$optimizer!='NM'){optimArgs$NM.control=NULL}
+  if(optimArgs$optimizer!='GA'){optimArgs$GA.args=NULL}
+
+  return(optimArgs)
+
+}
 
 # Given a namelist & variable, return integrated (modelInfo + new bounds) minimum and maximum bounds in a list
 modifyParBounds <- function(nml, v) {
@@ -296,16 +307,21 @@ modifyParBounds <- function(nml, v) {
 #'                                   Careful consideration is recommended prior to setting \code{modelParameterBounds} in the controlFile to overwrite the defaults provided in the package.}
 #' \item {\strong{\code{optimisationArguments}}} {: a list. Contains the optimisation options used by function \code{ga} from the \code{ga} package. Brief definitions are given below.
 #'       \itemize{
-#'       \item \code{pcrossover} a value of probability of crossover. Defaults to 0.8.
-#'       \item \code{pmutation} a value of probability of mutation. Defaults to 0.1.
-#'       \item \code{maxiter} a value of the maximum number of generations. Defaults to 50.
-#'       \item \code{maxFitness} a value of the stopping criteria. Defaults to -0.001.
-#'       \item \code{popSize} a value of the population size. Defaults to 500.
-#'       \item \code{run} a value of an alternative stopping criteria, consecutive runs without improvement in fitness. Defaults to 20.
-#'       \item \code{seed} a value of the random seed. Defaults to NULL.
-#'       \item \code{parallel} specifies if parallel computing should be used. Defaults to False. Can be set to the number of desired cores, or \code{TRUE}, where it will detect the number of available cores and run.
-#'       \item \code{keepBest} specifies if the optimisation should keep the best solution in each generation. Defaults to TRUE.
+#'       \item \code{optimizer} the numerical optimization routine. Options include
+#'       \code{'RGN'} for Robust Gauss Newton (using \code{RGN::rgn}),
+#'       \code{'NM'} for Nelder-Mead (using \code{dfoptim::nmkb}),
+#'       \code{'SCE'} for Shuffled Complex Evolution (using \code{SoilHyP::SCEoptim}).
+#'       \code{'GA'} for Genetic Algorithm (using \code{GA::ga}),
+#'       Defaults to 'RGN'.
+#'       \item \code{seed} random seed used (for first multistart) in numerical optimization (often for determining random initial parameter values). Default is 1.
+#'       \item \code{obj.func} the type of objective function used (important only when penalty weights are not equal.
 #'       \item \code{suggestions} suggestions for starting values of parameters for optimisation.
+#'       Options include \code{'WSS'} (weighted sum of squares) and \code{SS_absPenalty} (sum of squares plus absolute penalty)
+#'       \item \code{nMultiStart} the number of multistarts used in optimization. Default is 5.
+#'       \item \code{RGN.control} RGN optional arguments specified by \code{control} list in \code{RGN::rgn}.
+#'       \item \code{NM.control} NM optional arguments specified by \code{control} list in \code{dfoptim::nmkb}.
+#'       \item \code{SCE.control} SCE optional arguments specified by \code{control} list in \code{SoilHyP::SCEoptim}.
+#'       \item \code{GA.args} GA optional arguments specified in \code{GA::ga}.
 #'       }
 #'       }
 #' \item {\strong{\code{penaltyAttributes}}} {: a character vector of climate attributes to place specific focus on during targeting via the use of a penalty function during the optimisation process.}

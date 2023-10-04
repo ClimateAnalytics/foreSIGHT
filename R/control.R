@@ -419,7 +419,7 @@ generateScenario <- function(reference,       # data frame of observed data with
   # Update optimArgs
   #------------------------------------------------------
   optimArgs <- utils::modifyList(optimArgsdefault, optimArgs)
-
+  optimArgs = cleanOptimArgs(optimArgs)
 
   # Identify target
   #-------------------------------------------------------
