@@ -308,12 +308,11 @@ get.wet.amounts=function(data=NULL,threshold=NULL){
 #FUNCTION TO GET AVERAGE ABOVE A THRESHOLD
 get.wet.average=function(data=NULL,threshold=NULL){
   ind=which(data>threshold)
-  if(identical(length(ind),integer(0))){
+  if(identical(ind,integer(0))){
     temp=0                          #if no wet days
   }else{
     temp=mean(data[ind],na.rm=T)
   }
-
   return(temp)
 }
 
