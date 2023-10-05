@@ -24,7 +24,9 @@ viewDefaultOptimArgs <- function(optimizer='RGN') {
   optimArgs_toPrint <- list(optimizer=optimizer,
                             obj.func=optimArgsdefault$obj.func,
                             seed=optimArgsdefault$seed,
-                            nMultiStart=optimArgsdefault$nMultiStart)
+                            nMultiStart=optimArgsdefault$nMultiStart,
+                            OFtol=optimArgsdefault$OFtol,
+                            seed=optimArgsdefault$seed)
 
   controlName = allArgs[grepl(optimizer,allArgs)]
   optimArgs_toPrint[[controlName]] = optimArgsdefault[[controlName]]
@@ -54,7 +56,7 @@ optimArgsdefault=list(optimizer='RGN',
                                          stopfitness=1e-5),
                       NM.control = list(maximize=T,
                                         tol=1e-6),
-                      lambda.mult=0.0,
+                      lambda.mult=NULL,
                       suggestions=NULL
                       )
 
