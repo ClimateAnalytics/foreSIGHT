@@ -220,6 +220,7 @@ getSliceIndices <- function(expSpace, attSlices) {
 #' @param contourBreaks a vector; specifies breaks in the performance metric
 #' @param axesPercentLabel a logical flag; if TRUE x and y axes to be displayed in terms of percentage change instead of fraction
 #' @param type a string; indicates type of plot as "heat.plot" (default) or "filled.contour"
+#' @param noPlot logical; indicates whether plots will be printed (\code{TRUE}) or not printed (\code{FALSE}) and only saved as an object.
 #' @details If the space contains more than two perturbed attributes, the performance values are averaged across the perturbations in the attributes other than \code{attX} and \code{attY}.
 #' The user may specify argument \code{attSlices} to slice the performance space at specific values of the other perturbed attributes. If \code{attSlices} are used to
 #' specify minimum-maximum values to subset other perturbed attributes, the performance values are averaged across the subsetted perturbations in these attributes.
