@@ -45,4 +45,3 @@ modelTag=c("P-ann-wgen","Temp-har-wgen")  #Select a rainfall and a temperature g
 out<- modCalibrator(obs = tank_obs,         #Calibrate models
                     modelTag = modelTag)
 }
-\keyword{functions}

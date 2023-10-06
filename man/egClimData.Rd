@@ -19,7 +19,7 @@ A data frame with 6 rows and 6 variables:
 egClimData
 }
 \description{
-A example dataset containing the climate attribute values 
+A example dataset containing the climate attribute values
 in fraction/additive change
 }
 \keyword{datasets}

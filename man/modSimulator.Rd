@@ -71,4 +71,3 @@ sim=modSimulator(datStart="1970-01-01",         #Simulate!
 plot(sim$P[1:365])                             #Plot first year of rainfall
 }
 }
-\keyword{functions}

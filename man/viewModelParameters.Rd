@@ -14,7 +14,7 @@ viewModelParameters(variable, modelType, modelParameterVariation)
 \item{modelParameterVariation}{A string; the parameter variation. Use \code{viewModels} to view the valid values.}
 }
 \description{
-\code{viewModelParameters} prints the names of the parameters of the stochastic model and its default minimum and maximum bounds. 
+\code{viewModelParameters} prints the names of the parameters of the stochastic model and its default minimum and maximum bounds.
 The stochastic model is specified using the function arguments.
 }
 \details{
