@@ -116,8 +116,8 @@ checkAttPert <- function(targetMat, attX, attY) {
   # tarAttY <- targetMat[ ,colAttY]
 
   # May not need two attributes - can plot a single tile using just one sample?
-  # if (length(unique(tarAttX)) < 2) stop("Perturbation of attX should contain atleast two samples to plot the performance space.")
-  # if (length(unique(tarAttY)) < 2) stop("Perturbation of attY should contain atleast two samples to plot the performance space.")
+  # if (length(unique(tarAttX)) < 2) stop("Perturbation of attX should contain at least two samples to plot the performance space.")
+  # if (length(unique(tarAttY)) < 2) stop("Perturbation of attY should contain at least two samples to plot the performance space.")
 
   # Check the rest of the attributes - commented since it does not work for some reason
   # tarAttRest <- targetMat[ , -c(colAttX, colAttY)]

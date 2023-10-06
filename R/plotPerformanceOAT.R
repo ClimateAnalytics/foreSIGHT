@@ -113,7 +113,7 @@ plotPerformanceOAT <- function(performance,                   # system model per
   # }
   
   
-  # get attPerturb with atleast 2 samples
+  # get attPerturb with at least 2 samples
   # doing this here instead of using attPerturbSamp directly since the targetMat may be subsetted
   attPerturb <- getAttPerturb(targetMat)
   if (is.null(attPerturb)) stop("The simulation does not contain OAT perturbed attributes to plot.")
@@ -252,7 +252,7 @@ getOATData <- function(attPerturb,   # vector; perturbed attNames
   tempInd <- 2
   
   if (sum(OATAttVar %in% c("Temp")) > 0) {
-    # no. of data frames = 2 if atleast two types of var exist and atleast one of them is "Temp"
+    # no. of data frames = 2 if at least two types of var exist and at least one of them is "Temp"
     if (length(unique(OATAttVar)) > 1) {
       nDf <- 2
     } else {

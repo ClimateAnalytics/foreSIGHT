@@ -84,7 +84,7 @@ These five steps complete the framework of climate impact assessment using *fore
 This tutorial will provide a detailed description of the core functionality of the *fore*SIGHT software, broken down into each of the five steps described in the previous section. The basic structure of each section is as follows:
 
 - Each section will commence with a brief overview of the purpose of the Step and key learning outcomes. 
-- Following the overview, there will be a series of subsections that focus on key decisions that need to be made in implementing the step. These subsections commence with a box providing basic theory and key considersations that should be taken into account in making these decisions, followed by a description of software functionality needed to implement each decision.
+- Following the overview, there will be a series of subsections that focus on key decisions that need to be made in implementing the step. These subsections commence with a box providing basic theory and key considerations that should be taken into account in making these decisions, followed by a description of software functionality needed to implement each decision.
 - These elements are then combined to describe a series of 'use cases', in which the basic *fore*SIGHT workflow is implemented against a set of hypothetical anticipated applications of the software.
 
 In addition to learning about core *fore*SIGHT functionality, you'll also learn about a number of advanced usages *fore*SIGHT including:      
@@ -476,7 +476,7 @@ data(tankDat)
 head(tank_obs)
 ```
 
-When specifying multi-site `reference` data as a list, the list should contain vectors for the `year`, `month`, and `day`, and matrices for multi-site data hydro-climate variables. An example with multi-site rainfall data in the Barosssa Valley (South Australia) is provided. 
+When specifying multi-site `reference` data as a list, the list should contain vectors for the `year`, `month`, and `day`, and matrices for multi-site data hydro-climate variables. An example with multi-site rainfall data in the Barossa Valley (South Australia) is provided. 
 
 ```{r refFormatList}
 # Load example multi-site rainfall data
@@ -558,7 +558,7 @@ If you elect to use simple or seasonal scaling you can skip straight to Use Case
 > 
 > There is no single 'correct' weather generator for all applications, with the choice depending on a range of considerations:
 >
-> - **Data timestep.** Most weather generators run at a daily timestep, which is a common timestep for reporting of key weather variables. However there are also weather generators available at various sub-daily timesteps, as well as longer aggregated timesteps such as monthly or annual. The key consideration here is to ensure the time step is consistent with the likely timescales of system performance sensitivity, which in turn need to correpsond to the relevant time scales of weather inputs that are require for the system model.  
+> - **Data timestep.** Most weather generators run at a daily timestep, which is a common timestep for reporting of key weather variables. However there are also weather generators available at various sub-daily timesteps, as well as longer aggregated timesteps such as monthly or annual. The key consideration here is to ensure the time step is consistent with the likely timescales of system performance sensitivity, which in turn need to correspond to the relevant time scales of weather inputs that are require for the system model.  
 > 
 > - **The key timescales of system sensitivity.** In addition to data timestep, it is important that the stochastic generator is able to simulate variability in **Climate Attributes** representing key timescales of system sensitivity. For example some systems may respond at sub-seasonal and seasonal timescales, and others at interannual timescales. It is noted that a stochastic generator may be able to simulate variability at timescales that are equal to or longer than its timestep, but not shorter. 
 > 
@@ -1608,7 +1608,7 @@ Current *fore*SIGHT functionality for comparing multiple options involves interr
 >
 > - The overall sensitivity of alternative options to plausible climate changes
 > - The climate conditions over which alternative system configurations are 'acceptable' or result in a 'failure' (for situations where there are clearly defined performance thresholds)
-> - The extent to which alternative options improve overall system perforamnce relative to climate projections, by incorporating climate model output and/or other lines of evidence.
+> - The extent to which alternative options improve overall system performance relative to climate projections, by incorporating climate model output and/or other lines of evidence.
 >
 > By superimposing climate projections for different future time horizons, it may also be possible to use these analyses to inform adaptation triggers, by identifying conditions when the system performance is expected to become unacceptable. 
 
@@ -2128,7 +2128,7 @@ Similarly, the `runSystemModel` is also coded to not use any internal functions 
 The definitions of various terms and phrases used in this package and vignette are listed below. Where possible, definitions contained herein have been derived from published courses including IPCC reports. 
 
 
-- **Alternate climate data:** Changes in climate attributes from other sources of evidence, including climate model projections (from global/regional models), historical changes, expert judgment and/or analogues from paleo records.
+- **Alternate climate data:** Changes in climate attributes from other sources of evidence, including climate model projections (from global/regional models), historical changes, expert judgment and/or analogues from palaeo records.
 
 - **Attribute**: Statistical measures of a weather time series, and representing the axes of an **exposure space**. Examples of attributes include: annual total precipitation, mean summer temperature, ratio of wet to dry season rainfall. 
 
@@ -2216,7 +2216,7 @@ Of course you're getting confused. Unfortunately it *is* confusing, so we'll try
 
 Let's say we want to perturb average annual rainfall and average annual temperature by +10% and +1C relative to the reference series, respectively. The **attributes** in this case are the 'average annual rainfall' and 'average annual temperature', which you can view as forming the *axes* of an exposure space. (As an aside, if you are wondering why we use the term **attributes** rather than statistics, it is because in this case we are wanting to perturb the same statistic of two different weather variables, whereas in other cases we might want to perturb different statistics of the same weather variable, or multiple statistics of multiple weather variables, so this keeps the concepts distinct.) 
 
-In contrast, the reference to +10% and +1C are called **attribute values**. Since these are values we want to *change* relative to the **reference time series**, we can be even more precise and referr to these are **perturbed attribute values**. If we then wish to use a stochastic weather generator to produce time series with these attribute values, we typically need to provide some additional constraints, such as the request to keep other features of the time series such as the seasonality, variability and so forth at historical levels---otherwise there is a significant change we could make a range of unintended changes to the time series rather than focusing the analysis on the deliberate perturbations. The collection of attributes that we are seeking to keep at the levels of the reference time series are referred to as **held attributes**.
+In contrast, the reference to +10% and +1C are called **attribute values**. Since these are values we want to *change* relative to the **reference time series**, we can be even more precise and refer to these are **perturbed attribute values**. If we then wish to use a stochastic weather generator to produce time series with these attribute values, we typically need to provide some additional constraints, such as the request to keep other features of the time series such as the seasonality, variability and so forth at historical levels---otherwise there is a significant change we could make a range of unintended changes to the time series rather than focusing the analysis on the deliberate perturbations. The collection of attributes that we are seeking to keep at the levels of the reference time series are referred to as **held attributes**.
 
 When we use a stochastic generator to deliver the requested time series, we group up both the **perturbed attribute values** and the **held attributes** and refer to these as **target attribute values**, which the stochastic optimiser uses as part of its objective function in order to generate the requested time series. Unfortunately, in many cases the optimiser is not able to generate time series that precisely meet all the requested target attribute values, and thus the actual generated values may be a little (and sometimes a lot) different from what was requested. 
 
