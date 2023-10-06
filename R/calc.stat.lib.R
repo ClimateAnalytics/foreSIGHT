@@ -577,11 +577,11 @@ pc.calc<-function(sim=NULL,     #simulate point
 #pc.calc(sim,target)
 
 #calculation of percentage change
-abs.diff.calc<-function(sim=NULL,     #simulate point
+absDiff.calc<-function(sim=NULL,     #simulate point
                        target=NULL    #target point
 ){
 
-  abs.diff=(sim-target)      #calc abs diff from target
+  abs_diff=(sim-target)      #calc abs diff from target
 
 }
 
