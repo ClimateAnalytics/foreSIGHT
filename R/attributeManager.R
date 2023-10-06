@@ -664,6 +664,8 @@ tagBlender<-function(attLab=NULL
   }
 
   #stratification type
+  month.str.abb <- c("JFMAMJJASONDJFMAMJJASOND") #2 year month abbreviation to allow for wrap around months
+  month_number <- c(1:12,1:12)   #month.str.abb as month numbers
   if(indexName== "ann"){
     atype="annual"
   }else if(indexName== "DJF"){
@@ -698,6 +700,8 @@ tagBlender<-function(attLab=NULL
     atype="Nov"
   }else if(indexName== "Dec"){
     atype="Dec"
+  } else if (regexpr(indexName,month.str.abb)[1]!=-1 & nchar(indexName) > 1 & nchar(indexName) < 12) {
+    atype=indexName
   } else {
     cat(paste0('invalid attribute: cannot use ',indexName,' stratification'))
     return(invisible())
