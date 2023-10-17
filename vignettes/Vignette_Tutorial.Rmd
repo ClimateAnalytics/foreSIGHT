@@ -2227,7 +2227,7 @@ When we use a stochastic generator to deliver the requested time series, we grou
 
 # 12. References
 
-- Brown, C. (2011) Decision-scaling for robust planning and policy under climate uncertainty, World Resour. Rep., World Resour. Inst., Washington D.C. (Available online at https://www.wri.org/initiatives/world-resources-report)
+- Brown, C. (2011) Decision-scaling for robust planning and policy under climate uncertainty, World Resour. Rep., World Resour. Inst., Washington D.C.
 - Culley, S., S. Noble, A. Yates, M. Timbs, S. Westra, H. R. Maier, M. Giuliani, and A. Castelletti (2016), A bottom-up approach to identifying the maximum operational adaptive capacity of water resource systems to a changing climate, Water Resour. Res., 52, 6751-6768, \doi{10.1002/2015WR018253}.
 - Culley, S., Bennett, B., Westra, S. & Maier, H.R., 2019, Generating realistic perturbed hydrometeorological time series to inform scenario-neutral climate impact assessments, Journal of Hydrology, 576, 111-122.
 - Culley, S., Maier, H.R., Westra, S. & Bennett, B., 2020, Identifying critical climate conditions for use in scenario-neutral climate impact assessments, Environmental Modelling and Software (manuscript in press)
