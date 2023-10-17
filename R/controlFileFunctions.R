@@ -295,40 +295,39 @@ modifyParBounds <- function(nml, v) {
 #'         An "\code{controlFile.json}" file may contain any subset of the fields listed below. The user may delete the unused fields from the file.
 #'         The exception cases where it is mandatory to specify two fields together in controlFile are detailed as part of the list below.
 #' \itemize{
-#' \item {\strong{\code{modelType}}} {: a list by variable. Each element of the list is a string specifying the type of stochastic model. if \code{modelType} is specified for a variable in controlFile,
+#' \item \strong{\code{modelType}}: a list by variable. Each element of the list is a string specifying the type of stochastic model. if \code{modelType} is specified for a variable in controlFile,
 #'                        \code{modelParameterVariation} should also be specified. This is because these two fields together define the stochastic model.
-#'                        Use \code{viewModels()} to view the valid options for \code{modelType} by variable.}
-#' \item {\strong{\code{modelParameterVariation}}} {: a list by variable. Each element of the list is a string specifying the type of the parameter variation (annual, seasonal, harmonic etc.) of the stochastic model.
+#'                        Use \code{viewModels()} to view the valid options for \code{modelType} by variable.
+#' \item \strong{\code{modelParameterVariation}}: a list by variable. Each element of the list is a string specifying the type of the parameter variation (annual, seasonal, harmonic etc.) of the stochastic model.
 #'                                      if \code{modelParameterVariation} is specified for a variable in controlFile, \code{modelType} should also be specified.
 #'                                      This is because these two fields together define the stochastic model.
-#'                                      Use \code{viewModels()} to view valid options for \code{modelParameterVariation} by variable.}
-#' \item {\strong{\code{modelParameterBounds}}} {a nested list by variable. Each element is a list containing the bounds of the parameters of the chosen stochastic model.
+#'                                      Use \code{viewModels()} to view valid options for \code{modelParameterVariation} by variable.
+#' \item \strong{\code{modelParameterBounds}}: a nested list by variable. Each element is a list containing the bounds of the parameters of the chosen stochastic model.
 #'                                   This field exists to provide an option to overwrite the default bounds of the parameters of the stochastic model.
-#'                                   Careful consideration is recommended prior to setting \code{modelParameterBounds} in the controlFile to overwrite the defaults provided in the package.}
-#' \item {\strong{\code{optimisationArguments}}} {: a list. Contains the optimisation options used by function \code{ga} from the \code{ga} package. Brief definitions are given below.
+#'                                   Careful consideration is recommended prior to setting \code{modelParameterBounds} in the controlFile to overwrite the defaults provided in the package.
+#' \item \strong{\code{optimisationArguments}}: a list. Contains the optimisation options used by function \code{ga} from the \code{ga} package. Brief definitions are given below.
 #'       \itemize{
-#'       \item \code{optimizer} the numerical optimization routine. Options include
+#'       \item \code{optimizer}: the numerical optimization routine. Options include
 #'       \code{'RGN'} for Robust Gauss Newton (using \code{RGN::rgn}),
 #'       \code{'NM'} for Nelder-Mead (using \code{dfoptim::nmkb}),
 #'       \code{'SCE'} for Shuffled Complex Evolution (using \code{SoilHyP::SCEoptim}).
 #'       \code{'GA'} for Genetic Algorithm (using \code{GA::ga}),
 #'       Defaults to 'RGN'.
-#'       \item \code{seed} random seed used (for first multistart) in numerical optimization (often for determining random initial parameter values). Default is 1.
-#'       \item \code{obj.func} the type of objective function used (important only when penalty weights are not equal.
-#'       \item \code{suggestions} suggestions for starting values of parameters for optimisation.
+#'       \item \code{seed}: random seed used (for first multistart) in numerical optimization (often for determining random initial parameter values). Default is 1.
+#'       \item \code{obj.func}: the type of objective function used (important only when penalty weights are not equal.
+#'       \item \code{suggestions}: suggestions for starting values of parameters for optimisation.
 #'       Options include \code{'WSS'} (weighted sum of squares) and \code{SS_absPenalty} (sum of squares plus absolute penalty)
-#'       \item \code{nMultiStart} the number of multistarts used in optimization. Default is 5.
-#'       \item \code{RGN.control} RGN optional arguments specified by \code{control} list in \code{RGN::rgn}.
-#'       \item \code{NM.control} NM optional arguments specified by \code{control} list in \code{dfoptim::nmkb}.
-#'       \item \code{SCE.control} SCE optional arguments specified by \code{control} list in \code{SoilHyP::SCEoptim}.
-#'       \item \code{GA.args} GA optional arguments specified in \code{GA::ga}.
+#'       \item \code{nMultiStart}: the number of multistarts used in optimization. Default is 5.
+#'       \item \code{RGN.control}: RGN optional arguments specified by \code{control} list in \code{RGN::rgn}.
+#'       \item \code{NM.control}: NM optional arguments specified by \code{control} list in \code{dfoptim::nmkb}.
+#'       \item \code{SCE.control}: SCE optional arguments specified by \code{control} list in \code{SoilHyP::SCEoptim}.
+#'       \item \code{GA.args}: GA optional arguments specified in \code{GA::ga}.
 #'       }
-#'       }
-#' \item {\strong{\code{penaltyAttributes}}} {: a character vector of climate attributes to place specific focus on during targeting via the use of a penalty function during the optimisation process.}
+#' \item \strong{\code{penaltyAttributes}}: a character vector of climate attributes to place specific focus on during targeting via the use of a penalty function during the optimisation process.
 #'                                The \code{penaltyAttributes} should belong to \code{attPerturb} or \code{attHold} that are specified in the exposure space used as input to \code{generateScenarios}.
 #'                                If \code{penaltyAttributes} are specified in the controlFile, \code{penaltyWeights} should also be specified.
-#' \item {\strong{\code{penaltyWeights}}} {: a numeric vector; the length of the vector should be equal to the length of \code{penaltyAttributes}.
-#'                             \code{penaltyWeights} are the multipliers of the corresponding \code{penaltyAttributes} used during the optimisation.}
+#' \item \strong{\code{penaltyWeights}}: a numeric vector; the length of the vector should be equal to the length of \code{penaltyAttributes}.
+#'                             \code{penaltyWeights} are the multipliers of the corresponding \code{penaltyAttributes} used during the optimisation.
 #' }
 #' @details The function may be used without any input arguments to write a "basic" sample controlFile.
 #' @seealso \code{generateScenarios}, \code{viewModels}, \code{viewDefaultOptimArgs}

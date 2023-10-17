@@ -34,15 +34,14 @@ The seed used will be specified in the output. This argument is intended for use
 
 \item{controlFile}{a string; to specify the model/optimisation options used for simulating time series data. The valid values are:
 \itemize{
-\item {\code{NULL}} {: the simulation uses the foreSIGHT default stochastic model settings.}
-\item {\code{"scaling"}} {: the simulation uses scaling (simple/seasonal) instead of a stochastic model.
+\item \code{NULL}: the simulation uses the foreSIGHT default stochastic model settings.
+\item \code{"scaling"}: the simulation uses scaling (simple/seasonal) instead of a stochastic model.
                           If all attributes in \emph{expSpace} are annual totals/averages, then simple scaling is used.
-                          If seasonality ratio attributes are also included in \emph{expSpace}, then seasonal scaling is used.}
-\item {\code{path to a JSON file}} {: the JSON file contains advanced options specify the stochastic model and optimisation inputs.
+                          If seasonality ratio attributes are also included in \emph{expSpace}, then seasonal scaling is used.
+\item \code{path to a JSON file}: the JSON file contains advanced options specify the stochastic model and optimisation inputs.
                   These options can be used to change stochastic model types, overwrite default model parameter bounds, change default optimisation arguments, and set penalty attributes to be used in optimisation.
                   Please refer to the function \code{writeControlFile} in order to create an \code{controlFile} JSON file.
-                  }
-                  }}
+}}
 }
 \description{
 \code{generateScenario} is the base function used by \code{generateScenarios}.

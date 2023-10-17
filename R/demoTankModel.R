@@ -31,12 +31,12 @@
 #'            Please refer data provided with the package that may be loaded using \code{data(tankDat)} for an example of the expected format of \code{data}.
 #' @param systemArgs a list; contains the input arguments to the rain water tank system model. The valid fields in the list are:
 #' \itemize{
-#' \item {\code{roofArea}} {: numeric; the roof area in sq.m}
-#' \item {\code{nPeople}} {: integer; number of people using water}
-#' \item {\code{tankVol}} {: numeric; volume of the tank in L}
-#' \item {\code{firstFlush}} {: numeric; first flush depth over roof in mm}
-#' \item {\code{write.file}} {: logical; indicates whether output is to be written to file}
-#' \item {\code{fnam}} {: string; name of the output file}
+#' \item \code{roofArea}: numeric; the roof area in sq.m
+#' \item \code{nPeople}: integer; number of people using water
+#' \item \code{tankVol}: numeric; volume of the tank in L
+#' \item \code{firstFlush}: numeric; first flush depth over roof in mm
+#' \item \code{write.file}: logical; indicates whether output is to be written to file
+#' \item \code{fnam}: string; name of the output file
 #' }
 #' @param metrics string vector; the metrics of performance of the system model to be reported. The valid strings may be viewed using the function \code{viewTankMetrics()}
 #' @return The function returns a list containing the calculated values of the performance metrics specified in \code{metrics} after running the system model.

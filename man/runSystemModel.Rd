@@ -13,10 +13,10 @@ runSystemModel(sim, systemModel, systemArgs, metrics)
 The function is expected to be created by the user for specific system models. \code{tankWrapper} is an example system model function available in this package.
 \code{runSystemModel} calls the function \code{systemModel} with two arguments:
 \itemize{
-\item {\code{data}} {: data.frame; the climate data in a data frame with columns named \emph{year} \emph{month} \emph{day} \emph{*variable_name1*} \emph{*variable_name2*}. }
-\item {\code{systemArgs}} {: list; containing the other arguments required by the system model.\code{systemModel} unpack the arguments from the list and uses them as required. }
-\item {\code{metrics}} {: string vector; containing the names of the performance metrics that the system model returns. It is recommended that the
-names also contain the units of the metric. See \code{viewTankMetrics()} for examples.}
+\item \code{data}: data.frame; the climate data in a data frame with columns named \emph{year} \emph{month} \emph{day} \emph{*variable_name1*} \emph{*variable_name2*}. 
+\item \code{systemArgs}: list; containing the other arguments required by the system model.\code{systemModel} unpack the arguments from the list and uses them as required. 
+\item \code{metrics}: string vector; containing the names of the performance metrics that the system model returns. It is recommended that the
+names also contain the units of the metric. See \code{viewTankMetrics()} for examples.
 }}
 
 \item{systemArgs}{a list; containing the input arguments to \code{systemModel}.}

@@ -33,15 +33,14 @@
 #'               The seed used will be specified in the output. This argument is intended for use in cases that aim to reproduce an existing simulation.
 #' @param controlFile a string; to specify the model/optimisation options used for simulating time series data. The valid values are:
 #' \itemize{
-#' \item {\code{NULL}} {: the simulation uses the foreSIGHT default stochastic model settings.}
-#' \item {\code{"scaling"}} {: the simulation uses scaling (simple/seasonal) instead of a stochastic model.
+#' \item \code{NULL}: the simulation uses the foreSIGHT default stochastic model settings.
+#' \item \code{"scaling"}: the simulation uses scaling (simple/seasonal) instead of a stochastic model.
 #'                           If all attributes in \emph{expSpace} are annual totals/averages, then simple scaling is used.
-#'                           If seasonality ratio attributes are also included in \emph{expSpace}, then seasonal scaling is used.}
-#' \item {\code{path to a JSON file}} {: the JSON file contains advanced options specify the stochastic model and optimisation inputs.
+#'                           If seasonality ratio attributes are also included in \emph{expSpace}, then seasonal scaling is used.
+#' \item \code{path to a JSON file}: the JSON file contains advanced options specify the stochastic model and optimisation inputs.
 #'                   These options can be used to change stochastic model types, overwrite default model parameter bounds, change default optimisation arguments, and set penalty attributes to be used in optimisation.
 #'                   Please refer to the function \code{writeControlFile} in order to create an \code{controlFile} JSON file.
-#'                   }
-#'                   }
+#' }
 #' @return The function returns a list containing the time series data generated. The list can contain multiple replicates (named as \code{Rep1}, \code{Rep2} etc.) equal to the \code{numReplicates} function argument.
 #'         Each replicate can contain multiple targets (named as \code{Target1}, \code{Target2} etc.) based on the specified exposure space (\code{expSpace}). The \code{expSpace} and \code{controlFile} are also returned as part of this output list.
 #' @seealso \code{createExpSpace}, \code{writeControlFile}, \code{viewModels}
@@ -1255,10 +1254,10 @@ simulateTargetCor = function(optimArgs=NULL,
 #' The function is expected to be created by the user for specific system models. \code{tankWrapper} is an example system model function available in this package.
 #' \code{runSystemModel} calls the function \code{systemModel} with two arguments:
 #' \itemize{
-#' \item {\code{data}} {: data.frame; the climate data in a data frame with columns named \emph{year} \emph{month} \emph{day} \emph{*variable_name1*} \emph{*variable_name2*}. }
-#' \item {\code{systemArgs}} {: list; containing the other arguments required by the system model.\code{systemModel} unpack the arguments from the list and uses them as required. }
-#' \item {\code{metrics}} {: string vector; containing the names of the performance metrics that the system model returns. It is recommended that the
-#' names also contain the units of the metric. See \code{viewTankMetrics()} for examples.}
+#' \item \code{data}: data.frame; the climate data in a data frame with columns named \emph{year} \emph{month} \emph{day} \emph{*variable_name1*} \emph{*variable_name2*}. 
+#' \item \code{systemArgs}: list; containing the other arguments required by the system model.\code{systemModel} unpack the arguments from the list and uses them as required. 
+#' \item \code{metrics}: string vector; containing the names of the performance metrics that the system model returns. It is recommended that the
+#' names also contain the units of the metric. See \code{viewTankMetrics()} for examples.
 #' }
 #' @param systemArgs a list; containing the input arguments to \code{systemModel}.
 #' @param metrics a string vector; the names of the performance metrics the \code{systemModel} function returns.
