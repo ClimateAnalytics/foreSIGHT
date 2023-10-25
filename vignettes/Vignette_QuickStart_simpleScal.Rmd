@@ -456,7 +456,7 @@ While the climate impact analysis has been presented as a sequential work flow h
 
 # 4. References
 
-- Brown, C. (2011) Decision-scaling for robust planning and policy under climate uncertainty, World Resour. Rep., World Resour. Inst., Washington D.C. (Available online at https://www.wri.org/our-work/project/world-resources-report/wrr.)
+- Brown, C. (2011) Decision-scaling for robust planning and policy under climate uncertainty, World Resour. Rep., World Resour. Inst., Washington D.C.
 - Culley, S., S. Noble, A. Yates, M. Timbs, S. Westra, H. R. Maier, M. Giuliani, and A. Castelletti (2016), A bottom-up approach to identifying the maximum operational adaptive capacity of water resource systems to a changing climate, Water Resour. Res., 52, 6751-6768, \doi{10.1002/2015WR018253}.
 - Guo, D., S. Westra, and H. R. Maier (2018), An inverse approach to perturb historical rainfall data for scenario-neutral climate impact studies, J. Hydrol., 556, 877-890, \doi{10.1016/j.jhydrol.2016.03.025}.
 - Prudhomme, C., R. L. Wilby, S. Crooks, A. L. Kay, and N. S. Reynard (2010), Scenario-neutral approach to climate change impact studies: Application to flood risk, J. Hydrol., 390, 198-209, \doi{10.1016/j.jhydrol.2010.06.043}.

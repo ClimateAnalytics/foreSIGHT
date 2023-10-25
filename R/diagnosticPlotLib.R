@@ -266,7 +266,7 @@ measure.diff<- function(type=NULL,
          "frac" = {diff.att=pc.calc(sim=simPt,target=targetPt)
                   class.lim=pc.lim
                   },
-         "diff" = {diff.att=abs.diff.calc(sim=simPt,target=targetPt)
+         "diff" = {diff.att=absDiff.calc(sim=simPt,target=targetPt)
                   class.lim=diff.lim
                   },
                  {diff.att=pc.calc(sim=simPt,target=targetPt)

@@ -4,14 +4,17 @@
 \alias{viewDefaultOptimArgs}
 \title{Prints the default optimisation arguments}
 \usage{
-viewDefaultOptimArgs()
+viewDefaultOptimArgs(optimizer = "RGN")
+}
+\arguments{
+\item{optimizer}{A string for the numerical optimizer. Default optimizer is 'RGN'.}
 }
 \description{
 \code{viewDefautOptimArgs()} prints the default values of optimisation arguments (\code{optimisationArguments}) used by \code{generateScenarios}
 }
 \details{
-The function does not take any input arguments. This a helper function that prints the default values of the optimisation arguments.
-The user may specify alternate values of these arguments in fields named according to the corresponding argument name nested under 
+This a helper function that prints the default values of the optimisation arguments.
+The user may specify alternate values of these arguments in fields named according to the corresponding argument name nested under
 \code{optimisationArguments} in a JSON file to use as the \code{controlFile} input to the \code{generateScenarios} function.
 }
 \examples{

@@ -2,19 +2,18 @@
 # link namelist input with shortened version in modelTag
 parVariationDef <- c(ann = "annual",
                      har = "harmonic",
-                     har26 = "harmonic",
                      seas = "seasonal")
 
-# There are multiple harmonic models - define the harmonic tags for each variable 
-# this is required to create the modelTag from namelist 
+# There are multiple harmonic models - define the harmonic tags for each variable
+# this is required to create the modelTag from namelist
 # Anjana: this can be eliminated once all the modelTags for "Temp", "PET", and "Radn" are all updated to be "har" instead of "har26"
-harDefinition <- c(P = "har",
-                   Temp = "har26",
-                   PET = "har26",
-                   Radn = "har26")
+# harDefinition <- c(P = "har",
+#                    Temp = "har26",
+#                    PET = "har26",
+#                    Radn = "har26")
 
 # TO DO: add an argument 'compatibleAtts' (default FALSE)
-# if set to 'TRUE' all attributes of the variable will be shown in the printed data.frame 
+# if set to 'TRUE' all attributes of the variable will be shown in the printed data.frame
 # - with T/F to indicate if the attribute is compatible to use with the model
 
 #' Prints the available stochastic model options
@@ -26,7 +25,7 @@ harDefinition <- c(P = "har",
 #' @examples
 #' # To view the valid variable names use the function without arguments
 #' viewModels()
-#' 
+#'
 #' # Examples to view the model options available for different variables
 #' viewModels("P")
 #' viewModels("Temp")
@@ -34,15 +33,15 @@ harDefinition <- c(P = "har",
 #' viewModels("PET")
 #' @export
 viewModels <- function(variable = NULL) {
-    
+
   # vector of stochastic model tags - exclude scaling
   stochModels <- modelTaglist[!(modelTaglist%in%c("Simple-ann","Simple-seas"))]
-  
+
   # get stochastic model Info
   varNames <- sapply(strsplit(stochModels, "-"), `[[`, 1)
   parVariation <- sapply(strsplit(stochModels, "-"), `[[`, 2)
   modelType <- sapply(strsplit(stochModels, "-"), `[[`, 3)
-  
+
   # check if the model has additional info
   tagLength <- sapply(strsplit(stochModels, "-"), length)
   for (m in 1:length(modelType)){
@@ -55,7 +54,7 @@ viewModels <- function(variable = NULL) {
   modelTimeStep <- modelTimeStep[stochModels]
   defaultModel <- rep(FALSE, length(stochModels))
   defaultModel[which(stochModels %in% defaultModelTags)] <- TRUE
-  
+
   if(is.null(variable) || !(variable %in% varNames)) {
     print("Please select a valid variable. The valid variable names are:")
     print(unique(varNames))
@@ -64,12 +63,12 @@ viewModels <- function(variable = NULL) {
     ind <- which(varNames == variable)
     modelTimeStep <- modelTimeStep[ind]   # subsetted ind here so that the column would be named modelTimeStep in the data.frame output by the function
     defaultModel <- defaultModel[ind]
-    
+
     # model information dataframe
     varModels <- data.frame(modelType[ind], parVariationDef[parVariation[ind]], modelTimeStep, defaultModel)
     colnames(varModels)[1:2] <- mdlFields
     rownames(varModels) <- NULL
-    
+
     return(varModels)
   }
 }
@@ -77,7 +76,7 @@ viewModels <- function(variable = NULL) {
 # function to get valid values of modelType and modelParameterVariation; this is an internal function
 getModelSpec <- function(colName, var = NULL) {
   modelSpec <- NULL
-  
+
   # If variable is not specified - return data for all variables
   if(is.null(var)){
     var <- fSVars
@@ -118,7 +117,7 @@ optFields <- c("optimisationArguments", "penaltyAttributes", "penaltyWeights")
 
 # Function to return the masterNamelist options used to check controlFile
 getNamelistMaster <- function(){
-  
+
   outList <- list()
   for (f in mdlFields) {
     outList[[f]] <- getModelSpec(f)
@@ -151,11 +150,11 @@ readNamelist <- function(jsonfile) {
 
 # Function to get the user model choice of "v" from namelist, input is a list - read in from the namelist json file
 getModelChoice <- function(nml, v) {
-  
+
   # initialize modelChoice
   modelChoice <- viewModels(v)[FALSE, 1:2]
   modelChoice[1, ] <- NA
-  
+
   # get modelChoice
   for (f in mdlFields) {
     fvalue <- nml[[f]][[v]]
@@ -174,21 +173,21 @@ getModelChoice <- function(nml, v) {
 # modelTag = "v-parTag-modelType"
 getModelTag <- function(nml, v) {
   modelChoice <- getModelChoice(nml, v)
-  
+
   if (ncol(modelChoice) == 0) {
     # use default
     modelTag <- defaultModelTags[[v]]
   } else {
     # create from nml specifications
     parTagLong <- modelChoice[["modelParameterVariation"]]
-    
+
     # Get the harmonic part of the modelTag based on the variable
     if(parTagLong == "harmonic") {
-      parTag <- harDefinition[[v]] 
+      parTag <- 'har'
     } else {
       parTag <- names(parVariationDef[parVariationDef == parTagLong])
     }
-    
+
     modelType <- modelChoice[["modelType"]]
     modelTag <- paste(c(v, parTag, modelType), collapse = "-")
   }
@@ -198,11 +197,11 @@ getModelTag <- function(nml, v) {
 # To create the original 'modelInfoMod' list based on the nml input
 # 'modelInfoMod' depends only on the vars specified as fields of mdlBounds
 getModelInfoMod <- function(nml) {
-  
+
   field <- "modelParameterBounds"
   if(!is.null(nml[[field]])) {
     vars <- names(nml[[field]])
-    
+
     modelInfoMod <- NULL
     for (v in vars){
       modelTag <- getModelTag(nml, v)
@@ -213,63 +212,74 @@ getModelInfoMod <- function(nml) {
     #cat(paste0("\ncontrolFile does not contain ", field, ". Using foreSIGHT defaults.\n"))
     return(list())
   }
-  
+
 }
 
 getOptimArgs <- function(nml) {
-  
+
   field1 <- "optimisationArguments"
   field2 <- "penaltyWeights"
-  
+
   optimArgs <- list()
-  
+
   if(!is.null(nml[[field1]])) {
     optimArgs <- nml[[field1]]
   } else {
     #cat(paste0("\ncontrolFile does not contain ", field1, ". Using foreSIGHT defaults.\n"))
   }
-  
+
   if(!is.null(nml[[field2]])) {
     optimArgs[["lambda.mult"]] <- nml[[field2]]
   }
-  
+
   return(optimArgs)
 }
 
 getAttPenalty <- function(nml) {
-  
+
   field <- "penaltyAttributes"
   return(nml[[field]])
-  
+
 }
 
+# remove arguments for other optimizers that are not used
+cleanOptimArgs = function(optimArgs){
 
+  if(optimArgs$optimizer!='RGN'){optimArgs$RGN.control=NULL}
+  if(optimArgs$optimizer!='SCE'){optimArgs$SCE.control=NULL}
+  if(optimArgs$optimizer!='CMAES'){optimArgs$CMAES.control=NULL}
+  if(optimArgs$optimizer!='NM'){optimArgs$NM.control=NULL}
+  if(optimArgs$optimizer!='GA'){optimArgs$GA.args=NULL}
+
+  return(optimArgs)
+
+}
 
 # Given a namelist & variable, return integrated (modelInfo + new bounds) minimum and maximum bounds in a list
 modifyParBounds <- function(nml, v) {
-  
+
   field <- "modelParameterBounds"
   boundsIn <- nml[[field]][[v]]
   parsIn <- names(boundsIn)
-  
+
   modelTag <- getModelTag(nml, v)
   parNam <- get.model.info(modelTag)[["parNam"]]
   minBound <- get.model.info(modelTag)[["minBound"]]
   maxBound <- get.model.info(modelTag)[["maxBound"]]
-  
+
   for (p in parsIn) {
     ind <- which(parNam == p)
     minBound[ind] <- boundsIn[[p]][1]
     maxBound[ind] <- boundsIn[[p]][2]
   }
-  
+
   return(list(minBound = minBound,
               maxBound = maxBound))
 }
 
 
 # Function to write the namelist from R list to json file
-# Intended use: to write sample 
+# Intended use: to write sample
 
 #' Writes a sample \code{controlFile.json} file
 #'
@@ -281,39 +291,43 @@ modifyParBounds <- function(nml, v) {
 #'               A "basic" controlFile does not contain modelParameterBounds, and is sufficient for most applications.
 #' @param nml list; the namelist to be written to the json file, as an R list. This argument may be used to create a JSON file using an controlFile from an existing simulation.
 #'            If this argument is set to NULL, the function writes the default model/optimisation options defined in the package to the json file.
-#' @return A json file. The file may be used as an example to create an "\code{controlFile.json}" file for input to \code{generateScenarios}. 
+#' @return A json file. The file may be used as an example to create an "\code{controlFile.json}" file for input to \code{generateScenarios}.
 #'         An "\code{controlFile.json}" file may contain any subset of the fields listed below. The user may delete the unused fields from the file.
 #'         The exception cases where it is mandatory to specify two fields together in controlFile are detailed as part of the list below.
 #' \itemize{
-#' \item {\strong{\code{modelType}}} {: a list by variable. Each element of the list is a string specifying the type of stochastic model. if \code{modelType} is specified for a variable in controlFile, 
+#' \item \strong{\code{modelType}}: a list by variable. Each element of the list is a string specifying the type of stochastic model. if \code{modelType} is specified for a variable in controlFile,
 #'                        \code{modelParameterVariation} should also be specified. This is because these two fields together define the stochastic model.
-#'                        Use \code{viewModels()} to view the valid options for \code{modelType} by variable.}
-#' \item {\strong{\code{modelParameterVariation}}} {: a list by variable. Each element of the list is a string specifying the type of the parameter variation (annual, seasonal, harmonic etc.) of the stochastic model. 
-#'                                      if \code{modelParameterVariation} is specified for a variable in controlFile, \code{modelType} should also be specified. 
-#'                                      This is because these two fields together define the stochastic model. 
-#'                                      Use \code{viewModels()} to view valid options for \code{modelParameterVariation} by variable.}
-#' \item {\strong{\code{modelParameterBounds}}} {a nested list by variable. Each element is a list containing the bounds of the parameters of the chosen stochastic model.
+#'                        Use \code{viewModels()} to view the valid options for \code{modelType} by variable.
+#' \item \strong{\code{modelParameterVariation}}: a list by variable. Each element of the list is a string specifying the type of the parameter variation (annual, seasonal, harmonic etc.) of the stochastic model.
+#'                                      if \code{modelParameterVariation} is specified for a variable in controlFile, \code{modelType} should also be specified.
+#'                                      This is because these two fields together define the stochastic model.
+#'                                      Use \code{viewModels()} to view valid options for \code{modelParameterVariation} by variable.
+#' \item \strong{\code{modelParameterBounds}}: a nested list by variable. Each element is a list containing the bounds of the parameters of the chosen stochastic model.
 #'                                   This field exists to provide an option to overwrite the default bounds of the parameters of the stochastic model.
-#'                                   Careful consideration is recommended prior to setting \code{modelParameterBounds} in the controlFile to overwrite the defaults provided in the package.}
-#' \item {\strong{\code{optimisationArguments}}} {: a list. Contains the optimisation options used by function \code{ga} from the \code{ga} package. Brief definitions are given below.
+#'                                   Careful consideration is recommended prior to setting \code{modelParameterBounds} in the controlFile to overwrite the defaults provided in the package.
+#' \item \strong{\code{optimisationArguments}}: a list. Contains the optimisation options used by function \code{ga} from the \code{ga} package. Brief definitions are given below.
 #'       \itemize{
-#'       \item \code{pcrossover} a value of probability of crossover. Defaults to 0.8.
-#'       \item \code{pmutation} a value of probability of mutation. Defaults to 0.1.
-#'       \item \code{maxiter} a value of the maximum number of generations. Defaults to 50.
-#'       \item \code{maxFitness} a value of the stopping criteria. Defaults to -0.001.
-#'       \item \code{popSize} a value of the population size. Defaults to 500.
-#'       \item \code{run} a value of an alternative stopping criteria, consecutive runs without improvement in fitness. Defaults to 20.
-#'       \item \code{seed} a value of the random seed. Defaults to NULL.
-#'       \item \code{parallel} specifies if parallel computing should be used. Defaults to False. Can be set to the number of desired cores, or \code{TRUE}, where it will detect the number of available cores and run.
-#'       \item \code{keepBest} specifies if the optimisation should keep the best solution in each generation. Defaults to TRUE.
-#'       \item \code{suggestions} suggestions for starting values of parameters for optimisation.
+#'       \item \code{optimizer}: the numerical optimization routine. Options include
+#'       \code{'RGN'} for Robust Gauss Newton (using \code{RGN::rgn}),
+#'       \code{'NM'} for Nelder-Mead (using \code{dfoptim::nmkb}),
+#'       \code{'SCE'} for Shuffled Complex Evolution (using \code{SoilHyP::SCEoptim}).
+#'       \code{'GA'} for Genetic Algorithm (using \code{GA::ga}),
+#'       Defaults to 'RGN'.
+#'       \item \code{seed}: random seed used (for first multistart) in numerical optimization (often for determining random initial parameter values). Default is 1.
+#'       \item \code{obj.func}: the type of objective function used (important only when penalty weights are not equal.
+#'       \item \code{suggestions}: suggestions for starting values of parameters for optimisation.
+#'       Options include \code{'WSS'} (weighted sum of squares) and \code{SS_absPenalty} (sum of squares plus absolute penalty)
+#'       \item \code{nMultiStart}: the number of multistarts used in optimization. Default is 5.
+#'       \item \code{RGN.control}: RGN optional arguments specified by \code{control} list in \code{RGN::rgn}.
+#'       \item \code{NM.control}: NM optional arguments specified by \code{control} list in \code{dfoptim::nmkb}.
+#'       \item \code{SCE.control}: SCE optional arguments specified by \code{control} list in \code{SoilHyP::SCEoptim}.
+#'       \item \code{GA.args}: GA optional arguments specified in \code{GA::ga}.
 #'       }
-#'       }
-#' \item {\strong{\code{penaltyAttributes}}} {: a character vector of climate attributes to place specific focus on during targeting via the use of a penalty function during the optimisation process.}
+#' \item \strong{\code{penaltyAttributes}}: a character vector of climate attributes to place specific focus on during targeting via the use of a penalty function during the optimisation process.
 #'                                The \code{penaltyAttributes} should belong to \code{attPerturb} or \code{attHold} that are specified in the exposure space used as input to \code{generateScenarios}.
 #'                                If \code{penaltyAttributes} are specified in the controlFile, \code{penaltyWeights} should also be specified.
-#' \item {\strong{\code{penaltyWeights}}} {: a numeric vector; the length of the vector should be equal to the length of \code{penaltyAttributes}.
-#'                             \code{penaltyWeights} are the multipliers of the corresponding \code{penaltyAttributes} used during the optimisation.}
+#' \item \strong{\code{penaltyWeights}}: a numeric vector; the length of the vector should be equal to the length of \code{penaltyAttributes}.
+#'                             \code{penaltyWeights} are the multipliers of the corresponding \code{penaltyAttributes} used during the optimisation.
 #' }
 #' @details The function may be used without any input arguments to write a "basic" sample controlFile.
 #' @seealso \code{generateScenarios}, \code{viewModels}, \code{viewDefaultOptimArgs}
@@ -321,13 +335,13 @@ modifyParBounds <- function(nml, v) {
 #' \dontrun{
 #' # To write a sample controlFile
 #' writeControlFile()
-#' 
+#'
 #' # To write an advanced sample controlFile
 #' writeControlFile(jsonfile = "sample_controlFile_advanced.json", basic = FALSE)
 #' }
 #' @export
 writeControlFile <- function(jsonfile = "sample_controlFile.json", basic = TRUE, nml = NULL) {
-  
+
   # get defaults
   if (is.null(nml)) {
     modelTag <- defaultModelTags
@@ -340,16 +354,16 @@ writeControlFile <- function(jsonfile = "sample_controlFile.json", basic = TRUE,
   } else {
     checkControlFile(nml)
   }
-  
+
   if(basic) {
     nml[[mdlBounds]] <- NULL
     nml[["optimisationArguments"]] <- NULL  # removed optimArgs from basic controlFile; add if needed
   }
   json_nml <- jsonlite::toJSON(nml, pretty = TRUE, auto_unbox = TRUE)
   write(json_nml, file = jsonfile)
-  
+
   return(invisible())
-  
+
 }
 
 # Function to create a namelist from a number of foreSIGHT options
@@ -361,10 +375,10 @@ writeControlFile <- function(jsonfile = "sample_controlFile.json", basic = TRUE,
 # 4. modelInfo - input namelist bounds + exisiting default bounds for unspecified parameters
 # The output is of type list - it can be passed to a writeNamelist function to write a json file
 toNamelist <- function(modelTag, modelInfoMod = NULL, optimArgs = NULL, attPenalty = NULL) {
-  
+
   if (!is.null(attPenalty)) penaltyWeights <- optimArgs[["lambda.mult"]]
   optimArgs[["lambda.mult"]] <- NULL
-  
+
   # modelParameterVariation
   #----------------------------------------------------
   varNames <- sapply(strsplit(modelTag, "-"), `[[`, 1)
@@ -373,7 +387,7 @@ toNamelist <- function(modelTag, modelInfoMod = NULL, optimArgs = NULL, attPenal
   for (i in 1:length(parTag)) {
     parVar[i] <- parVariationDef[[parTag[i]]]
   }
-  
+
   # modelType
   #----------------------------------------------------
   mType <- sapply(strsplit(modelTag, "-"), `[[`, 3)
@@ -386,7 +400,7 @@ toNamelist <- function(modelTag, modelInfoMod = NULL, optimArgs = NULL, attPenal
       }
     }
   }
-  
+
   # List with varnames
   #-----------------------------------------------------
   modelParametervariation <- list()
@@ -395,7 +409,7 @@ toNamelist <- function(modelTag, modelInfoMod = NULL, optimArgs = NULL, attPenal
     modelParametervariation[[varNames[v]]] <- parVar[v]
     modelType[[varNames[v]]] <- mType[v]
   }
-  
+
   # modelParameterBounds
   #-----------------------------------------------------
   if (!is.null(modelInfoMod) & !is.null(names(modelInfoMod))) {
@@ -405,7 +419,7 @@ toNamelist <- function(modelTag, modelInfoMod = NULL, optimArgs = NULL, attPenal
   } else {
     modelParameterBounds <- NULL
   }
-  
+
   # Final Namelist
   #-----------------------------------------------------
   nml <- list()
@@ -425,35 +439,35 @@ toNamelist <- function(modelTag, modelInfoMod = NULL, optimArgs = NULL, attPenal
     nml[["penaltyWeights"]] <- penaltyWeights
   }
   return(nml)
-  
+
 }
 
 # Internal function to get the parameters and their bounds using modelInfo and modelTag
 # Used to get information to write namelist out
 getModelParBounds <- function(modelTag, modelInfo = NULL) {
-  
+
   varNames <- sapply(strsplit(modelTag, "-"), `[[`, 1)
-  
+
   if (is.null(modelInfo)) {
     # Get the default modelInfo
     modelInfo <- get.multi.model.info(modelTag)
   }
-  
+
   # Anjana: Is modelInfo named using varNames or modelTags? - need to recheck
   modelParameterBounds <- list()
   for (i in 1:length(modelTag)) {
     parNam <- modelInfo[[modelTag[i]]][["parNam"]]
-    
+
     parBounds <- matrix(rep(NA, length(parNam)*2), ncol = length(parNam))
     parBounds[1, ] <- modelInfo[[modelTag[i]]][["minBound"]]
     parBounds[2, ] <- modelInfo[[modelTag[i]]][["maxBound"]]
-    
+
     for (p in 1:length(parNam)) {
       modelParameterBounds[[varNames[i]]][[parNam[p]]] <- parBounds[ ,p]
     }
   }
   return(modelParameterBounds)
-  
+
 }
 
 # Function to view the parameter bounds of specific models - intended for user
@@ -462,11 +476,11 @@ getModelParBounds <- function(modelTag, modelInfo = NULL) {
 # 2. else : prints the bounds of the model specified in the namelist (json file)
 # Anjana: use the function 'getModelParBounds' to get the specific function
 # viewModelParameters <- function(variable, controlFile = NULL) {
-#   
+#
 #   #############
 #   # TO DO
 #   #############
-#   
+#
 # }
 
 #########################################################
@@ -481,10 +495,10 @@ getModelParBounds <- function(modelTag, modelInfo = NULL) {
 # Are the optimization argument fields valid (i.e., belongs to optimArgsdefault) (can add detailed checks later)
 
 checkControlFile <- function(nml) {
-  
+
   # Master Namelist
   nmlMaster <- getNamelistMaster()
-  
+
   # Check : names of the fields in input namelist
   namesIn <- names(nml)
   for (n in namesIn) {
@@ -492,20 +506,20 @@ checkControlFile <- function(nml) {
       stop(paste0("controlFile field \"", n, "\" unrecognized"))
     }
   }
-  
+
   checkMdlFields(nml)
   checkOptFields(nml)
   checkMdlBounds(nml)
-  
+
 }
 
 
 # check mdlFields
 checkMdlFields <- function(nml) {
-  
+
   # Master Namelist
   nmlMaster <- getNamelistMaster()
-  
+
   # Check :  model fields are valid
   for (field in mdlFields) {
     master <- nmlMaster[[field]]
@@ -514,13 +528,13 @@ checkMdlFields <- function(nml) {
       if(!(i %in% master)) stop(paste0("controlFile ", field, " input", i, "unrecognized"))
     }
   }
-  
+
   # Check : model fields contain the same variables
   vars1 <- names(nml[[mdlFields[1]]])
   for (v in vars1) {
     if (!(v %in% fSVars)) stop(paste0("controlFile variable", v, " specified in ", mdlFields[1], " is unrecognized. ", "Type viewModels() to view the valid variables"))
   }
-  
+
   for (i in 2:length(mdlFields)) {
     varsi <- names(nml[[mdlFields[i]]])
     for (v in varsi) {
@@ -528,7 +542,7 @@ checkMdlFields <- function(nml) {
     }
     if (!(all(vars1 %in% varsi) & all(varsi %in% vars1))) stop(paste0("Specify ", paste(mdlFields, collapse="/")," for every variable in controlFile"))
   }
-  
+
   # Check : combination of model choices are okay
   for (v in vars1) {
     modelChoice <- getModelChoice(nml, v)
@@ -546,18 +560,18 @@ checkMdlFields <- function(nml) {
 # This function needs to get modelTags from namelist if mdlFields are specified
 # Otherwise it needs to get modelTags from the defaults for each variable
 checkMdlBounds <- function(nml) {
-  
+
   field <- mdlBounds
-  
+
   vars <- names(nml[[field]])
   for (v in vars) {
-    
+
     if (!(v %in% fSVars)) stop(paste0("controlFile variable ", v, " specified in ", field, " is unrecognized. Type viewModels() to view the valid variables."))
-    
+
     parIn <- names(nml[[field]][[v]])
     modelTag <- getModelTag(nml, v)
     parNam <- get.model.info(modelTag)[["parNam"]]
-    
+
     for (p in parIn) {
       if (!(p %in% parNam)) stop("controlFile parameter ", p,  " specified in ", field, " for variable ", v, " is unrecognized.")
       bounds <- nml[[field]][[v]][[p]]
@@ -571,21 +585,21 @@ checkMdlBounds <- function(nml) {
 
 # check optFields
 checkOptFields <- function(nml) {
-  
+
   # Check names of optimArgs
   field <- "optimisationArguments"
-  
+
   # Master Namelist
   nmlMaster <- getNamelistMaster()
-  
+
   namesIn <- names(nml)
   if(field %in% namesIn) {
     master <- nmlMaster[[field]]
     for (i in names(nml[[field]])) {
-      if(!(i %in% master)) stop(paste0("controlFile ", field, " input", i, "unrecognized"))
+      if(!(i %in% master)) stop(paste0("controlFile ", field, " input ", i, " unrecognized"))
     }
   }
-  
+
   # Check length of penaltyAtt
   if(! (length(nml[["penaltyWeights"]]) == length(nml[["penaltyWeights"]]))) {
     stop("controlFile: specify penaltyWeights for all penaltyAttributes")

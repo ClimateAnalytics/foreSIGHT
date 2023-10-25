@@ -9,13 +9,14 @@ plotScenarios(
   simName = NULL,
   writeToFile = FALSE,
   fileName = "plotScenarios.pdf",
-  colMapRange = "default"
+  colMapRange = "default",
+  plotAbs = T
 )
 }
 \arguments{
 \item{sim}{a list; contains a stochastic simulation or the summary of a stochastic simulation created using the function \code{generateScenarios}}
 
-\item{simName}{a string; defaults to \code{NULL}). User-specified name of the simulation that will used as the heading in the 
+\item{simName}{a string; defaults to \code{NULL}). User-specified name of the simulation that will used as the heading in the
 saved pdf file to identify the simulation later. If \code{simName} is \code{NULL}, a random name will be assigned for the simulation.}
 
 \item{writeToFile}{logical; defaults to \code{FALSE}. Specifies whether the plots should be saved to a pdf file.
@@ -23,22 +24,25 @@ If set to true, the heatmaps will be saved to a pdf file that would also contain
 
 \item{fileName}{a string; defaults to \code{"plotScenarios.pdf"}. Specifies the name of the pdf file to be written, if the file exists it will be overwritten.}
 
-\item{colMapRange}{a string; may be set to \code{"default"} or \code{"full"}. 
-The argument specifies whether the colormap of the heatmap should span the full range of the data.
-If set to \code{"default"}, the colourmap limits of attributes that are in units of percentage is set to 0\% to 10\%, 
-and the colourmap limits of the attributes of temperature is set to 0 degrees K to 1 degrees K. 
-If set to \code{"full"}, the colourmap limits are set to the minimum and maximum values in the data.}
+\item{colMapRange}{a string; may be set to the character \code{"default"} or \code{"full"} or to a numeric vector of length 2.
+The argument specifies the range of data spanned in the colormap of the heatmap.
+If set to \code{"default"}, the colourmap limits of attributes that are in units of percentage is set to 0\% to 10\%,
+and the colourmap limits of the attributes of temperature is set to 0 degrees K to 1 degrees K.
+If set to \code{"full"}, the colourmap limits are set to the minimum and maximum values in the data.
+If a numeric vector is specified, the colourmap limits are set to the first (minimum) and second (maximum) values in the vector.}
+
+\item{plotAbs}{logical value, defaults to TRUE; determines whether the absolute value of the data is plotted (TRUE), or the raw value (which can be positive/negative) is plotted (FALSE).}
 }
 \value{
-The function returns two R plots showing the biases in the targets of the scenarios generated using the function \code{generateScenarios}. 
+The function returns two R plots showing the biases in the targets of the scenarios generated using the function \code{generateScenarios}.
 The figures may be saved to a pdf file by setting the \code{writeToFile} argument to \code{TRUE}.
 }
 \description{
-\code{plotScenarios} uses a simulation performed using the function \code{generateScenarios} as input and creates heatmaps that show 
-the biases in the simulated attributes with respect to the specified target values of the attributes. 
-The plots show the magnitude (absolute value) of the mean biases, and the standard deviation of biases across replicates. The heatmaps can be used 
+\code{plotScenarios} uses a simulation performed using the function \code{generateScenarios} as input and creates heatmaps that show
+the biases in the simulated attributes with respect to the specified target values of the attributes.
+The plots show the magnitude (absolute value) of the mean biases, and the standard deviation of biases across replicates. The heatmaps can be used
 to evaluate how well the simulated attributes match the specified targets.
-The biases are in units of percentage for attributes of variables like precipitation, and in units of degrees K for attributes of temperature. 
+The biases are in units of percentage for attributes of variables like precipitation, and in units of degrees K for attributes of temperature.
 The function creates two heatmaps that show:
 \itemize{
 \item{magnitude of the mean biases across all the replicates}
@@ -54,14 +58,14 @@ generated using \code{getSimSummary}
 # the examples are nnot run since the run times are too long for CRAN
 # create an exposure space
 attPerturb <- c("P_ann_tot_m", "P_ann_nWet_m", "P_ann_R10_m")
-attHold <- c("P_Feb_tot_m", "P_SON_dyWet_m", "P_JJA_avgWSD_m", "P_MAM_tot_m", 
+attHold <- c("P_Feb_tot_m", "P_SON_dyWet_m", "P_JJA_avgWSD_m", "P_MAM_tot_m",
 "P_DJF_avgDSD_m", "Temp_ann_rng_m", "Temp_ann_avg_m")
 attPerturbType = "regGrid"
 attPerturbSamp = c(2, 1, 1)
 attPerturbMin = c(0.9, 1, 1)
 attPerturbMax = c(1.1, 1, 1)
-expSpace <- createExpSpace(attPerturb = attPerturb, 
-                           attPerturbSamp = attPerturbSamp, 
+expSpace <- createExpSpace(attPerturb = attPerturb,
+                           attPerturbSamp = attPerturbSamp,
                            attPerturbMin = attPerturbMin,
                            attPerturbMax = attPerturbMax,
                            attPerturbType = attPerturbType,

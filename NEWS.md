@@ -1,4 +1,9 @@
-foreSIGHT 1.1.1
+foreSIGHT 1.2.0
+----------------------------------------------------------------
+- Implemented Robust Gauss Newton (RGN) optimization
+
+
+foreSIGHT 1.1.0
 ----------------------------------------------------------------
 - Redesigned attribute manager
 -	Added seasonal scaling

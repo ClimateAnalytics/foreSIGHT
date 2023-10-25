@@ -84,7 +84,7 @@ These five steps complete the framework of climate impact assessment using *fore
 This tutorial will provide a detailed description of the core functionality of the *fore*SIGHT software, broken down into each of the five steps described in the previous section. The basic structure of each section is as follows:
 
 - Each section will commence with a brief overview of the purpose of the Step and key learning outcomes. 
-- Following the overview, there will be a series of subsections that focus on key decisions that need to be made in implementing the step. These subsections commence with a box providing basic theory and key considersations that should be taken into account in making these decisions, followed by a description of software functionality needed to implement each decision.
+- Following the overview, there will be a series of subsections that focus on key decisions that need to be made in implementing the step. These subsections commence with a box providing basic theory and key considerations that should be taken into account in making these decisions, followed by a description of software functionality needed to implement each decision.
 - These elements are then combined to describe a series of 'use cases', in which the basic *fore*SIGHT workflow is implemented against a set of hypothetical anticipated applications of the software.
 
 In addition to learning about core *fore*SIGHT functionality, you'll also learn about a number of advanced usages *fore*SIGHT including:      
@@ -168,7 +168,7 @@ For example, “P_ann_tot_m” is the mean of the total rainfall calculated over
 
 -	“tot”: total
 -	“P99”: 99th percentile
--	“maxDSDthresh1”: maximum dry-spell duration (with threshold above 1mm)
+-	“maxDSDT1”: maximum dry-spell duration (with threshold above 1mm)
 
 A full list of attribute functions supported in *fore*SIGHT can be viewed using the helper functions `viewAttributeFuncs()`.
 
@@ -476,7 +476,7 @@ data(tankDat)
 head(tank_obs)
 ```
 
-When specifying multi-site `reference` data as a list, the list should contain vectors for the `year`, `month`, and `day`, and matrices for multi-site data hydro-climate variables. An example with multi-site rainfall data in the Barosssa Valley (South Australia) is provided. 
+When specifying multi-site `reference` data as a list, the list should contain vectors for the `year`, `month`, and `day`, and matrices for multi-site data hydro-climate variables. An example with multi-site rainfall data in the Barossa Valley (South Australia) is provided. 
 
 ```{r refFormatList}
 # Load example multi-site rainfall data
@@ -558,7 +558,7 @@ If you elect to use simple or seasonal scaling you can skip straight to Use Case
 > 
 > There is no single 'correct' weather generator for all applications, with the choice depending on a range of considerations:
 >
-> - **Data timestep.** Most weather generators run at a daily timestep, which is a common timestep for reporting of key weather variables. However there are also weather generators available at various sub-daily timesteps, as well as longer aggregated timesteps such as monthly or annual. The key consideration here is to ensure the time step is consistent with the likely timescales of system performance sensitivity, which in turn need to correpsond to the relevant time scales of weather inputs that are require for the system model.  
+> - **Data timestep.** Most weather generators run at a daily timestep, which is a common timestep for reporting of key weather variables. However there are also weather generators available at various sub-daily timesteps, as well as longer aggregated timesteps such as monthly or annual. The key consideration here is to ensure the time step is consistent with the likely timescales of system performance sensitivity, which in turn need to correspond to the relevant time scales of weather inputs that are require for the system model.  
 > 
 > - **The key timescales of system sensitivity.** In addition to data timestep, it is important that the stochastic generator is able to simulate variability in **Climate Attributes** representing key timescales of system sensitivity. For example some systems may respond at sub-seasonal and seasonal timescales, and others at interannual timescales. It is noted that a stochastic generator may be able to simulate variability at timescales that are equal to or longer than its timestep, but not shorter. 
 > 
@@ -647,11 +647,11 @@ If you've elected to use an alternate stochastic model, refer to Use Case 'Choos
 >
 > This is where the problem becomes troublesome. In this case, we have two different attributes that measure two different variables (rainfall and temperature), that are measured on different scales (fraction relative to historical for rainfall, or degrees Celsius for temperature). So for example a 0.1^o^C temperature difference would be 'weighted' the same as a 0.1 fraction (or 10%) difference in precipitation relative to the reference series. Moreover, in some cases one might want the flexibility to focus the optimiser on particular attributes (usually the **Perturbed Attributes**) at the expense of other attributes (usually the **Held Attributes**). 
 >
-> The proposed response to this, as described in further detail by Culley et al (2019), is to add a **penalty** term to the objective function to increase (or decrease) the focus on individual attributes. This involves adjusting the objective function to the following:
+> The proposed response to this, as described in further detail by Culley et al (2019), is to change the weights of error terms in the objective function to increase (or decrease) the focus on individual attributes. This involves adjusting the objective function to the following:
 >
-> $O(\mathbf{a}_j, \mathbf{t}_j) = \sqrt{\sum_{i=1}^{n} (a_{i,j} - t_{i,j})^2} + \sum_{k=1}^{p} \lambda_k abs(a_{k,j} - t_{k,j})$
+> $O(\mathbf{a}_j, \mathbf{t}_j) = \sqrt{\sum_{i=1}^{n} [\lambda_i(a_{i,j} - t_{i,j})]^2}$
 >
-> where *k*=1,...,*p* represents a subset of the *n* attributes (which in a slight variation of Culley et al (2019) can be either perturbed or held), and $\lambda_k$ represents a user-specified penalty parameter. The precise value of $\lambda_k$ depends on the overall objectives of the problem and will often be adjusted after assessing the diagnostics of the stochastically generated time series (discussed later in this section). The likely usage of this is to provide a means of instructing the optimiser to: 'generate stochastic realisations that reflect the perturbed attributes, while keeping other relevant features of the time series described by the held attributes as close to the reference time series as possible'--- by placing greater priority on the perturbed attributes. 
+> where $\lambda_i$ represents a user-specified penalty parameter for each attribute $i$. Larger values for $\lambda_i$ emphasises those attributes in the calibration. The precise value of $\lambda_i$ depends on the overall objectives of the problem and will often be adjusted after assessing the diagnostics of the stochastically generated time series (discussed later in this section). The likely usage of this is to provide a means of instructing the optimiser to: 'generate stochastic realisations that reflect the perturbed attributes, while keeping other relevant features of the time series described by the held attributes as close to the reference time series as possible'--- by placing greater priority on the perturbed attributes. 
 
 If the user needs to specify penalty attributes and penalty weights, they should be specified in the JSON file input to the `controlFile` argument of `generateScenarios`. The penalty attributes should be a subset of the perturbed/held attributes selected during the creation of the exposure space used to generate the scenarios. Note that if you want to specify both alternate model choices (Step B3), and penalty attributes to generate scenarios, the JSON `controlFile` should contain both the settings.
 
@@ -662,12 +662,14 @@ attPerturb <- c("P_ann_tot_m", "P_ann_nWet_m", "Temp_ann_avg_m")
 attHold <- c("P_Feb_tot_m", "P_SON_dyWet_m", "Temp_ann_rng_m", "P_DJF_avgDSD_m")
 ```
 
+The default objective function used in optimization assigns equal weights (weight=1) to each attribute. Penalty attributes and weights can be used to increase (or even decrease) the weight assigned to each attribute.
+
 To apply penalties to a few selected attributes, the `penaltyAttributes` and `penaltyWeights` fields of the  JSON `controlFile` can be specified using the text shown below. The text has to be used in the JSON file.
 
 ```{r, jsonFilePenalty2, eval = FALSE}
 # Example text to be copied to a JSON text file
 "penaltyAttributes": ["P_ann_tot_m", "Temp_ann_avg_m", "P_Feb_tot_m", "Temp_ann_rng_m"],
-"penaltyWeights": [20, 15, 10, 10]
+"penaltyWeights": [3, 1.5, 2, 2]
 ```
 
 Alternatively, the `toJSON` function from the `jsonlite` package can be used to create a json file from an R list as shown below. The file can be used as an input to `generateScenarios` using the `controlFile` argument.
@@ -677,7 +679,7 @@ Alternatively, the `toJSON` function from the `jsonlite` package can be used to 
 penaltySelection <- list()
 penaltySelection[["penaltyAttributes"]] <- c("P_ann_tot_m", "Temp_ann_avg_m", 
                                              "P_Feb_tot_m", "Temp_ann_rng_m")
-penaltySelection[["penaltyWeights"]] <-c(20, 15, 10, 10)
+penaltySelection[["penaltyWeights"]] <-c(3, 1.5, 2, 2)
 utils::str(penaltySelection)
 
 # write the list into a JSON file
@@ -881,7 +883,7 @@ plotScenarios(sim)
 
 The plot of the mean of absolute biases of the simulated values relative to the target values in this simulation is shown below. Note that the above `generateScenarios` function call has been set to generate three stochastic replicates. If you are running the code in this tutorial, you won't necessarily reproduce the figure below as `generateScenarios` randomly selects a `seedID` for each simulation. If you wish to reproduce the simulation in this use case set the `seedID` argument to 2407.
 
-```{r diag_usecaseB2, echo=FALSE, fig.cap="Use case B2: Mean of absolute biases in the scenarios", out.width = '70%'}
+```{r diag_usecaseB2, echo=FALSE, fig.cap="Use case B2: Mean of absolute biases in the scenarios", out.width = '100%'}
 knitr::include_graphics("diag_usecaseB2.png")
 ```    
 
@@ -989,20 +991,21 @@ We can conduct further analyses of the characteristics of the simulation to deci
 
 ## Use Case B5: Specifying penalty attributes 
 
-In some cases, the attributes of the generated perturbed time series can show large biases in the target values of some attributes. Specifying penalties for biases in these attributes can reduce the biases. However, the reduction is often at the expense of increased biases in other attributes. Therefore, you'll typically need a few trials to identify appropriate penalty settings that provide desired results for specific scenarios. This use case provides such an example.
+In some cases, the attributes of the generated perturbed time series can show large biases in the target values of some attributes. Specifying penalties for biases in these attributes can reduce the biases. However, the reduction is often at the expense of increased biases in other attributes. Therefore, you may need a few trials to identify appropriate penalty settings that provide desired results for specific scenarios. This use case provides such an example.
 
-Consider the following exposure space of precipitation attributes. The annual total and DJF total precipitation are perturbed while holding the attributes `"P_MAM_tot_m", "P_JJA_tot_m","P_ann_nWet_m"` at existing levels (use `viewAttributeDef()` to view the definitions of these attributes). After deciding the perturbation bounds of the relevant attributes and the sampling strategy, the `createExpSpace` function is used to create the exposure space. The function call returns an R list containing the exposure space. The `targetMat` (named after "target matrix") element of the list contains the locations of the four selected target locations in the exposure space. Each row of this matrix is a target location. In this exposure space, target 1 corresponds to perturbations of 0.9 each in "P_ann_tot_m" and "P_DJF_tot_m", while the other attributes are held at existing levels, and so on. 
+Consider the following exposure space of precipitation attributes. The annual total precipitation and number of wet days are perturbed while holding the attributes `"P_ann_P99", "P_Feb_tot_m", "P_SON_dyWet_m", "P_JJA_avgWSD_m", "P_MAM_tot_m", "P_ann_seasRatio"` at existing levels (use `viewAttributeDef()` to view the definitions of these attributes). After deciding the perturbation bounds of the relevant attributes and the sampling strategy, the `createExpSpace` function is used to create the exposure space. The function call returns an R list containing the exposure space. The `targetMat` (named after "target matrix") element of the list contains the locations of the four selected target locations in the exposure space. Each row of this matrix is a target location. In this exposure space, target 1 corresponds to perturbations of 0.8 each in "P_ann_tot_m" and "P_ann_nWet_m", while the other attributes are held at existing levels, and so on. 
 
 ``` {r useCaseB3_stepA, R.options = list(width = 100)}
 # Selected attributes
-attPerturb <- c("P_ann_tot_m", "P_DJF_tot_m")
-attHold <- c("P_MAM_tot_m", "P_JJA_tot_m", "P_ann_nWet_m")
+attPerturb <- c("P_ann_tot_m","P_ann_nWet_m")
+attHold <- c("P_ann_P99","P_Feb_tot_m", "P_SON_dyWet_m", "P_JJA_avgWSD_m",
+             "P_MAM_tot_m","P_ann_seasRatio")
 
 # Sampling bounds and strategy
 attPerturbType = "regGrid"
-attPerturbSamp = c(2, 2)
-attPerturbMin = c(0.9, 0.9)
-attPerturbMax = c(1.3, 1.3)
+attPerturbSamp = c(2,2)
+attPerturbMin = c(0.8,0.8)
+attPerturbMax = c(1.1,1.1)
 
 # Creating the exposure space
 expSpace <- createExpSpace(attPerturb = attPerturb, 
@@ -1017,72 +1020,76 @@ utils::str(expSpace)
 expSpace$targetMat
 ```
 
-Having generated the exposure space, we progress to Step B of the work flow. The example climate time series, `tank_obs`, available in the package is used as the reference to create perturbed time series. Consider the case where the default stochastic models in *fore*SIGHT without penalty attributes are used to generate the time series for the target locations in the exposure space, similar to use case B2. The function call is set up without specifying the `controlFile` argument of `generateScenarios`. The below code generates the perturbed time series and heatmap plots to evaluate the 'fitness'. Note that the `generateScenarios` function call takes about 10 minutes to execute. The 'fitness' of the scenarios in terms of the biases in simulated attributes relative to the targets values of the attributes generated using the `plotScenarios` function is shown in the subsequent figure.
+Having generated the exposure space, we progress to Step B of the work flow. The example climate time series, `tank_obs`, available in the package is used as the reference to create perturbed time series. Consider the case where the default stochastic models in *fore*SIGHT without penalty attributes are used to generate the time series for the target locations in the exposure space, similar to use case B2. The function call is set up without specifying the `controlFile` argument of `generateScenarios`. The below code generates the perturbed time series and heatmap plots to evaluate the 'fitness'. Note that the `generateScenarios` function call takes about 5 minutes to execute. The 'fitness' of the scenarios in terms of the biases in simulated attributes relative to the targets values of the attributes generated using the `plotScenarios` function is shown in the subsequent figure.
 
 ``` {r useCaseB3_stepBsim1, R.options = list(width = 100), eval = FALSE}
 # ******************************** NOTE ****************************
-# The following generateScenarios call takes ~10 mins to complete
+# The following generateScenarios call takes ~5 mins to complete
 # ******************************************************************
 data("tankDat")
 sim <- generateScenarios(reference = tank_obs,   # reference time series 
                          expSpace = expSpace,    # exposure space
-                         numReplicates = 3)      # number of replicates
+                         numReplicates = 1,      # number of replicates
+                         simLengthNyrs = 10,     # length of simulated time series
+                         seedID = 2)             # random seed
 plotScenarios(sim)
 ```
 
-Note that the above `generateScenarios` function call is set to generate 3 stochastic replicates. If you run the code in this tutorial, you won't necessarily reproduce the figure below as `generateScenarios` randomly selects a `seedID` for each simulation. If you wish to reproduce the simulation in this use case set the `seedID` argument to 2851.
+Note that the above `generateScenarios` function call is set to generate a single stochastic replicate. 
 
-```{r usecaseB3_sim1, echo=FALSE, fig.cap="Use case B3: Mean of absolute biases in the scenarios", out.width = '50%'}
+```{r usecaseB3_sim1, echo=FALSE, fig.cap="Use case B3: Mean of absolute biases in the scenarios", out.width = '100%'}
 knitr::include_graphics("usecaseB3_sim1.png")
 ```  
 
 <br>
 
-There are large biases (>7.5%) in the perturbed attribute annual total rainfall of the first target. To lower this bias, we can add a penalty for biases in this attribute while using `generateScenarios` via a JSON `controlFile`. Consider the case where the penalty weight of this attribute to 10, as a first guess. The below code shows the function call with this penalty setting. Note that we have specified the `seedID` as 2851 - which is the random seed selected by the function for the simulation shown in the previous figure. Thus, this new simulation starts from the same seed as the previous one, but has an additional penalty attribute and weight (which translates to an additional term in the objective function in terms of the calculations inside the function). More on the seed towards the end of this use case. Thus, in the new simulation we specify penalties for biases in "P_ann_tot_m" with weight set to 10. The fitness of the generated perturbed series is assessed using the heatmaps created using the `plotScenarios` function.
+There are large biases (>10%) in the perturbed attribute annual total rainfall of the second and third targets. To lower this bias, we can add a penalty for biases in this attribute while using `generateScenarios` via a JSON `controlFile`. Consider the case where the penalty weight of this attribute to 10, as a first guess. The below code shows the function call with this penalty setting. Note that we have specified the `seedID` as 1 - which is the random seed selected by the function for the simulation shown in the previous figure. Thus, this new simulation starts from the same seed as the previous one, but has an additional penalty attribute and weight. More on the seed towards the end of this use case. Thus, in the new simulation we specify penalties for biases in "P_ann_tot_m" with weight set to 10. The fitness of the generated perturbed series is assessed using the heatmaps created using the `plotScenarios` function.
 
 ``` {r useCaseB3_stepBsim2, R.options = list(width = 100), eval = FALSE}
 # specify the penalty settings in a list
 penaltySelection <- list()
-penaltySelection[["penaltyAttributes"]] <- c("P_ann_tot_m")
-penaltySelection[["penaltyWeights"]] <- c(10)
+penaltySelection[["penaltyAttributes"]] <- c("P_ann_tot_m","P_ann_nWet_m")
+penaltySelection[["penaltyWeights"]] <- c(10,10)
 
 # write the list into a JSON file
 penaltySelectionJSON <- jsonlite::toJSON(penaltySelection, pretty = TRUE, auto_unbox = TRUE)
 write(penaltySelectionJSON, file = paste0(tempdir(), "controlFile.json"))
 
 # generate scenarios with penalty setting
-sim_wPenalty <- generateScenarios(reference = tank_obs, expSpace = expSpace, numReplicates = 3, 
-                                seedID = 2851, controlFile = paste0(tempdir(), "controlFile.json"))
+sim_wPenalty <- generateScenarios(reference = tank_obs, expSpace = expSpace, numReplicates = 1, 
+                                simLengthNyrs = 10, seedID = 2, 
+                                controlFile = paste0(tempdir(), "controlFile.json"))
 plotScenarios(sim_wPenalty)
 
 ```
 
-```{r usecaseB3_sim2, echo=FALSE, fig.cap="Use case B3: Mean of absolute biases in the scenarios using penalty (weight = 10)", out.width = '50%'}
+```{r usecaseB3_sim2, echo=FALSE, fig.cap="Use case B3: Mean of absolute biases in the scenarios using penalty (weight = 10)", out.width = '100%'}
 knitr::include_graphics("usecaseB3_sim2.png")
 ``` 
 
 <br>
 
-The figure shows that the biases in the attribute for which penalty is applied, "P_ann_tot_m", is close to zero. However, the biases in the attributes that are held at historical levels are too high. Thus, it appears that the application of this penalty setting is geared towards lower biases in "P_ann_tot_m" too strongly in these scenarios. To balance the errors, suppose we lower the weight of the penalty attribute to 0.5 instead of 10. The below code shows the corresponding function calls.
+The figure shows that the biases in the attribute for which penalty is applied, "P_ann_tot_m", is close to zero. However, the biases in the attributes that are held at historical levels are too high. Thus, it appears that the application of this penalty setting is geared towards lower biases in "P_ann_tot_m" too strongly in these scenarios. To balance the errors, suppose we lower the weight of the penalty attribute to 2 instead of 10. The below code shows the corresponding function calls.
 
 ``` {r useCaseB3_stepBsim3, R.options = list(width = 100), eval = FALSE}
 # specify the penalty settings in a list
 penaltySelection <- list()
-penaltySelection[["penaltyAttributes"]] <- c("P_ann_tot_m")
-penaltySelection[["penaltyWeights"]] <- c(0.5)
+penaltySelection[["penaltyAttributes"]] <- c("P_ann_tot_m","P_ann_nWet_m")
+penaltySelection[["penaltyWeights"]] <- c(2,2)
 
 # write the list into a JSON file
 penaltySelectionJSON <- jsonlite::toJSON(penaltySelection, pretty = TRUE, auto_unbox = TRUE)
 write(penaltySelectionJSON, file = paste0(tempdir(), "controlFile.json"))
 
 # generate scenarios with penalty setting
-sim_wPenalty2 <- generateScenarios(reference = tank_obs, expSpace = expSpace, numReplicates = 3, 
-                                seedID = 2851, controlFile = paste0(tempdir(), "controlFile.json"))
+sim_wPenalty2 <- generateScenarios(reference = tank_obs, expSpace = expSpace, numReplicates = 1, 
+                                simLengthNyrs = 10, seedID = 2, 
+                                controlFile = paste0(tempdir(), "controlFile.json"))
 plotScenarios(sim_wPenalty2)
 
 ```
 
-```{r usecaseB3_sim3, echo=FALSE, fig.cap="Use case B3: Mean of absolute biases in the scenarios using penalty (weight = 0.5)", out.width = '50%'}
+```{r usecaseB3_sim3, echo=FALSE, fig.cap="Use case B3: Mean of absolute biases in the scenarios using penalty (weight = 2)", out.width = '100%'}
 knitr::include_graphics("usecaseB3_sim3.png")
 ``` 
 
@@ -1601,7 +1608,7 @@ Current *fore*SIGHT functionality for comparing multiple options involves interr
 >
 > - The overall sensitivity of alternative options to plausible climate changes
 > - The climate conditions over which alternative system configurations are 'acceptable' or result in a 'failure' (for situations where there are clearly defined performance thresholds)
-> - The extent to which alternative options improve overall system perforamnce relative to climate projections, by incorporating climate model output and/or other lines of evidence.
+> - The extent to which alternative options improve overall system performance relative to climate projections, by incorporating climate model output and/or other lines of evidence.
 >
 > By superimposing climate projections for different future time horizons, it may also be possible to use these analyses to inform adaptation triggers, by identifying conditions when the system performance is expected to become unacceptable. 
 
@@ -1768,19 +1775,53 @@ In this section you'll learn about advanced functionality of some of the functio
 
 ## 9.1. The default optimisation arguments and how to modify them
 
-The inverse method in *fore*SIGHT relies on optimisation using a genetic algorithm (using the package `GA`, Scrucca, 2013) of the parameters of the stochastic models to generate time series with target perturbations in selected climate attributes. The genetic algorithm requires specification of arguments that are used in the optimisation, which are specific to the `ga` function from the `GA` package which is used by `generateScenarios` (refer to the help file of the function using `?GA::ga` for details of this function). The arguments that are used as input arguments of the `ga` function call inside `generateScenarios` are called optimisation arguments. There are default values for these arguments in *fore*SIGHT, which can be viewed using the `viewDefaultOptimArgs()` helper function in the package.
+The inverse method in *fore*SIGHT uses numerical optimization to find optimal parameter values 
+that generate time series with target perturbations in selected climate attributes. 
+The choice of numerical optimization routine and settings plays a large role in 
+how well the simulated attributes match the desired targets.
+
+The default optimization routine used in *foreSIGHT* is the Robust 
+Gauss Newton (RGN) algorithm (Qin et al, 2018). 
+Default values for optimization arguments in *fore*SIGHT can be viewed using the 
+`viewDefaultOptimArgs()` helper function in the package.
 
 ``` {r optimArgsDef}
 viewDefaultOptimArgs()
 ```
 
-The `controlFile` argument of `generateScenarios` can be used to modify the default values of the optimisation arguments. The `writeControlFile()` helper function can be used to write a sample JSON file to obtain a template of the `controlFile` including the advanced option by setting the `basic` argument to FALSE. Note that the following function call would write a JSON file (named 'sample_controlFile.json') into your working directory
+This shows that RGN is the default optimizer, and that optimization will 
+be performed using 5 different initial parameter sets (multi-starts)
+to improve optimization. It also shows control settings used in the RGN 
+algorithm. 
+
+*foreSIGHT* has the capability to use alternate optimization routines, 
+including a genetic 
+algorithm ('GA'), the shuffled complex evolution algorithm ('SCE'), and the 
+Nelder-Mead method ('NM'). Default settings for 'GA' are shown using
+
+``` {r optimArgsDefGA}
+viewDefaultOptimArgs('GA')
+```
+
+The `controlFile` argument of `generateScenarios` can be used to modify the 
+default values of the optimisation arguments. The `writeControlFile()` 
+helper function can be used to write a sample JSON file to obtain a template of 
+the `controlFile` including the advanced option by setting the `basic` argument 
+to FALSE. Note that the following function call 
+would write a JSON file (named 'sample_controlFile.json') into your working directory
 
 `writeControlFile(basic = FALSE)`
 
-The code below demonstrates how user-specified optimisation arguments can be used in the `controlFile` input to `generateScenarios`. We recommend that you refer to the documentation of `ga::ga` prior to modifying the optimisation arguments.
+The code below demonstrates how user-specified optimisation arguments can be 
+used in the `controlFile` input to `generateScenarios`. 
+
+This first example shows how the number of multi-starts can be changed to 1 
+(from the default value of 5)
 
 ``` {r modOptimArgs, R.options = list(width = 100), eval = FALSE}
+# load data
+data("tankDat")
+
 # create the exposure space
 attPerturb <- c("P_ann_tot_m", "P_ann_P99")
 attHold <- c("P_ann_maxWSD_m", "P_ann_nWet_m")
@@ -1795,24 +1836,40 @@ expSpace <- createExpSpace(attPerturb = attPerturb,
                            attPerturbType = attPerturbType, 
                            attHold = attHold)
 
-# specify the penalty settings in a list
 controlFileList <- list()
-controlFileList[["penaltyAttributes"]] <- c("P_ann_tot_m")
-controlFileList[["penaltyWeights"]] <- c(0.5)
 
 # add user-specified values for optimisation arguments
 controlFileList[["optimisationArguments"]] <- list()
-controlFileList[["optimisationArguments"]][["maxiter"]] <- 100
-controlFileList[["optimisationArguments"]][["run"]] <- 40
+controlFileList[["optimisationArguments"]][["nMultiStart"]] <- 1
 
 # write the list into a JSON file
 controlFileJSON <- jsonlite::toJSON(controlFileList, pretty = TRUE, auto_unbox = TRUE)
 write(controlFileJSON, file = paste0(tempdir(), "controlFile.json"))
 
 # generate scenarios
-data("tankDat")
-sim <- generateScenarios(reference = tank_obs[,1:4], expSpace = expSpace, 
+sim_RGN_ms1 <- generateScenarios(reference = tank_obs[,1:4], expSpace = expSpace, 
                          controlFile = paste0(tempdir(), "controlFile.json"))
+
+```
+
+This second example shows how we can change the optimizer to 'GA', and specify
+GA::ga() arguments for maximum iterations ('maxiter') and stopping criteria ('run')  
+
+``` {r modOptimArgs1, R.options = list(width = 100), eval = FALSE}
+# add user-specified values for optimisation arguments
+controlFileList[["optimisationArguments"]] <- list()
+controlFileList[["optimisationArguments"]][["optimizer"]] <- 'GA'
+controlFileList[["optimisationArguments"]][["nMultiStart"]] <- 1
+controlFileList[["optimisationArguments"]][["GA.args"]] <- list(maxiter=100,run=40)
+
+# write the list into a JSON file
+controlFileJSON <- jsonlite::toJSON(controlFileList, pretty = TRUE, auto_unbox = TRUE)
+write(controlFileJSON, file = paste0(tempdir(), "controlFile.json"))
+
+# generate scenarios
+sim_GA_ms1 <- generateScenarios(reference = tank_obs[,1:4], expSpace = expSpace, 
+                         controlFile = paste0(tempdir(), "controlFile.json"))
+
 ```
 
 
@@ -2071,7 +2128,7 @@ Similarly, the `runSystemModel` is also coded to not use any internal functions 
 The definitions of various terms and phrases used in this package and vignette are listed below. Where possible, definitions contained herein have been derived from published courses including IPCC reports. 
 
 
-- **Alternate climate data:** Changes in climate attributes from other sources of evidence, including climate model projections (from global/regional models), historical changes, expert judgment and/or analogues from paleo records.
+- **Alternate climate data:** Changes in climate attributes from other sources of evidence, including climate model projections (from global/regional models), historical changes, expert judgment and/or analogues from palaeo records.
 
 - **Attribute**: Statistical measures of a weather time series, and representing the axes of an **exposure space**. Examples of attributes include: annual total precipitation, mean summer temperature, ratio of wet to dry season rainfall. 
 
@@ -2159,7 +2216,7 @@ Of course you're getting confused. Unfortunately it *is* confusing, so we'll try
 
 Let's say we want to perturb average annual rainfall and average annual temperature by +10% and +1C relative to the reference series, respectively. The **attributes** in this case are the 'average annual rainfall' and 'average annual temperature', which you can view as forming the *axes* of an exposure space. (As an aside, if you are wondering why we use the term **attributes** rather than statistics, it is because in this case we are wanting to perturb the same statistic of two different weather variables, whereas in other cases we might want to perturb different statistics of the same weather variable, or multiple statistics of multiple weather variables, so this keeps the concepts distinct.) 
 
-In contrast, the reference to +10% and +1C are called **attribute values**. Since these are values we want to *change* relative to the **reference time series**, we can be even more precise and referr to these are **perturbed attribute values**. If we then wish to use a stochastic weather generator to produce time series with these attribute values, we typically need to provide some additional constraints, such as the request to keep other features of the time series such as the seasonality, variability and so forth at historical levels---otherwise there is a significant change we could make a range of unintended changes to the time series rather than focusing the analysis on the deliberate perturbations. The collection of attributes that we are seeking to keep at the levels of the reference time series are referred to as **held attributes**.
+In contrast, the reference to +10% and +1C are called **attribute values**. Since these are values we want to *change* relative to the **reference time series**, we can be even more precise and refer to these are **perturbed attribute values**. If we then wish to use a stochastic weather generator to produce time series with these attribute values, we typically need to provide some additional constraints, such as the request to keep other features of the time series such as the seasonality, variability and so forth at historical levels---otherwise there is a significant change we could make a range of unintended changes to the time series rather than focusing the analysis on the deliberate perturbations. The collection of attributes that we are seeking to keep at the levels of the reference time series are referred to as **held attributes**.
 
 When we use a stochastic generator to deliver the requested time series, we group up both the **perturbed attribute values** and the **held attributes** and refer to these as **target attribute values**, which the stochastic optimiser uses as part of its objective function in order to generate the requested time series. Unfortunately, in many cases the optimiser is not able to generate time series that precisely meet all the requested target attribute values, and thus the actual generated values may be a little (and sometimes a lot) different from what was requested. 
 
@@ -2170,7 +2227,7 @@ When we use a stochastic generator to deliver the requested time series, we grou
 
 # 12. References
 
-- Brown, C. (2011) Decision-scaling for robust planning and policy under climate uncertainty, World Resour. Rep., World Resour. Inst., Washington D.C. (Available online at https://www.wri.org/our-work/project/world-resources-report/wrr.)
+- Brown, C. (2011) Decision-scaling for robust planning and policy under climate uncertainty, World Resour. Rep., World Resour. Inst., Washington D.C.
 - Culley, S., S. Noble, A. Yates, M. Timbs, S. Westra, H. R. Maier, M. Giuliani, and A. Castelletti (2016), A bottom-up approach to identifying the maximum operational adaptive capacity of water resource systems to a changing climate, Water Resour. Res., 52, 6751-6768, \doi{10.1002/2015WR018253}.
 - Culley, S., Bennett, B., Westra, S. & Maier, H.R., 2019, Generating realistic perturbed hydrometeorological time series to inform scenario-neutral climate impact assessments, Journal of Hydrology, 576, 111-122.
 - Culley, S., Maier, H.R., Westra, S. & Bennett, B., 2020, Identifying critical climate conditions for use in scenario-neutral climate impact assessments, Environmental Modelling and Software (manuscript in press)

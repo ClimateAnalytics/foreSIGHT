@@ -3,32 +3,62 @@
 #' Prints the default optimisation arguments
 #'
 #' \code{viewDefautOptimArgs()} prints the default values of optimisation arguments (\code{optimisationArguments}) used by \code{generateScenarios}
-#' @details The function does not take any input arguments. This a helper function that prints the default values of the optimisation arguments.
-#' The user may specify alternate values of these arguments in fields named according to the corresponding argument name nested under 
+#' @param optimizer A string for the numerical optimizer. Default optimizer is 'RGN'.
+#' @details This a helper function that prints the default values of the optimisation arguments.
+#' The user may specify alternate values of these arguments in fields named according to the corresponding argument name nested under
 #' \code{optimisationArguments} in a JSON file to use as the \code{controlFile} input to the \code{generateScenarios} function.
 #' @seealso \code{writeControlFile}
 #' @examples
 #' # To view the default optimisation arguments
 #' viewDefaultOptimArgs()
 #' @export
-viewDefaultOptimArgs <- function() {
-  optimArgs_toPrint <- optimArgsdefault
-  optimArgs_toPrint[["lambda.mult"]] <- NULL
-  optimArgs_toPrint[["suggestions"]] <- NULL
+viewDefaultOptimArgs <- function(optimizer='RGN') {
+  # optimArgs_toPrint <- optimArgsdefault
+  # optimArgs_toPrint[["lambda.mult"]] <- NULL
+  # optimArgs_toPrint[["suggestions"]] <- NULL
+  #optimArgs_toPrint <- list(optimizer=optimizer,
+  #                          nMultiStart=optimArgsdefault$nMultiStart)
+  #optimArgs_toPrint[[optimizer]] = optimArgsdefault[[optimizer]]
+
+  allArgs = names(optimArgsdefault)
+  optimArgs_toPrint <- list(optimizer=optimizer,
+                            obj.func=optimArgsdefault$obj.func,
+                            seed=optimArgsdefault$seed,
+                            nMultiStart=optimArgsdefault$nMultiStart,
+                            OFtol=optimArgsdefault$OFtol,
+                            seed=optimArgsdefault$seed)
+
+  controlName = allArgs[grepl(optimizer,allArgs)]
+  optimArgs_toPrint[[controlName]] = optimArgsdefault[[controlName]]
+  optimArgs_toPrint[[controlName]]$fnscale = NULL
+  optimArgs_toPrint[[controlName]]$maximize = NULL
   print(optimArgs_toPrint)
 }
 
-optimArgsdefault=list(pcrossover= 0.8,   # list of a parameters used by the ga optimiser (if used)
-                      pmutation=0.1,
-                      maxiter=50,
-                      maxFitness=-0.001,
-                      popSize = 500,
-                      run=20,
-                      seed = NULL,
-                      parallel = FALSE,
-                      keepBest=TRUE,
-                      lambda.mult=0.0,
-                      suggestions=NULL)
+optimArgsdefault=list(optimizer='RGN',
+                      obj.func='WSS',
+                      nMultiStart=5,
+                      OFtol=0.,
+                      seed=NULL,
+                      GA.args=list(pcrossover= 0.8,   # list of a parameters used by the ga optimiser (if used)
+                              pmutation=0.1,
+                              maxiter=50,
+                              maxFitness=-0.001,
+                              popSize = 500,
+                              run=20,
+                              parallel = FALSE,
+                              keepBest=TRUE),
+                      RGN.control=list(iterMax=100),
+                      SCE.control=list(fnscale=-1,
+                                       initsample='random',
+                                       ncomplex=5),
+                      CMAES.control=list(fnscale=-1,
+                                         stopfitness=1e-5),
+                      NM.control = list(maximize=T,
+                                        tol=1e-6),
+                      lambda.mult=NULL,
+                      suggestions=NULL
+                      )
 
 varShortToLong <- c("P" = "Precipitation",
                    "Temp" = "Temperature",
@@ -77,23 +107,22 @@ getVarUnits <- function(varNames) {
 }
 
 # Update the Temp, PET and Radn models to have the har-wgen version, like precipitation
-# Temp-har-wgen, PET-har-wgen, Radn-har-wgen, 
+# Temp-har-wgen, PET-har-wgen, Radn-har-wgen,
 modelTaglist=c("Simple-ann",
                "Simple-seas",
                "P-ann-wgen",
                "P-seas-wgen",
                "P-har-wgen",
-               "Temp-har26-wgen",
-               "Temp-har26-wgen-wd",
-               "Temp-har26-wgen-wdsd",
-               "PET-har26-wgen",
-               #"PET-har12-wgen",  # Can I remove this?
-               "PET-har26-wgen-wd",
-               "Radn-har26-wgen",
+               "Temp-har-wgen",
+               "Temp-har-wgen-wd",
+               "Temp-har-wgen-wdsd",
+               "PET-har-wgen",
+               "PET-har-wgen-wd",
+               "Radn-har-wgen",
                "P-ann-latent",
                "P-har-latent")
 
-# currently, the model time steps are all daily - and the following vector is not used anywhere, 
+# currently, the model time steps are all daily - and the following vector is not used anywhere,
 # but it could be if we add weather generators that use other time steps
 # the following data could even be in a format other than a vector for ease of implementation
 # assuming that stochastic models of other scale if added would have a separate model tag that includes "-" time step info
@@ -114,9 +143,9 @@ modelTimeStep=c("daily",
 names(modelTimeStep) <- modelTaglist
 
 defaultModelTags <- c(P = "P-har-wgen",
-                      Temp = "Temp-har26-wgen",
-                      PET = "PET-har26-wgen",
-                      Radn = "Radn-har26-wgen")
+                      Temp = "Temp-har-wgen",
+                      PET = "PET-har-wgen",
+                      Radn = "Radn-har-wgen")
 
 # existing foreSIGHT variables
 fSVars <- unique(sapply(strsplit(modelTaglist[!(modelTaglist%in%c("Simple-ann","Simple-seas"))], "-"), `[[`, 1))
@@ -132,9 +161,11 @@ fSVars <- unique(sapply(strsplit(modelTaglist[!(modelTaglist%in%c("Simple-ann","
 viewAttributeFuncs <- function() {
   print(attributeFuncs())
 }
- 
+
 attributeFuncs = function() {
-  allFuncs=utils::lsf.str("package:foreSIGHT")
+  allFuncsForesight=utils::lsf.str("package:foreSIGHT")
+  allFuncsGlobal = utils::lsf.str(globalenv())
+  allFuncs = c(allFuncsForesight,allFuncsGlobal)
   funcs=allFuncs[which(startsWith(allFuncs,'func_'))]
   attFuncs = c()
   for (a in 1:length(funcs)){
@@ -158,14 +189,14 @@ viewAttributeDef <- function(attribute) {
 
 #' Prints the names and bounds of the parameters of the stochastic models
 #'
-#' \code{viewModelParameters} prints the names of the parameters of the stochastic model and its default minimum and maximum bounds. 
+#' \code{viewModelParameters} prints the names of the parameters of the stochastic model and its default minimum and maximum bounds.
 #' The stochastic model is specified using the function arguments.
 #' @param variable A string; the name of the variable. Type \code{viewModels()} to view valid variable names
 #' @param modelType A string; the model type. Use \code{viewModels} to view the valid values.
 #' @param modelParameterVariation A string; the parameter variation. Use \code{viewModels} to view the valid values.
 #' @details The available stochastic models can be viewed using the function \code{viewModels()}.
 #' This function prints the default ranges of the parameters of the stochastic model specified the
-#' stochastic model of interest. 
+#' stochastic model of interest.
 #' @seealso \code{viewModels}, \code{writeControlFile}
 #' @examples
 #' viewModelParameters("P", "wgen", "annual")
@@ -177,11 +208,11 @@ viewModelParameters <- function(variable, modelType, modelParameterVariation) {
   nml[["modelParameterVariation"]] <- list()
   nml[["modelType"]][[variable]] <- modelType
   nml[["modelParameterVariation"]][[variable]] <- modelParameterVariation
-  
+
   modelTag <- getModelTag(nml, variable)
   modelInfo <- get.model.info(modelTag)
-  modelPars <- data.frame(parameter = modelInfo[["parNam"]], 
-                          min_bound = modelInfo[["minBound"]], 
+  modelPars <- data.frame(parameter = modelInfo[["parNam"]],
+                          min_bound = modelInfo[["minBound"]],
                           max_bound = modelInfo[["maxBound"]])
   if (nrow(modelPars) < 1) print("Are the input arguments a valid combination of variable|modelType|modelParameterVariation?")
   # colnames(modelPars) <- c("parameter", "minimum bound", "maximum bound")
@@ -194,16 +225,16 @@ viewModelParameters <- function(variable, modelType, modelParameterVariation) {
 #Get info for individual models
 get.model.info<-function(modelTag=NULL #string used to specify model for stochastic generation
 ){
-  
+
   modelInfo=list()
   #SET UP MODEL RELATED PARAMETERS
   switch(modelTag,
          "Simple-ann"  = {modelInfo$simVar=c()
-         modelInfo$simPriority=1 
+         modelInfo$simPriority=1
          modelInfo$nperiod=1
          },
          "Simple-seas"  = {modelInfo$simVar=c()
-         modelInfo$simPriority=1 
+         modelInfo$simPriority=1
          modelInfo$nperiod=1
          },
          "P-seas-wgen" = {modelInfo$simVar="P"
@@ -216,9 +247,9 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
                             "pwd_1","pwd_2","pwd_3","pwd_4",
                             "alpha_1","alpha_2","alpha_3","alpha_4",
                             "beta_1","beta_2","beta_3","beta_4")
-         modelInfo$minBound=c(0.389, 0.334, 0.375, 0.277, 0.078, 0.079, 0.084, 0.036, 
+         modelInfo$minBound=c(0.389, 0.334, 0.375, 0.277, 0.078, 0.079, 0.084, 0.036,
                               0.295,	0.303, 0.309,	0.257, 0.043,	0.046, 0.048, 0.034) #Aus 3stdev hard bounds
-         modelInfo$maxBound=c(0.997, 0.989, 0.994, 0.998, 0.85, 0.714, 0.714, 0.808, 
+         modelInfo$maxBound=c(0.997, 0.989, 0.994, 0.998, 0.85, 0.714, 0.714, 0.808,
                               0.998, 0.998, 0.998, 0.998, 15.716, 30.08, 27.877, 21.193)
          #bounds here?????????????
          #npar.optim???? - then split into max, min bounds
@@ -237,14 +268,14 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
          modelInfo$simPriority=1
          modelInfo$nperiod=365
          modelInfo$fixedPars=NA
-         modelInfo$ncycle=1 
-         modelInfo$npars=12  #par vector is of length 12 
+         modelInfo$ncycle=1
+         modelInfo$npars=12  #par vector is of length 12
          #modelInfo$parNam=c("pdd", "pwd", "alpha", "beta")
          modelInfo$parNam=c("pdd_m","pdd_amp","pdd_ang",
                             "pwd_m","pwd_amp","pwd_ang",
                             "alpha_m","alpha_amp","alpha_ang",
                             "beta_m","beta_amp","beta_ang")
-         
+
          # modelInfo$minBound=c(0.476, 0.006, 0.730,
          #                      0.093, 0.004, 0.543,
          #                      0.33, 0.002, 4.108,
@@ -276,7 +307,7 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
          modelInfo$simPriority=1
          modelInfo$nperiod=365
          modelInfo$fixedPars=NA
-         modelInfo$ncycle=1 
+         modelInfo$ncycle=1
          modelInfo$npars=12  #par vector is of length 12 since each par has a mean, amplitude & phase angle
          #modelInfo$parNam=c("alpha", "sigma", "mu", "lambda")
          modelInfo$parNam=c("alpha_m","alpha_amp","alpha_ang",
@@ -292,32 +323,32 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
                               0, 8, 6.28,
                               2, 0, 0)
          },
-         "Temp-har26-wgen-wd" = {modelInfo$simVar="Temp"
+         "Temp-har-wgen-wd" = {modelInfo$simVar="Temp"
          modelInfo$simPriority=2
          modelInfo$nAssocSeries=0
          modelInfo$WDcondition=TRUE  #conditioned on wet/dry status
          modelInfo$wdCycle="All"
          modelInfo$nperiod=26
          modelInfo$fixedPars=NA
-         modelInfo$ncycle=1 
+         modelInfo$ncycle=1
          modelInfo$npars=4*(1+modelInfo$ncycle*2)+1             #par vector is of length  13
          modelInfo$parNam=c("cor0",
                             "W-mCycle-m","W-mCycle-amp","W-mCycle-ang",
                             "W-sCycle-m","W-sCycle-amp","W-sCycle-ang",
                             "D-mCycle-m","D-mCycle-amp","D-mCycle-ang",
                             "D-sCycle-m","D-sCycle-amp","D-sCycle-ang")
-         
+
          modelInfo$minBound=c(0.45,7.0,1.0,-0.05,0.9,0.1,-1.6,7.0,1.0,-0.05,0.9,0.1,-1.6) #Placeholder bounds
          modelInfo$maxBound=c(0.90,28.0,9.0,0.81,4.9,1.4,3.15,28.0,9.0,0.81,4.9,1.4,3.15)
          },
-         "Temp-har26-wgen" = {modelInfo$simVar="Temp"
+         "Temp-har-wgen" = {modelInfo$simVar="Temp"
          modelInfo$simPriority=2
          modelInfo$nAssocSeries=0
          modelInfo$WDcondition=FALSE  #conditioned on wet/dry status
          modelInfo$wdCycle=FALSE
          modelInfo$nperiod=26
          modelInfo$fixedPars=NA
-         modelInfo$ncycle=1 
+         modelInfo$ncycle=1
          modelInfo$npars=2*(1+modelInfo$ncycle*2)+1             #par vector is of length  7
          modelInfo$parNam=c("cor0",
                             "WD-mCycle-m","WD-mCycle-amp","WD-mCycle-ang",
@@ -325,14 +356,14 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
          modelInfo$minBound=c(0.45,7.0,1.0,-0.05,0.9,0.1,-1.6) #Placeholder bounds
          modelInfo$maxBound=c(0.9,28.0,9.0,0.81,4.9,1.4,3.15)
          },
-         "Temp-har26-wgen-wdsd" = {modelInfo$simVar="Temp"
+         "Temp-har-wgen-wdsd" = {modelInfo$simVar="Temp"
          modelInfo$simPriority=2
          modelInfo$nAssocSeries=0
          modelInfo$WDcondition=TRUE  #conditioned on wet/dry status
          modelInfo$wdCycle="sCycle"
          modelInfo$nperiod=26
          modelInfo$fixedPars=NA
-         modelInfo$ncycle=1 
+         modelInfo$ncycle=1
          modelInfo$npars=3*(1+modelInfo$ncycle*2)+1             #par vector is of length  10
          modelInfo$parNam=c("cor0",
                             "WD-mCycle-m","WD-mCycle-amp","WD-mCycle-ang",
@@ -348,26 +379,26 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
          modelInfo$wdCycle=FALSE
          modelInfo$nperiod=12
          modelInfo$fixedPars=NA
-         modelInfo$ncycle=1 
+         modelInfo$ncycle=1
          modelInfo$npars=2*(1+modelInfo$ncycle*2)+1             #par vector is of length  7
          modelInfo$parNam=c("cor0",
                             "WD-mCycle-m","WD-mCycle-amp","WD-mCycle-ang",
                             "WD-sCycle-m","WD-sCycle-amp","WD-sCycle-ang")
-         modelInfo$minBound=c(0.0, 
+         modelInfo$minBound=c(0.0,
                               0,0.01,0.2,
                               0.01,0.01,0.2)  #NB: Placeholder bounds
          modelInfo$maxBound=c(0.9,
                               6,5,0.3,
                               3,3,0.3)
          },
-         "PET-har26-wgen" = {modelInfo$simVar="PET"
+         "PET-har-wgen" = {modelInfo$simVar="PET"
          modelInfo$simPriority=2
          modelInfo$nAssocSeries=0
          modelInfo$WDcondition=FALSE  #conditioned on wet/dry status
          modelInfo$wdCycle=FALSE
          modelInfo$nperiod=26
          modelInfo$fixedPars=NA
-         modelInfo$ncycle=1 
+         modelInfo$ncycle=1
          modelInfo$npars=2*(1+modelInfo$ncycle*2)+1             #par vector is of length  7
          modelInfo$parNam=c("cor0",
                             "WD-mCycle-m","WD-mCycle-amp","WD-mCycle-ang",
@@ -375,21 +406,21 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
          modelInfo$minBound=c(0.0  ,0  ,0.01 ,0.2 ,1 ,0.4 ,0.2)  #NB: Placeholder bounds
          modelInfo$maxBound=c(0.9  ,6  ,5    ,0.3 ,3    ,3    ,0.3)
          },
-         "PET-har26-wgen-wd" = {modelInfo$simVar="PET"
+         "PET-har-wgen-wd" = {modelInfo$simVar="PET"
          modelInfo$simPriority=2
          modelInfo$nAssocSeries=0
          modelInfo$WDcondition=TRUE  #conditioned on wet/dry status
          modelInfo$wdCycle="All"
          modelInfo$nperiod=26
          modelInfo$fixedPars=NA
-         modelInfo$ncycle=1 
+         modelInfo$ncycle=1
          modelInfo$npars=4*(1+modelInfo$ncycle*2)+1             #par vector is of length  13
          modelInfo$parNam=c("cor0",
                             "W-mCycle-m","W-mCycle-amp","W-mCycle-ang",
                             "W-sCycle-m","W-sCycle-amp","W-sCycle-ang",
                             "D-mCycle-m","D-mCycle-amp","D-mCycle-ang",
                             "D-sCycle-m","D-sCycle-amp","D-sCycle-ang")
-         
+
          modelInfo$minBound=c(0.001,
                               0.01,0.01,0.95,
                               0.01,0.01,0.9,
@@ -401,14 +432,14 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
                               30.0,9.0,1.1,
                               10.0,10.0,1.05)
          },
-         "Radn-har26-wgen" = {modelInfo$simVar="Radn"
+         "Radn-har-wgen" = {modelInfo$simVar="Radn"
          modelInfo$simPriority=3
          modelInfo$nAssocSeries=0
          modelInfo$WDcondition=FALSE  #conditioned on wet/dry status
          modelInfo$wdCycle=FALSE
          modelInfo$nperiod=26
          modelInfo$fixedPars=NA
-         modelInfo$ncycle=1 
+         modelInfo$ncycle=1
          modelInfo$npars=2*(1+modelInfo$ncycle*2)+1             #par vector is of length  7
          modelInfo$parNam=c("cor0",
                             "WD-mCycle-m","WD-mCycle-amp","WD-mCycle-ang",
@@ -417,7 +448,7 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
          modelInfo$maxBound=c(0.9,29.0,10.0,0.81,4.9,1.4,3.15)
          },
          #--- MORE VERSIONS COMING ---
-         
+
          # "P-2har26-wgen-FS" = {modelInfo$simVar="P"
          # modelInfo$nperiod=26
          #                       modelInfo$fixedPars="phase.angle"
@@ -425,29 +456,29 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
          #                       modelInfo$npars=4*(1+modelInfo$ncycle*1)  #par vector is of length 12
          # },
          # versions where occurence w/d is kept the same as current
-         
+
          -999
   )
   return(modelInfo)
-  
+
 }
 
-get.attribute.info <- function(modelTag = NULL){
-
-  if (modelTag == "Simple-ann") {
-    validAttributes <- c("P_ann_tot_m", "Temp_ann_avg_m", "PET_ann_avg_m", "Radn_ann_avg_m")
-  } else {
-
-    # Identify variable
-    varType <- get.varType(modelTag, sep = "-")
-
-    # Use the appropriate data.frame to read the validAttributes
-    valid_indices <- which(model_attribute_comb[[varType]][[modelTag]] == TRUE)
-    validAttributes <- model_attribute_comb[[varType]]$validAttributes[valid_indices]
-
-  }
-  return(validAttributes)
-}
+# get.attribute.info <- function(modelTag = NULL){
+#
+#   if (modelTag == "Simple-ann") {
+#     validAttributes <- c("P_ann_tot_m", "Temp_ann_avg_m", "PET_ann_avg_m", "Radn_ann_avg_m")
+#   } else {
+#
+#     # Identify variable
+#     varType <- get.varType(modelTag, sep = "-")
+#
+#     # Use the appropriate data.frame to read the validAttributes
+#     valid_indices <- which(model_attribute_comb[[varType]][[modelTag]] == TRUE)
+#     validAttributes <- model_attribute_comb[[varType]]$validAttributes[valid_indices]
+#
+#   }
+#   return(validAttributes)
+# }
 
 
 

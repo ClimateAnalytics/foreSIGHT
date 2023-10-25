@@ -31,13 +31,13 @@ If the list contains more than one performance metric, the argument \code{metric
 If the list contains more than one performance metric, the argument \code{metric} can be used to specify the metric to be used.}
 
 \item{sim}{a list; summary of the simulation containing the scenarios generated using the function \code{generateScenarios} that is used to run the system model using \code{runSystemModel}.
-The summary of the simulation may be obtained by using the function \code{getSimSummary} on the full simulation. The summary object is much smaller in size for ease of storage and use with the performance 
+The summary of the simulation may be obtained by using the function \code{getSimSummary} on the full simulation. The summary object is much smaller in size for ease of storage and use with the performance
 plotting functions like \code{plotPerformanceSpace}.}
 
 \item{metric}{a string; the name of the performance metric to be plotted. The argument can be used to select the metric from 
 \code{performanceOpt1} and \code{performanceOpt2} lists for plotting. If \code{NULL} (the default), the first metric in the lists will be used.}
 
-\item{attX}{a string; the tag of the perturbed attribute to plot on the xaxis. The attribute must be one of the perturbed attributes of \code{sim}. 
+\item{attX}{a string; the tag of the perturbed attribute to plot on the xaxis. The attribute must be one of the perturbed attributes of \code{sim}.
 Type \code{sim$expSpace$attPerturb} to view all perturbed attributes of \code{sim}. If \code{NULL} (default), the first perturbed attribute of \code{sim} will be used.}
 
 \item{attY}{a string; the tag of the perturbed attribute to plot on the yaxis. The attribute must be another perturbed attribute of \code{sim}.
@@ -57,14 +57,14 @@ number of replicates will be identified for each target and the average performa
 \item{perfThreshLabel}{a string; the text to label \code{perfThresh}.}
 
 \item{attSlices}{a list; used to subset perturbed attributes in \code{sim} for the plot. This argument would typically be used in cases where there are more than two perturbed attributes.
-The elements of the list correspond to the perturbed attributes to be subsetted and must be named using the attribute tag. Each element may contain a single value or a two-element vector specifying the minimum-maximum values. 
+The elements of the list correspond to the perturbed attributes to be subsetted and must be named using the attribute tag. Each element may contain a single value or a two-element vector specifying the minimum-maximum values.
 If the element is a single value, the exposure space is sliced on this single value of the attribute. If minimum-maximum values are specified, the exposure space will be sliced to subset this range.
 If \code{attSlices} includes \code{attX} or \code{attY}, these attributes will be sliced and the resulting plot will be a "zoomed-in" space.}
 
 \item{climData}{data.frame; the values of attX and attY from other sources like climate models. This data will be plotted as points in the performance space.
-The data frame may contain columns with values of the performance metric to be plotted and the "Name" of the dataset. 
+The data frame may contain columns with values of the performance metric to be plotted and the "Name" of the dataset.
 If the performance metric is available in the data.frame, the points will be coloured based on the performance \code{colMap} scale.
-If the \code{Name} of the data is available in the data.frame, the points will be identified using the \code{Name}. 
+If the \code{Name} of the data is available in the data.frame, the points will be identified using the \code{Name}.
 Please refer data provided with the package that may be loaded using \code{data("egClimData")} for an example of the expected format of \code{climData}.}
 
 \item{colMap}{a vector of colours; to specify the colourmap to be used. If \code{NULL}, the default foreSIGHT colourmap is used.}

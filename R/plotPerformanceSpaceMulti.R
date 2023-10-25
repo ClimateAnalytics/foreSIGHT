@@ -21,7 +21,7 @@
 #' @param climData data.frame; the values of \code{attX} and \code{attY} from other sources like climate models. This data will be plotted as points in the perturbation space.
 #' If the \code{Name} of the data is available in the data.frame, the points will be identified using the \code{Name}. 
 #' Please refer data provided with the package that may be loaded using \code{data("egClimData")} for an example of the expected format of \code{climData}.
-#' @param col a vector of colours; The length of the vector should atleast be sufficient to assign unique colours to all
+#' @param col a vector of colours; The length of the vector should at least be sufficient to assign unique colours to all
 #' the different values in the generated plot. If \code{NULL}, the default foreSIGHT colours is used.
 #' @param axesPercentLabel a logical flag; if TRUE x and y axes to be displayed in terms of percentage change instead of fraction
 #' @details If the space contains more than two perturbed attributes, the performance values are averaged across the perturbations in the attributes other than \code{attX} and \code{attY}.
@@ -341,7 +341,7 @@ fillHeatPlot <- function(plotData,
   if (is.null(colMap)) {
     coloursIn <- grDevices::adjustcolor(foreSIGHT.colmap(length(nThresh)), alpha.f = threshPlot_alpha)
   } else {
-    if (length(colMap) < length(nThresh)) stop(paste0("col should contain atleast ", length(nThresh), " colours."))
+    if (length(colMap) < length(nThresh)) stop(paste0("col should contain at least ", length(nThresh), " colours."))
     coloursIn <- colMap[1:length(nThresh)]
   }
   

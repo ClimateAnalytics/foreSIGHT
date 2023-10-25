@@ -22,31 +22,26 @@ Calibrates weather generator models specified using modelTag.
 }
 \details{
 modelTag provides the main function with requested models. modelTag is
-vector of any of the following supported models: \itemize{ \item
-\code{"Simple-ann"}a simple annual scaling \item \code{"P-ann-wgen"}a four
-parameter annual rainfall model \item \code{"P-seas-wgen"}a 16 parameter
-seasonal rainfall model \item \code{"P-har6-wgen"}a harmonic rainfall model
-with 6 periods \item \code{"P-har12-wgen"}a harmonic rainfall model \item
-\code{"P-har12-wgen-FS"}a harmonic rainfall model where seasonality is fixed
-(phase angles must be specified via
-modelInfoMod=list("P-har12-wgen-FS"=fixedPars=c(x,x,x,x)) \item
-\code{"P-har26-wgen"}a harmonic rainfall model \item \code{"P-2har26-wgen"}a
-double harmonic rainfall model \item \code{"Temp-har26-wgen"}a harmonic
-temperature model not conditional on rainfall \item
-\code{"Temp-har26-wgen-wd"}a harmonic temperature model dependent on wet or
-dry day \item \code{"Temp-har26-wgen-wdsd"}a harmonic temperature model
-where standard deviation parameters are dependent on wet or dry day \item
-\code{"PET-har12-wgen"}a harmonic potential evapotranspiration model \item
-\code{"PET-har26-wgen"}a harmonic potential evapotranspiration model \item
-\code{"PET-har26-wgen-wd"}a harmonic potential evapotranspiration model
-dependent on wet or dry day \item \code{"Radn-har26-wgen"}a harmonic solar
-radiation model (MJ/m2) }
+vector of any of the following supported models:
+\itemize{
+\item \code{"P-ann-wgen"} a four parameter annual rainfall model
+\item \code{"P-seas-wgen"} a 16 parameter seasonal rainfall model
+(phase angles must be specified via modelInfoMod=list("P-har12-wgen-FS"=fixedPars=c(x,x,x,x))
+\item \code{"P-har-wgen"} a harmonic rainfall model
+\item \code{"Temp-har-wgen"} a harmonic temperature model not conditional on rainfall
+\item \code{"Temp-har-wgen-wd"} a harmonic temperature model dependent on wet or
+dry day
+\item \code{"Temp-har-wgen-wdsd"} a harmonic temperature model
+where standard deviation parameters are dependent on wet or dry day
+\item \code{"PET-har-wgen"}a harmonic potential evapotranspiration model
+\item \code{"PET-har-wgen-wd"} a harmonic potential evapotranspiration model
+dependent on wet or dry day
+\item \code{"Radn-har-wgen"} a harmonic solar radiation model (MJ/m2) }
 }
 \examples{
 
 data(tankDat)                               #Load tank data (tank_obs)
-modelTag=c("P-ann-wgen","Temp-har26-wgen")  #Select a rainfall and a temperature generator
+modelTag=c("P-ann-wgen","Temp-har-wgen")  #Select a rainfall and a temperature generator
 out<- modCalibrator(obs = tank_obs,         #Calibrate models
                     modelTag = modelTag)
 }
-\keyword{functions}

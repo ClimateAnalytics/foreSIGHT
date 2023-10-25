@@ -13,13 +13,13 @@ generateScenario(
 )
 }
 \arguments{
-\item{reference}{data.frame or list; contains reference daily climate data. \cr 
-For single site data, \code{reference} is a data.frame with columns named \emph{year}, \emph{month}, \emph{day}, \emph{*variable_name1*}, \emph{*variable_name2*}. 
-Note that the first three columns of the data.frame contain the year, month, and day of the data. 
-The columns have to be named as specified. 
-For multi-site data, \code{reference} is a list, with elements named \emph{year}, \emph{month}, \emph{day}, \emph{*variable_name1*}, \emph{*variable_name2*}. List format is suitable for both single and multi-site data. 
-Climate variables are specified as matrices, with columns for each site. \cr   
-Use \code{viewModels()} to view the valid variable names. 
+\item{reference}{data.frame or list; contains reference daily climate data. \cr
+For single site data, \code{reference} is a data.frame with columns named \emph{year}, \emph{month}, \emph{day}, \emph{*variable_name1*}, \emph{*variable_name2*}.
+Note that the first three columns of the data.frame contain the year, month, and day of the data.
+The columns have to be named as specified.
+For multi-site data, \code{reference} is a list, with elements named \emph{year}, \emph{month}, \emph{day}, \emph{*variable_name1*}, \emph{*variable_name2*}. List format is suitable for both single and multi-site data.
+Climate variables are specified as matrices, with columns for each site. \cr
+Use \code{viewModels()} to view the valid variable names.
 Please refer to data provided with the package that may be loaded using \code{data(tankDat)} and \code{data(barossaDat)} for examples of the expected format of single site and multi-site \code{reference}.}
 
 \item{expTarg}{a named vector; the attributes at the target location in the exposure space
@@ -28,21 +28,20 @@ Please refer to data provided with the package that may be loaded using \code{da
 \item{simLengthNyrs}{a number; a scalar that specifies the length in years of each generated scenario. This argument is used only with stochastic generation.
 If \code{NULL} (the default), the generated simulation will be as long as \code{reference}.}
 
-\item{seedID}{a number; a scalar that specifies the seed to be used for the first replicate. Subsequent replicates will use seeds incremented by one. 
-If \code{seedID} is \code{NULL} (which is the default), the function will use a random seed for stochastic time series generation. 
+\item{seedID}{a number; a scalar that specifies the seed to be used for the first replicate. Subsequent replicates will use seeds incremented by one.
+If \code{seedID} is \code{NULL} (which is the default), the function will use a random seed for stochastic time series generation.
 The seed used will be specified in the output. This argument is intended for use in cases that aim to reproduce an existing simulation.}
 
 \item{controlFile}{a string; to specify the model/optimisation options used for simulating time series data. The valid values are:
 \itemize{
-\item {\code{NULL}} {: the simulation uses the foreSIGHT default stochastic model settings.}
-\item {\code{"scaling"}} {: the simulation uses scaling (simple/seasonal) instead of a stochastic model.
+\item \code{NULL}: the simulation uses the foreSIGHT default stochastic model settings.
+\item \code{"scaling"}: the simulation uses scaling (simple/seasonal) instead of a stochastic model.
                           If all attributes in \emph{expSpace} are annual totals/averages, then simple scaling is used.
-                          If seasonality ratio attributes are also included in \emph{expSpace}, then seasonal scaling is used.}
-\item {\code{path to a JSON file}} {: the JSON file contains advanced options specify the stochastic model and optimisation inputs. 
-                  These options can be used to change stochastic model types, overwrite default model parameter bounds, change default optimisation arguments, and set penalty attributes to be used in optimisation. 
+                          If seasonality ratio attributes are also included in \emph{expSpace}, then seasonal scaling is used.
+\item \code{path to a JSON file}: the JSON file contains advanced options specify the stochastic model and optimisation inputs.
+                  These options can be used to change stochastic model types, overwrite default model parameter bounds, change default optimisation arguments, and set penalty attributes to be used in optimisation.
                   Please refer to the function \code{writeControlFile} in order to create an \code{controlFile} JSON file.
-                  }
-                  }}
+}}
 }
 \description{
 \code{generateScenario} is the base function used by \code{generateScenarios}.

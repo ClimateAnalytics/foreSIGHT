@@ -46,7 +46,7 @@ extendDates<-function(simLengthNyrs=NULL,
   dateS=paste(yy[1],str(mm[1],2,"0"),str(dd[1],2,"0"),sep="-")
   dateF=paste((yy[1]+simLengthNyrs-1),str(mm[ndays],2,"0"),str(dd[ndays],2,"0"),sep="-")
   date_gen <- seq(as.Date(dateS),as.Date(dateF),by="day")
-  
+
   day <- as.numeric(format(date_gen,"%d"))
   month<- as.numeric(format(date_gen,"%m"))
   year<- as.numeric(format(date_gen,"%Y"))
@@ -105,22 +105,24 @@ get.date.ind<-function(dd=NULL,
                        nperiod=NULL,     #information surrounding fitted model
                        southHemi=TRUE
                        ){
-  
+
   ndays=length(dd)                  # get number of days on record
   nyr=yy[ndays]-yy[1]+1             # get number of years on record
   i.mm=get.month.ind(mm=mm)         #get indices for months
   i.yy=get.year.ind(yy=yy,nyr=nyr,n=ndays)  #get indices for years
-  i.5yy=get.nyear.ind(yy=yy,nyrEitherSide = 2)  #get indices for 5 year window
+  i.3yy=get.nyear.ind(yy=yy,nyrEitherSide = 1)  #get indices for 3 year moving window
+  i.5yy=get.nyear.ind(yy=yy,nyrEitherSide = 2)  #get indices for 5 year moving window
+  i.10yyBlock=get.nyearBlock.ind(yy=yy,inc=10)  #get indices for 10 year window
   if(southHemi==TRUE){
     i.ss=get.seas.ind(i.mm=i.mm)    #get indices for seasons
   }else{
     print("warning check seasons")  #warning not southern hemisphere
   }
-  
+
   dateS=paste(yy[1],mm[1],dd[1],sep="-")
   dateF=paste(yy[ndays],mm[ndays],dd[ndays],sep="-")
   jj=julian.day(dateS=dateS,dateF=dateF)
-  
+
   i.pp=list()
   if((nperiod==1)|(nperiod==4)|(nperiod==12)){
     if(nperiod==1){i.pp[[1]]=seq(1,ndays)}  # annual model case
@@ -135,7 +137,9 @@ get.date.ind<-function(dd=NULL,
               nyr=nyr,
               i.mm=i.mm,
               i.yy=i.yy,
+              i.3yy=i.3yy,
               i.5yy=i.5yy,
+              i.10yyBlock=i.10yyBlock,
               i.ss=i.ss,
               i.pp=i.pp,
               jj=jj)
@@ -163,15 +167,27 @@ get.nyear.ind<-function(yy=NULL,   # ts vector of years
                         nyrEitherSide = NULL
 ){
   years=seq(min(yy)+nyrEitherSide,max(yy)-nyrEitherSide)
-  nyr = length(years) 
+  nyr = length(years)
   i.yywin=NULL
   for(Y in 1:nyr) i.yywin[[Y]]=which((yy>=years[Y]-nyrEitherSide)&(yy<=years[Y]+nyrEitherSide))            # CREATE MONTHLY INDICES
   return(i.yywin)
 }
 
+get.nyearBlock.ind<-function(yy=NULL,   # ts vector of years
+                       inc=1
+){
+  start=seq(yy[1],max(yy),by=inc)
+  end=seq(yy[1]+inc-1,max(yy),by=inc)
+  nBlock = length(end)
+  start=start[1:nBlock] # make sure same number of starts and ends
+  i.yy=NULL
+  for(Y in 1:nBlock) i.yy[[Y]]=which((yy>=start[Y])&(yy<=end[Y]))            # CREATE MONTHLY INDICES
+  return(i.yy)
+}
+
 get.seas.ind<-function(i.mm=NULL # list of days sorted by month
 ){
-  
+
   #NOTE SOUTHERN HEMISPHERE HERE
   # define months belonging to each season
   seas <- t(matrix(c(9,10,11,#SPR -SON
@@ -179,7 +195,7 @@ get.seas.ind<-function(i.mm=NULL # list of days sorted by month
                      3,4,5,#AUT -MAM
                      6,7,8),#WIN -JJA
                    nrow=3,ncol=4))
-  
+
   i.ss=NULL
   for(s in 1:4) i.ss[[s]]=c(i.mm[[seas[s,1]]],i.mm[[seas[s,2]]],i.mm[[seas[s,3]]]) #CREATE SEASONAL INDICES i.ss[[1]]-i.ss[[4]] (not contiguous, needs a sort)
   for(s in 1:4){
@@ -189,7 +205,7 @@ get.seas.ind<-function(i.mm=NULL # list of days sorted by month
   }
   rm(tmp)
   return(i.ss)
-  
+
 }
 
 julian.day<-function(dateS=NULL,  #start date e.g. "1995-01-01"
@@ -208,11 +224,11 @@ split.ts<-function(nperiod=26,   #no. of periods to divide year over
   nd.per=floor(366/nperiod)  #no. days in period
   nd.year=nperiod*nd.per     #est no. days in year
   short=366-nd.year               #no. days short from 366
-  
+
   indl <- NULL
   for (i in 1:nperiod) {indl <- c(indl,rep(i,nd.per))}
   indl <- c(indl,rep(nperiod,short)) #add missing days on end
-  
+
   harInd <- rep(NA,length(jj))
   for (i in 1:366) {
     tmpInd=which(jj==i)

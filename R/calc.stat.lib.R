@@ -10,7 +10,7 @@ R10calc <- function(x) {
 #   n=length(x)
 #   out <- .Fortran("R10calc",
 #                   x=as.double(x),y=0,n=as.integer(n),package="foreSIGHT")
-#   
+#
 #   return(out$y)
 # }
 
@@ -22,8 +22,8 @@ R10calc <- function(x) {
 #                   x=as.double(x),y=0,n=as.integer(n),package="foreSIGHT")
 #   return(out$y)
 # }
-# 
-# 
+#
+#
 # CDWcalc <- function(x) {
 #   x[x!=0]=1
 #   n=length(x)
@@ -45,20 +45,20 @@ F0calc <- function(x) {
     temp=get.below(data=x,threshold=0)
     return(temp)
 }
-  
+
 # GSLcalc <- function(x) {
 #   n=length(x)
 #   out <- .Fortran("GSLcalc",
 #                   x=as.double(x),y=0,n=as.integer(n),package="foreSIGHT")
-#   
+#
 #   return(out$y)
 # }
-# 
+#
 # CSLcalc <- function(x) {
 #   n=length(x)
 #   out <- .Fortran("CSLcalc",
 #                   x=as.double(x),y=0,n=as.integer(n),package="foreSIGHT")
-#   
+#
 #   return(out$y)
 # }
 
@@ -69,14 +69,14 @@ CSLcalc<-function(x){
   half=floor((m/2.0)-1.0)
   len=n-5.0
   sum=sum2=0
-  
+
   for(i in 6:half){
     if((length(which(x[(i-5):i]<17)))==6){
       sum=half-i
       next
     }
   }
-  
+
   for(i in (half+1):len){
     if((length(which(x[(i):(i+5)]>17)))==6){
       sum2=i-(half+1)
@@ -97,14 +97,14 @@ GSLcalc<-function(x){
   half=floor((m/2.0)-1.0)
   len=n-5.0
   sum=sum2=0
-  
+
   for(i in 6:half){
     if((length(which(x[(i-5):i]>5)))==6){
       sum=half-i
       next
     }
   }
-  
+
   for(i in (half+1):len){
     if((length(which(x[(i):(i+5)]<5)))==6){
       sum2=i-(half+1)
@@ -175,7 +175,7 @@ extractor=function(func=NULL,data=NULL,indx=NULL,attArgs=NULL,...){ # returns a 
     extractor.out=func(data=data[indx],...)
   } else {
     extractor.out=func(data=data[indx],attArgs=attArgs,...)
-    
+
   }
   return(extractor.out)
 }
@@ -206,8 +206,8 @@ extractor.summaryMean<-function(func=NULL,
 #EXTRACTOR FOR MULTIPLE PERIODS (TEMPORARY FUNCTION here)
 extractor.summarySD<-function(func=NULL,
                                 data=NULL,
-                                indx=NULL,
-                                nperiod=NULL,...){
+                                indx=NULL,...){
+  nperiod=length(indx)
   sim.series=rep(NA,nperiod)
   for(p in 1:nperiod){
     sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
@@ -258,12 +258,12 @@ extractor.cv<-function(func=NULL,
                        data=NULL,
                        indx=NULL,
                        ...
-  
+
 ){
   nperiod=length(indx)
   tmp=extractor.multPeriod(func=func,data=data,indx=indx,nperiod=nperiod,...)
   cv=stats::sd(tmp,na.rm=TRUE)/mean(tmp,na.rm=TRUE)
-  
+
   return(cv)
 }
 
@@ -281,7 +281,7 @@ get.perc.above.thresh=function(data=NULL,
                                threshold=NULL){
   temp=length(which(data>threshold))
   if(identical(temp,integer(0))){temp=0}
-  temp=temp/length(data)*100 #get percent of record above threshold   
+  temp=temp/length(data)*100 #get percent of record above threshold
   return(temp)
 }
 
@@ -308,12 +308,11 @@ get.wet.amounts=function(data=NULL,threshold=NULL){
 #FUNCTION TO GET AVERAGE ABOVE A THRESHOLD
 get.wet.average=function(data=NULL,threshold=NULL){
   ind=which(data>threshold)
-  if(identical(length(ind),integer(0))){
+  if(identical(ind,integer(0))){
     temp=0                          #if no wet days
   }else{
     temp=mean(data[ind],na.rm=T)
   }
-
   return(temp)
 }
 
@@ -372,21 +371,21 @@ get.median.wet=function(data=NULL,threshold=NULL){
   return(temp)
 }
 
-get.medians=function(data=NULL){  
+get.medians=function(data=NULL){
   temp=stats::median(data,na.rm=T)
   return(temp)
 }
 
 get.quantile=function(data=NULL,  #vector
                       quant=NULL  #quantile (between 0.001-0.999)
-                      ){  
+                      ){
   temp=stats::quantile(x=data,probs=quant,na.rm=TRUE,names = FALSE)
   return(temp)
 }
 
 get.quantile.rng=function(data=NULL,  #vector
                           lim=0.9 # limits of range (e.g. 0.9 for 5-95%)
-){  
+){
   p1 = (1.-lim)/2.
   p2 = (1.+lim)/2.
   temp=stats::quantile(x=data,probs=p2,na.rm=TRUE,names = FALSE)[1]-stats::quantile(x=data,probs=p1,na.rm=TRUE,names = FALSE)[1]
@@ -397,7 +396,7 @@ get.quantile.rng=function(data=NULL,  #vector
 get.quantile.wet=function(data=NULL,  #vector
                           quant=NULL,  #quantile (between 0.001-0.999)
                           threshold=NULL  #wet day threshold
-){  
+){
   data[which(data<=threshold)]=NA
   temp=stats::quantile(x=data,probs=quant,na.rm=TRUE,names = FALSE)
   return(temp)
@@ -414,10 +413,10 @@ get.amplitude=function(data=NULL,
   }
   #Fit harmonic to totals
   harmonicParams<-fit.harmonic.opts(nperiod=nperiod,v.stat=monthlyTotal)
-  
+
   amplitude=harmonicParams$amp
   return(amplitude)
-  
+
 }
 
 #skewness on wet days
@@ -446,7 +445,7 @@ get.cdd<-function(data=NULL,       # w-dry status or rain vector
 }
 
 # Danlu func
-# this function is to count the number of continuous 0's within a period (for calculating average length of dry spells CDD) 
+# this function is to count the number of continuous 0's within a period (for calculating average length of dry spells CDD)
 cumul_zeros <- function(x)  {
   x <- !x
   rl <- rle(x)
@@ -454,7 +453,7 @@ cumul_zeros <- function(x)  {
   v <- rl$values
   cumLen <- cumsum(len)
   z <- x
-  # replace the 0 at the end of each zero-block in z by the 
+  # replace the 0 at the end of each zero-block in z by the
   # negative of the length of the preceding 1-block....
   iDrops <- c(0, diff(v)) < 0
   z[ cumLen[ iDrops ] ] <- -len[ c(iDrops[-1],FALSE) ]
@@ -467,7 +466,7 @@ get.spell.lengths<-function(data=NULL,  # vector of rain
                             thresh=NULL,  # wetness threshold, all values below or equal to deemed dry
                             type="wet"    # get wet or dry spell length
 ){
-  above=rep(0,length(data)) 
+  above=rep(0,length(data))
   ind=which(data>thresh)
   above[ind]=1 # record entries above threshold as 1
   tmp=rle(above)
@@ -479,6 +478,7 @@ get.spell.lengths<-function(data=NULL,  # vector of rain
          spell.len=tmp$lengths[ind.dry]
          },
          -999.00)
+  if(length(spell.len)==0){spell.len=0}
   return(spell.len)
 }
 
@@ -505,7 +505,7 @@ get.tag.varType<-function(attrib=NULL, # attribute name
 #categorise func
 categ.fun=function(perf.lim=c(5,10), # performance limits (<=5% good, <=10& fair, >10% poor)
                    rel.diff=NULL     #relative difference to classify
-  
+
 ){
   perf="poor"                        #start off at "poor"
   if(abs(rel.diff)<=perf.lim[1]){
@@ -517,7 +517,7 @@ categ.fun=function(perf.lim=c(5,10), # performance limits (<=5% good, <=10& fair
       perf="poor"
     }
   }
-  
+
   return(perf)
 }
 
@@ -536,19 +536,19 @@ plot.attrib.perf.solo=function(rel.diff,                   #relative difference 
                                ){
   #COLOR RAMP
   # traffic.col=c("chartreuse3","gold1","red1")
-  
+
   #MAKE VECTOR X
   att.cat=categ.fun(perf.lim,rel.diff)
   if(att.cat=="poor"){ind=3};if(att.cat=="fair"){ind=2};if(att.cat=="good"){ind=1}
   x=rep(0,3)  #make blank x vector
   x[ind]=100  #update to reflect att.cat
-  
-  
+
+
   #PLOT BARPLOT
   graphics::barplot(height = cbind(x = x/100),horiz=T,xaxt='n',yaxt='n',
           beside = FALSE,width = c(0.1),col = traffic.col,
           args.legend = list(x = "topleft"))
-  
+
   #ADD TEXT ANNOTATIONS
   if(ind==3){bg.col="black"; front.col="white"}else{bg.col="white";front.col="black"}   #text background colour updater
   if((targetType == "pc")|(targetType == "frac")){
@@ -556,10 +556,10 @@ plot.attrib.perf.solo=function(rel.diff,                   #relative difference 
   }else{
     graphics::text(labels=paste(format(rel.diff,digits=2)," delta",sep=""),x=0.5,y=y.text,cex=cex.mult,pos=3,col=front.col,bg=bg.col)
   }
-  
+
   #ADD SUBTITLE
   graphics::mtext(text=att.name,side=1,at=0.5,cex=cex.mult.sub,line=mtext.line)
-  
+
   #ADD TITLE
   if(!is.null(prim.lab)){
     graphics::mtext(text=prim.lab,side=3,at=0.5,cex=cex.mult.sub,line=mtext.line)
@@ -567,31 +567,31 @@ plot.attrib.perf.solo=function(rel.diff,                   #relative difference 
 }
 
 #calculation of percentage change
-pc.calc<-function(sim=NULL,     #simulate point 
+pc.calc<-function(sim=NULL,     #simulate point
                   target=NULL   #target point
                   ){
-  
+
   pc.diff=(sim-target)/target*100 #calc percen diff from target
-  
+
   }
 #pc.calc(sim,target)
 
 #calculation of percentage change
-abs.diff.calc<-function(sim=NULL,     #simulate point 
+absDiff.calc<-function(sim=NULL,     #simulate point
                        target=NULL    #target point
 ){
-  
-  abs.diff=(sim-target)      #calc abs diff from target
-  
+
+  abs_diff=(sim-target)      #calc abs diff from target
+
 }
- 
+
 ########################################
 # x: the vector
 # n: the number of samples
 # centered: if FALSE, then average current sample and previous (n-1) samples
 #           if TRUE, then average symmetrically in past and future. (If n is even, use one more sample from future.)
 movingAverage <- function(x, n=1, centered=FALSE) {
-  
+
   if (centered) {
     before <- floor  ((n-1)/2)
     after  <- ceiling((n-1)/2)
@@ -599,45 +599,45 @@ movingAverage <- function(x, n=1, centered=FALSE) {
     before <- n-1
     after  <- 0
   }
-  
+
   # Track the sum and count of number of non-NA items
   s     <- rep(0, length(x))
   count <- rep(0, length(x))
-  
-  # Add the centered data 
+
+  # Add the centered data
   new <- x
-  # Add to count list wherever there isn't a 
+  # Add to count list wherever there isn't a
   count <- count + !is.na(new)
   # Now replace NA_s with 0_s and add to total
   new[is.na(new)] <- 0
   s <- s + new
-  
+
   # Add the data from before
   i <- 1
   while (i <= before) {
     # This is the vector with offset values to add
     new   <- c(rep(NA, i), x[1:(length(x)-i)])
-    
+
     count <- count + !is.na(new)
     new[is.na(new)] <- 0
     s <- s + new
-    
+
     i <- i+1
   }
-  
+
   # Add the data from after
   i <- 1
   while (i <= after) {
     # This is the vector with offset values to add
     new   <- c(x[(i+1):length(x)], rep(NA, i))
-    
+
     count <- count + !is.na(new)
     new[is.na(new)] <- 0
     s <- s + new
-    
+
     i <- i+1
   }
-  
+
   # return sum divided by count
   s/count
 }
