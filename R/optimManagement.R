@@ -109,6 +109,8 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
 
   for (r in 1:optimArgs$nMultiStart){
 
+    print(r)
+    
     time1 = Sys.time()
     assign("WG_calls",0,envir = foreSIGHT_optimizationDiagnosticsEnv)
     assign("fTrace",c(),envir = foreSIGHT_optimizationDiagnosticsEnv)

@@ -191,6 +191,14 @@ parManager.wgen <- function(parS = NULL,        # pars to split
        alpha<-harmonicFunc(x=seq(1:datInd$ndays),mean=parS[7],amp=parS[8],phase.ang = parS[9],k=1,nperiod=365)
        beta<-harmonicFunc(x=seq(1:datInd$ndays),mean=parS[10],amp=parS[11],phase.ang = parS[12],k=1,nperiod=365)
 
+       monAR1_coeff = monAR1_coeff = NULL 
+       if (!is.null(modelInfo$AR1type)){
+         if (modelInfo$AR1type=='monthly'){
+           monAR1_coeff = parS[13]
+           monAR1_multRange = parS[14]
+         }
+       }
+ 
      #Culley 2019 setting 0-1 limits for pdd,pwd.
      pdd[pdd>1] = 1.
      pdd[pdd<0] = 0.
@@ -209,7 +217,8 @@ parManager.wgen <- function(parS = NULL,        # pars to split
   out=list(pdd=pdd,
            pwd=pwd,
            alpha=alpha,
-           beta=beta)
+           beta=beta,
+           monAR1_coeff = monAR1_coeff, monAR1_multRange = monAR1_multRange)
    return(out)
 }
 
@@ -268,6 +277,7 @@ parManager.latent <- function(parS = NULL,          # pars to split
     mu <- harmonicFunc(x = seq(1:datInd$ndays), mean=parS[7], amp=parS[8], phase.ang = parS[9], k = 1, nperiod = 365)
     lambda <- harmonicFunc(x = seq(1:datInd$ndays), mean=parS[10], amp=parS[11], phase.ang = parS[12], k = 1, nperiod = 365)
 
+    
     # set limits on parameters after get point values from the harmonic function
     alpha <- pmax(alpha, -1)
     alpha <- pmin(alpha, 1)
@@ -275,10 +285,37 @@ parManager.latent <- function(parS = NULL,          # pars to split
 
   }
 
+  monAR1_coeff = monAR1_multRange = NULL 
+  if (!is.null(modelInfo$AR1type)){
+    if (modelInfo$AR1type=='monthly'){
+      monAR1_coeff = parS[13]
+      monAR1_multRange = parS[14]
+    }
+  }
+  
+  annAR1_coeff = annAR1_multRange = NULL 
+  if (!is.null(modelInfo$AR1type)){
+    if (modelInfo$AR1type=='annual'){
+      annAR1_coeff = parS[13]
+      annAR1_multRange = parS[14]
+    }
+  }
+  
+  annSOI_coeff = NULL 
+  if (!is.null(modelInfo$covariate)){
+    if (modelInfo$covariate=='SOI'){
+      annSOI_coeff = parS[13]
+    }
+  }
+  
   out=list(alpha = alpha,
            sigma = sigma,
            mu = mu,
-           lambda = lambda)
+           lambda = lambda,
+           monAR1_coeff = monAR1_coeff, monAR1_multRange = monAR1_multRange,
+           annAR1_coeff = annAR1_coeff, annAR1_multRange = annAR1_multRange,
+           annSOI_coeff = annSOI_coeff)
+ 
   return(out)
 }
 

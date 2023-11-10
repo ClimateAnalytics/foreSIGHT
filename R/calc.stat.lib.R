@@ -202,6 +202,8 @@ extractor.summaryMean<-function(func=NULL,
   return(m.series)
 }
 
+####### NOTE: calling the following separately is inefficient (annual totals calculated for each)
+
 
 #EXTRACTOR FOR MULTIPLE PERIODS (TEMPORARY FUNCTION here)
 extractor.summarySD<-function(func=NULL,
@@ -213,6 +215,60 @@ extractor.summarySD<-function(func=NULL,
     sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
   }
   m.series=stats::sd(x=sim.series,na.rm=TRUE)
+  return(m.series)
+}
+
+extractor.summaryCor<-function(func=NULL,
+                              data=NULL,
+                              indx=NULL,...){
+  nperiod=length(indx)
+  sim.series=rep(NA,nperiod)
+  for(p in 1:nperiod){
+    sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
+  }
+  m.series=stats::cor(x=sim.series[1:(nperiod-1)],sim.series[2:nperiod])
+  if (is.na(m.series)){m.series=-999}
+  return(m.series)
+}
+
+extractor.summaryCorSOI<-function(func=NULL,
+                               data=NULL,
+                               indx=NULL,...){
+  nperiod=length(indx)
+  sim.series=rep(NA,nperiod)
+  for(p in 1:nperiod){
+    sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
+  }
+  M = min(length(sim.series),length(annSOI))
+  m.series=stats::cor(x=sim.series[1:M],annSOI[1:M])
+  if (is.na(m.series)){m.series=-999}
+  return(m.series)
+}
+
+extractor.summaryDwellTime<-function(func=NULL,
+                               data=NULL,
+                               indx=NULL,...){
+  nperiod=length(indx)
+  sim.series=rep(NA,nperiod)
+  for(p in 1:nperiod){
+    sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
+  }
+  spell.lengths = get.spell.lengths(data=sim.series, 
+                                    thresh=median(sim.series),  
+                                    type="dry")    
+  m.series=mean(spell.lengths)
+  return(m.series)
+}
+
+extractor.summaryRange90<-function(func=NULL,
+                                     data=NULL,
+                                     indx=NULL,...){
+  nperiod=length(indx)
+  sim.series=rep(NA,nperiod)
+  for(p in 1:nperiod){
+    sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
+  }
+  m.series=quantile(sim.series,probs=0.95)-quantile(sim.series,probs=0.05)
   return(m.series)
 }
 
@@ -237,6 +293,30 @@ extractor.summaryMax<-function(func=NULL,
     sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
   }
   m.series=max(x=sim.series,na.rm=TRUE)
+  return(m.series)
+}
+
+extractor.summaryP10<-function(func=NULL,
+                               data=NULL,
+                               indx=NULL,...){
+  nperiod=length(indx)
+  sim.series=rep(NA,nperiod)
+  for(p in 1:nperiod){
+    sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
+  }
+  m.series=quantile(x=sim.series,na.rm=TRUE,probs=0.1)
+  return(m.series)
+}
+
+extractor.summaryP1<-function(func=NULL,
+                               data=NULL,
+                               indx=NULL,...){
+  nperiod=length(indx)
+  sim.series=rep(NA,nperiod)
+  for(p in 1:nperiod){
+    sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
+  }
+  m.series=quantile(x=sim.series,na.rm=TRUE,probs=0.01)
   return(m.series)
 }
 

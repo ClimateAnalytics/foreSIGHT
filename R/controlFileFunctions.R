@@ -172,6 +172,7 @@ getModelChoice <- function(nml, v) {
 # Can be used after reading Obs to create a vector of modelTags
 # modelTag = "v-parTag-modelType"
 getModelTag <- function(nml, v) {
+  
   modelChoice <- getModelChoice(nml, v)
 
   if (ncol(modelChoice) == 0) {
@@ -182,11 +183,11 @@ getModelTag <- function(nml, v) {
     parTagLong <- modelChoice[["modelParameterVariation"]]
 
     # Get the harmonic part of the modelTag based on the variable
-    if(parTagLong == "harmonic") {
-      parTag <- 'har'
-    } else {
+#    if(parTagLong == "harmonic") {
+#      parTag <- 'har'
+#    } else {
       parTag <- names(parVariationDef[parVariationDef == parTagLong])
-    }
+#    }
 
     modelType <- modelChoice[["modelType"]]
     modelTag <- paste(c(v, parTag, modelType), collapse = "-")

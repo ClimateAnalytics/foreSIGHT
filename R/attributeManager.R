@@ -252,6 +252,55 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
                            indx=attCalcInfo[[att]]$indx,
                            attArgs=attCalcInfo[[att]]$attArgs)
       }
+####### NOTE: calling the following separately is inefficient (annual totals calculated for each)
+    } else if (attCalcInfo[[att]]$opName=='cor'){ # correlation between years
+      if (is.null(dim(data))){
+        out[[att]] = extractor.summaryCor(func=attCalcInfo[[att]]$func,
+                                         data=data,
+                                         indx=attCalcInfo[[att]]$indx,
+                                         attArgs=attCalcInfo[[att]]$attArgs)
+      } else {
+        out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryCor,
+                           func=attCalcInfo[[att]]$func,
+                           indx=attCalcInfo[[att]]$indx,
+                           attArgs=attCalcInfo[[att]]$attArgs)
+      }
+    } else if (attCalcInfo[[att]]$opName=='corSOI'){ # 
+      if (is.null(dim(data))){
+        out[[att]] = extractor.summaryCorSOI(func=attCalcInfo[[att]]$func,
+                                          data=data,
+                                          indx=attCalcInfo[[att]]$indx,
+                                          attArgs=attCalcInfo[[att]]$attArgs)
+      } else {
+        out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryCorSOI,
+                           func=attCalcInfo[[att]]$func,
+                           indx=attCalcInfo[[att]]$indx,
+                           attArgs=attCalcInfo[[att]]$attArgs)
+      }
+    } else if (attCalcInfo[[att]]$opName=='dwellTime'){ # sd of values calculated in each year
+      if (is.null(dim(data))){
+        out[[att]] = extractor.summaryDwellTime(func=attCalcInfo[[att]]$func,
+                                          data=data,
+                                          indx=attCalcInfo[[att]]$indx,
+                                          attArgs=attCalcInfo[[att]]$attArgs)
+      } else {
+        out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryDwellTime,
+                           func=attCalcInfo[[att]]$func,
+                           indx=attCalcInfo[[att]]$indx,
+                           attArgs=attCalcInfo[[att]]$attArgs)
+      }
+    } else if (attCalcInfo[[att]]$opName=='range90'){ # sd of values calculated in each year
+      if (is.null(dim(data))){
+        out[[att]] = extractor.summaryRange90(func=attCalcInfo[[att]]$func,
+                                                data=data,
+                                                indx=attCalcInfo[[att]]$indx,
+                                                attArgs=attCalcInfo[[att]]$attArgs)
+      } else {
+        out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryRange90,
+                           func=attCalcInfo[[att]]$func,
+                           indx=attCalcInfo[[att]]$indx,
+                           attArgs=attCalcInfo[[att]]$attArgs)
+      }
     } else if (attCalcInfo[[att]]$opName%in%c('max3yr','max5yr')){ # maximum of 3 or 5 year values
       if (is.null(dim(data))){
         out[[att]] = extractor.summaryMax(func=attCalcInfo[[att]]$func,
@@ -272,6 +321,30 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
                                           attArgs=attCalcInfo[[att]]$attArgs)
       } else {
         out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryMin,
+                           func=attCalcInfo[[att]]$func,
+                           indx=attCalcInfo[[att]]$indx,
+                           attArgs=attCalcInfo[[att]]$attArgs)
+      }
+    } else if (attCalcInfo[[att]]$opName%in%c('p10.3yr','p10.5yr')){ # maximum of 3 or 5 year values
+      if (is.null(dim(data))){
+        out[[att]] = extractor.summaryP10(func=attCalcInfo[[att]]$func,
+                                          data=data,
+                                          indx=attCalcInfo[[att]]$indx,
+                                          attArgs=attCalcInfo[[att]]$attArgs)
+      } else {
+        out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryP10,
+                           func=attCalcInfo[[att]]$func,
+                           indx=attCalcInfo[[att]]$indx,
+                           attArgs=attCalcInfo[[att]]$attArgs)
+      }
+    } else if (attCalcInfo[[att]]$opName%in%c('p1.3yr','p1.5yr')){ # maximum of 3 or 5 year values
+      if (is.null(dim(data))){
+        out[[att]] = extractor.summaryP1(func=attCalcInfo[[att]]$func,
+                                          data=data,
+                                          indx=attCalcInfo[[att]]$indx,
+                                          attArgs=attCalcInfo[[att]]$attArgs)
+      } else {
+        out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryP1,
                            func=attCalcInfo[[att]]$func,
                            indx=attCalcInfo[[att]]$indx,
                            attArgs=attCalcInfo[[att]]$attArgs)
@@ -509,15 +582,15 @@ calcStratIndex = function(indexName,opName,datInd){
     indx = stratIndx
   } else { # here we calculate stratification for each year (later used to calculate mean/max values over all years)
     yrIndx = list()
-    if (opName%in%c('m','sd')){
+    if (opName%in%c('m','sd','cor','dwellTime','range90','corSOI')){
       for (y in 1:length(datInd$i.yy)){
         yrIndx[[y]] = intersect(datInd$i.yy[[y]],stratIndx)
       }
-    } else if ((opName=='max3yr')|(opName=='min3yr')){
+    } else if ((opName=='max3yr')|(opName=='min3yr')|(opName=='p10.3yr')|(opName=='p1.3yr')){
       for (y in 1:length(datInd$i.3yy)){
         yrIndx[[y]] = intersect(datInd$i.3yy[[y]],stratIndx)
       }
-    } else if ((opName=='max5yr')|(opName=='min5yr')){
+    } else if ((opName=='max5yr')|(opName=='min5yr')|(opName=='p10.5yr')|(opName=='p1.5yr')){
       for (y in 1:length(datInd$i.5yy)){
         yrIndx[[y]] = intersect(datInd$i.5yy[[y]],stratIndx)
       }
@@ -824,6 +897,12 @@ tagBlender<-function(attLab=NULL
     stype="Sdev"
   } else if (opName=='min5yr'){
     stype="Min 5yr total"
+  } else if (opName=='dwellTime'){
+    stype="dwell time"
+  } else if (opName=='range90'){
+    stype="90% range"
+  } else {
+    stype=opName
   }
 
   #stitch togther

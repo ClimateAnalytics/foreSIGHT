@@ -45,7 +45,8 @@ switch_simulator<-function(type=NULL,          # what vartype is being simulated
                         "latent" = { P_latent_master(parS=parS,
                                                      modelEnv = modelEnv$P_modelEnv,
                                                      randomVector = randomVector,
-                                                     randomUnitNormalVector = randomUnitNormalVector)
+                                                     randomUnitNormalVector = randomUnitNormalVector,
+                                                     seed=seed) # seed added here for long-term AR1 components (remove later if not required)
                           },
                         {
                           P_WGEN_master(parS=parS,              #RAIN SELECTED
@@ -185,7 +186,8 @@ Pamount_WGEN <- function(parAlpha=NULL,         # vector of pars for alpha (leng
 P_latent_master <- function(parS,                 # vector of pars (will change in optim)
                             modelEnv,
                             randomVector = NULL,             # can specify random noise as uniform
-                            randomUnitNormalVector = NULL    # OR can specify random noise as Gaussian
+                            randomUnitNormalVector = NULL,    # OR can specify random noise as Gaussian
+                            seed = NULL
 ) {
 
   if (is.null(randomUnitNormalVector)){randomUnitNormalVector=stats::qnorm(randomVector)}
@@ -198,6 +200,61 @@ P_latent_master <- function(parS,                 # vector of pars (will change 
   sim <- P_latent(parTS = parTS,                 # wgen parameters
                   randomUnitNormalVector = randomUnitNormalVector)   # random vector of length ndays
 
+  datInd <- modelEnv$datInd
+  
+#   if(!is.null(parTS$monAR1_coeff)){
+#     if (parTS$monAR1_multRange!=0){
+# #    ar1ParMult=parTS$monAR1_coeff # correlation between MULTIPLIER of monthly toals (not same as correlation between monthly totals) was 0.97
+# #    multRange=parTS$monAR1_multRange # i.e. 0.1 is +/10%, so multiplier 95% limit is 0.9 to 1.1
+#     # translated param values needed for AR1
+#       multiplierMean=1
+#       sdJumpDistr=parTS$monAR1_multRange/1.96*sqrt(1-parTS$monAR1_coeff^2)
+#       # simulation
+#       X=stats::arima.sim(n = datInd$nyr*12, list(ar =parTS$monAR1_coeff),sd = sdJumpDistr)
+#       X=X@.Data+multiplierMean # extract data and add on mean
+#       multSim=rep(NA,datInd$ndays)
+#       for(iy in 1:datInd$nyr){
+#         for(im in 1:12){
+#           ind=datInd$i.yy[[iy]][which(datInd$i.yy[[iy]]%in%datInd$i.mm[[im]])]  # to save time this step can be pre-processed into datInd$i.yymm, a list of length 12*nyr
+#           multSim[ind]=X[(iy-1)*12+im]
+#         }
+#       }
+#       multSim<-pmax(multSim,0)
+#       sim$sim = sim$sim*multSim
+#     }
+#   }
+  
+  # if(!is.null(parTS$annAR1_coeff)){
+  #   if (parTS$annAR1_multRange!=0){
+  #     randomAnnAR1seed = seed + 100 # specify different random seed used for daily noise
+  #     # translated param values needed for AR1
+  #     multiplierMean=1
+  #     sdJumpDistr=parTS$annAR1_multRange/1.96*sqrt(1-parTS$annAR1_coeff^2)
+  #     # simulation
+  #     set.seed(randomAnnAR1seed)
+  #     X=stats::arima.sim(n = datInd$nyr, list(ar =parTS$annAR1_coeff),sd = sdJumpDistr)
+  #     X=X@.Data+multiplierMean # extract data and add on mean
+  #     multSim=rep(NA,datInd$ndays)
+  #     for(iy in 1:datInd$nyr){
+  #       ind=datInd$i.yy[[iy]]
+  #       multSim[ind]=X[iy]
+  #     }
+  #     multSim<-pmax(multSim,0)
+  #     sim$sim = sim$sim*multSim
+  #   }
+  # }
+  
+  if(!is.null(parTS$annSOI_coeff)){
+    fac = 1 + parTS$annSOI_coeff*(annSOI-mean(annSOI))
+    multSim=rep(NA,datInd$ndays)
+    for(iy in 1:datInd$nyr){
+      ind=datInd$i.yy[[iy]]
+      multSim[ind]=fac[iy]
+    }    
+    multSim<-pmax(multSim,0)
+    sim$sim = sim$sim*multSim
+  }
+    
   return(sim)  #return simulated rainfall
 
 }
