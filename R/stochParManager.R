@@ -253,14 +253,26 @@ parManager.latent <- function(parS = NULL,          # pars to split
   # IF NO HARMONIC OR PARAMETER FIXING APPLIED IN MODEL VERSION
   if(is.na(modelInfo$ncycle) & is.na(modelInfo$fixedPars)){
 
-    if(modelInfo$nperiod != 1) {
-      stop("Error: nperiod is not equal to 1, rep to create parameters of length `ndays` in the par manager will not work")
-    }
+    # if(modelInfo$nperiod != 1) {
+    #   stop("Error: nperiod is not equal to 1, rep to create parameters of length `ndays` in the par manager will not work")
+    # }
 
-    alpha <- rep_len(parS[1:modelInfo$nperiod], datInd$ndays)                                 # extract first set of pars (pars evenly split across vector)
-    sigma <- rep_len(parS[(modelInfo$nperiod+1):(2*modelInfo$nperiod)], datInd$ndays)
-    mu <- rep_len(parS[(2*modelInfo$nperiod+1):(3*modelInfo$nperiod)], datInd$ndays)
-    lambda <- rep_len(parS[(3*modelInfo$nperiod+1):(4*modelInfo$nperiod)], datInd$ndays)
+    
+    if(modelInfo$nperiod == 1) {
+      #stop("Error: nperiod is not equal to 1, rep to create parameters of length `ndays` in the par manager will not work")
+      #check length(pars == modelInfo$npars)   # if it fails put in a warning
+      alpha <- rep_len(parS[1:modelInfo$nperiod], datInd$ndays)                                 # extract first set of pars (pars evenly split across vector)
+      sigma <- rep_len(parS[(modelInfo$nperiod+1):(2*modelInfo$nperiod)], datInd$ndays)
+      mu <- rep_len(parS[(2*modelInfo$nperiod+1):(3*modelInfo$nperiod)], datInd$ndays)
+      lambda <- rep_len(parS[(3*modelInfo$nperiod+1):(4*modelInfo$nperiod)], datInd$ndays)
+    } else if(modelInfo$nperiod == 4) {
+      if(datInd$ndays != (length(unlist(datInd[["i.ss"]])))) stop("seasonal parameter assignment doesn't work properly.")
+      alpha <- assignSeasPars(parS[1], parS[2], parS[3], parS[4], datInd[["i.ss"]])
+      sigma <- assignSeasPars(parS[5], parS[6], parS[7], parS[8], datInd[["i.ss"]])
+      mu <- assignSeasPars(parS[9], parS[10], parS[11], parS[12], datInd[["i.ss"]])
+      lambda <- assignSeasPars(parS[13], parS[14], parS[15], parS[16], datInd[["i.ss"]])
+    }
+  
   }
 
   # if harmonics are required and no pars fixed - fit them
