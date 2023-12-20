@@ -123,13 +123,15 @@ modelTaglist=c("Simple-ann",
                "P-har-latent",
                "P-har-latent-monAR1",
                "P-har-latent-annAR1",
-               "P-har-latent-annSOI")
+               "P-har-latent-annSOI",
+               "P-har-latent-annSOIpar")
 
 # currently, the model time steps are all daily - and the following vector is not used anywhere,
 # but it could be if we add weather generators that use other time steps
 # the following data could even be in a format other than a vector for ease of implementation
 # assuming that stochastic models of other scale if added would have a separate model tag that includes "-" time step info
 modelTimeStep=c("daily",
+                "daily",
                 "daily",
                 "daily",
                 "daily",
@@ -406,6 +408,29 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
                             "sigma_m","sigma_amp","sigma_ang",
                             "mu_m","mu_amp","mu_ang",
                             "lambda_m","lambda_amp","lambda_ang","annSOI_coeff")
+         modelInfo$minBound=c(0, 0, 0,
+                              0.001, 0, 0,
+                              -15, 0, 0,
+                              1, 0, 0,
+                              0)
+         modelInfo$maxBound=c(0.999, 0, 0,
+                              10, 5, 6.28,
+                              0, 8, 6.28,
+                              2, 0, 0,
+                              0)
+         },
+         "P-har-latent-annSOIpar" = {modelInfo$simVar="P"
+         modelInfo$simPriority=1
+         modelInfo$nperiod=365
+         modelInfo$fixedPars=NA
+         modelInfo$ncycle=1
+         modelInfo$covariate='SOI_par'
+         modelInfo$npars=13  #par vector is of length 12 since each par has a mean, amplitude & phase angle
+         #modelInfo$parNam=c("alpha", "sigma", "mu", "lambda")
+         modelInfo$parNam=c("alpha_m","alpha_amp","alpha_ang",
+                            "sigma_m","sigma_amp","sigma_ang",
+                            "mu_m","mu_amp","mu_ang",
+                            "lambda_m","lambda_amp","lambda_ang","mu_annSOI")
          modelInfo$minBound=c(0, 0, 0,
                               0.001, 0, 0,
                               -15, 0, 0,
