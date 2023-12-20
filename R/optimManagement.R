@@ -319,11 +319,15 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
   timeFin=Sys.time()
   timeRun=timeFin-timeStart    #optimisation runtime
 
+  onBounds = ((abs(as.vector(parsBest)-xLo)<1e-6) 
+  | (abs(as.vector(parsBest)-xHi)<1e-6)) & (xLo!=xHi) 
+    
   out=list(par=as.vector(parsBest),
            fitness=as.numeric(fBest),
            seed=simSeed,
            opt=optOut,
            runtime=timeRun,
+           onBounds = onBounds,
            fMulti=fMulti,
            parsMulti=parsMulti,
            onBoundsMulti=onBoundsMulti,
