@@ -309,6 +309,25 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
          modelInfo$minBound=c(0, 0.001, -15, 1)
          modelInfo$maxBound=c(0.999, 10, 0, 2)
          },
+         "P-seas-latent" = {modelInfo$simVar="P"
+         modelInfo$simPriority=1
+         modelInfo$nperiod=4       # 4 periods in a year
+         modelInfo$fixedPars=NA    # No fixed pars
+         modelInfo$ncycle=NA       # No harmonic fit
+         modelInfo$npars=modelInfo$nperiod*4 #par vector is of length 16
+         modelInfo$parNam=c("alpha_1","alpha_2","alpha_3","alpha_4",
+                            "sigma_1","sigma_2","sigma_3","sigma_4",
+                            "mu_1","mu_2","mu_3","mu_4",
+                            "lambda_1","lambda_2","lambda_3","lambda_4")
+         modelInfo$minBound=c(0,0,0,0,
+                              0.001,0.001,0.001,0.001,
+                              -15,-15,-15,-15,
+                              1,1,1,1)
+         modelInfo$maxBound=c(0.999,0.999,0.999,0.999,
+                              10,10,10,10,
+                              0,0,0,0,
+                              4,4,4,4)
+         },
          "P-har-latent" = {modelInfo$simVar="P"
          modelInfo$simPriority=1
          modelInfo$nperiod=365
