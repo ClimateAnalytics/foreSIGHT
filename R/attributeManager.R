@@ -38,6 +38,41 @@ func_seasRatio = function(data,attArgs){
   return(seasRatio)
 }
 
+func_fracTot = function(data,attArgs){
+  Pseas = func_tot(data) 
+  fracTot = Pseas/attArgs$tot
+  return(fracTot)
+}
+
+func_fracNwet = function(data,attArgs){
+  nWetSeas = func_nWet(data,attArgs) 
+  fracNwet = nWetSeas/attArgs$nWetTot
+  return(fracNwet)
+}
+
+func_fracP99 = function(data,attArgs){
+  P99Seas = quantile(data,probs = 0.99) 
+  fracP99 = P99Seas/attArgs$P99Tot
+  return(fracP99)
+}
+
+func_fracxP99overPave = function(data,attArgs){
+  xP99overPaveSeas = func_xP99overPave(data)
+  fracxP99overPave = xP99overPaveSeas/attArgs$xP99overPave
+  return(fracxP99overPave)
+}
+
+#  function for calulcating ratio of P99 to average rainfall
+func_xP99overPave = function(data){
+  m = mean(data)
+  if (m==0){
+    xP99overPave = 1e3
+  } else {
+    xP99overPave = quantile(data,0.99)/mean(data)
+  }
+  return(xP99overPave)
+}
+
 #' Calculates number of wet days (above threshold)
 #' @param data is a vector, representing a time series
 #' @param attArgs is a list, with attArgs$threshold denoting the threshold
@@ -214,6 +249,44 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
     attCalcInfo[["P_ann_wettest6monSeasRatio"]]$attArgs$seas = attCalcInfo[["P_ann_wettest6monPeakDay"]]$attArgs$seas = seas
   }
 
+  fracTotList = attSel[grepl('fracTot',attSel)]
+  if (length(fracTotList)>0){
+    tot = func_tot(data)
+    tot = max(tot,0.001)
+    for (att in fracTotList){
+      attCalcInfo[[att]]$attArgs$tot = tot
+      attCalcInfo[[att]]$attArgs$threshold = 0
+    }
+  }
+  
+  fracNwetList = attSel[grepl('fracNwet',attSel)]
+  if (length(fracNwetList)>0){
+    nWet = func_nWet(data,attArgs=list(threshold=0))
+    nWet = max(nWet,0.001)
+    for (att in fracNwetList){
+      attCalcInfo[[att]]$attArgs$nWetTot = nWet
+      attCalcInfo[[att]]$attArgs$threshold = 0.
+    }
+  }
+
+  fracP99List = attSel[grepl('fracP99',attSel)]
+  if (length(fracP99List)>0){
+    P99Tot = quantile(data,probs=0.99)
+    P99Tot = max(P99Tot,0.001)
+    for (att in fracP99List){
+      attCalcInfo[[att]]$attArgs$P99Tot = P99Tot
+    }
+  }
+  
+  fracxP99overPaveList = attSel[grepl('fracxP99overPave',attSel)]
+  if (length(fracxP99overPaveList)>0){
+    xP99overPaveTot = func_xP99overPave(data)
+    xP99overPaveTot = max(xP99overPaveTot,0.001)
+    for (att in fracxP99overPaveList){
+      attCalcInfo[[att]]$attArgs$xP99overPaveTot = xP99overPaveTot
+    }
+  }
+  
   out = list()
   for (att in attSel){
     if (is.null(attCalcInfo[[att]]$opName)){ # case where there is no operator in attribute name
