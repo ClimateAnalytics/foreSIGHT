@@ -218,7 +218,7 @@ getSliceIndices <- function(expSpace, attSlices) {
 #' @param colMap a vector of colours; to specify the colourmap to be used. If \code{NULL}, the default foreSIGHT colourmap is used.
 #' @param colLim a vector of 2 values; the minimum and maximum limits of the colour scale.
 #' @param contourBreaks a vector; specifies breaks in the performance metric
-#' @param axesPercentLabel a string; indicates to display format for x and y axes. To display as a fraction, use "fraction", to display as a percentage change use "percentage.change", and to display as a percentage increase or decrease use "percentage.total".
+#' @param axesPercentLabel a string; indicates display format for x and y axes. To display as a fraction, use "fraction", to display as a percentage change use "percentage.change", and to display as a percentage increase or decrease use "percentage.total".
 #' @param type a string; indicates type of plot as "heat.plot" (default) or "filled.contour"
 #' @param noPlot logical; indicates whether plots will be printed (\code{TRUE}) or not printed (\code{FALSE}) and only saved as an object.
 #' @details If the space contains more than two perturbed attributes, the performance values are averaged across the perturbations in the attributes other than \code{attX} and \code{attY}.
