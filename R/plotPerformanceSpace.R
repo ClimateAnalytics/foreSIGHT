@@ -326,7 +326,7 @@ plotPerformanceSpace <- function(performance,                   # system model p
                                  colMap = NULL,                 # alternate colormap
                                  colLim = NULL,                 # if null, the full limit is used
                                  contourBreaks=NULL,            # if null, default number of contours used, otherwise accepts vector of breaks
-                                 axesPercentLabel=FALSE,        # if false, natural units used (if true fractions converted to %)
+                                 axesPercentLabel="fraction",        # if false, natural units used (if true fractions converted to %)
                                  type="heat.plot",               # plotting options "heat.plot", "filled.contour"
                                  noPlot=F  ) {
 
@@ -478,7 +478,7 @@ heatPlot <- function(plotData,
                      perfThreshLabel = "Threshold",
                      climData = NULL,
                      contourBreaks=NULL,
-                     axesPercentLabel=FALSE
+                     axesPercentLabel="fraction"
                      ){
 
   level <- NULL
@@ -513,7 +513,7 @@ heatPlot <- function(plotData,
 
 
   #Modify axes that currently display as "fraction" to display in terms of "%"
-  if(axesPercentLabel==TRUE){
+  if(axesPercentLabel=="percentage.change"){
     # modify if atribute is a fraction
     tempInd=which(varUnits=="fraction")
     varUnits[tempInd]="%"  #change label to %
@@ -540,7 +540,7 @@ heatPlot <- function(plotData,
         coord_cartesian(xlim=xlimits, ylim=ylimits) +
         theme_heatPlot()
 
-    }else{  # if only y-axis
+    } else{  # if only y-axis
       p1 <- ggplot() +
         geom_tile(data = plotDataMean, aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], fill = .data[[perfName]])) +
         labs(x = xyLabels[1], y = xyLabels[2]) +
@@ -549,7 +549,47 @@ heatPlot <- function(plotData,
         coord_cartesian(xlim=xlimits, ylim=ylimits) +
         theme_heatPlot()
     }
-  }else{ #if no percentage axes modification
+  }else if (axesPercentLabel=="percentage.total"){ #display as +/- % change i.e., -20% instead of 80%
+    # modify if atribute is a fraction
+    
+    plotDataMean[,1] <- plotDataMean[,1]-1 #convert to just the percentage increase or decrease 
+    plotDataMean[,2] <- plotDataMean[,2]-1
+    tempInd=which(varUnits=="fraction")
+    varUnits[tempInd]="%"  #change label to %
+    xyLabels <- paste0(xyAttDefs, " (", varUnits, ")")
+    xlimits <- c(min(plotDataMean[ ,1]), max(plotDataMean[ ,1]))
+    ylimits <- c(min(plotDataMean[ ,2]), max(plotDataMean[ ,2]))
+    
+   
+    # modify depending on whether x, y or both
+    if(length(tempInd)==2){  #if both x- & y-axis
+      p1 <- ggplot() +
+        geom_tile(data = plotDataMean, aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], fill = .data[[perfName]])) +
+        labs(x = xyLabels[1], y = xyLabels[2]) +
+        scale_x_continuous(expand=c(0.01, 0.01),labels=scales::percent_format(accuracy =0.1)) +    # no extra space on x and y axes - need a tiny bit or labels were getting cut off 
+        scale_y_continuous(expand=c(0.01, 0.01),labels=scales::percent_format(accuracy =0.1)) +
+        coord_cartesian(xlim=xlimits, ylim=ylimits) +
+        theme_heatPlot()
+      
+    } else if(tempInd[1]==1){ #if only x-axis
+      p1 <- ggplot() +
+        geom_tile(data = plotDataMean, aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], fill = .data[[perfName]])) +
+        labs(x = xyLabels[1], y = xyLabels[2]) +
+        scale_x_continuous(expand=c(0.01, 0.01),labels=scales::percent_format(accuracy =0.1)) +    # no extra space on x and y axes
+        scale_y_continuous(expand=c(0.01, 0.01)) +
+        coord_cartesian(xlim=xlimits, ylim=ylimits) +
+        theme_heatPlot()
+      
+    } else{  # if only y-axis
+      p1 <- ggplot() +
+        geom_tile(data = plotDataMean, aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], fill = .data[[perfName]])) +
+        labs(x = xyLabels[1], y = xyLabels[2]) +
+        scale_x_continuous(expand=c(0.01, 0.01)) +                                          # no extra space on x and y axes
+        scale_y_continuous(expand=c(0.01, 0.01),labels=scales::percent_format(accuracy =0.1)) +
+        coord_cartesian(xlim=xlimits, ylim=ylimits) +
+        theme_heatPlot()
+    }
+  }else if (axesPercentLabel == "fraction"){ #if no percentage axes modification
     xyLabels <- paste0(xyAttDefs, " (", varUnits, ")")
     xlimits <- c(min(plotDataMean[ ,1]), max(plotDataMean[ ,1]))
     ylimits <- c(min(plotDataMean[ ,2]), max(plotDataMean[ ,2]))
@@ -621,7 +661,7 @@ filledContourPlot <- function(plotData,
                      perfThreshLabel = "Threshold",
                      climData = NULL,
                      contourBreaks=NULL,
-                     axesPercentLabel=FALSE
+                     axesPercentLabel="fraction"
 ){
 
   level <- NULL
@@ -672,7 +712,7 @@ filledContourPlot <- function(plotData,
   breaklab<- paste0(contourBreaks[1:(nbreaks-1)], "-", contourBreaks[2:nbreaks])
 
   #Modify axes that currently display as "fraction" to display in terms of "%"
-  if(axesPercentLabel==TRUE){
+  if(axesPercentLabel=="percentage.change"){
     # modify if atribute is a fraction
     tempInd=which(varUnits=="fraction")
     varUnits[tempInd]="%"  #change label to %
@@ -723,7 +763,62 @@ filledContourPlot <- function(plotData,
         theme_heatPlot() +
         theme(legend.position="right")
     }
-  }else{ #if no percentage axes modification
+  }else if (axesPercentLabel=="percentage.total"){ 
+    # modify if atribute is a fraction
+    
+    plotDataMean[,1] <- plotDataMean[,1]-1
+    plotDataMean[,2] <- plotDataMean[,2]-1
+    tempInd=which(varUnits=="fraction")
+    varUnits[tempInd]="%"  #change label to %
+    xyLabels <- paste0(xyAttDefs, " (", varUnits, ")")
+    xlimits <- c(min(plotDataMean[ ,1]), max(plotDataMean[ ,1]))
+    ylimits <- c(min(plotDataMean[ ,2]), max(plotDataMean[ ,2]))
+    
+    
+    # modify depending on whether x, y or both
+    if(length(tempInd)==2){  #if both x- & y-axis
+      p1 <- ggplot() +
+        geom_contour_filled(data = plotDataMean,
+                            aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], z = .data[[perfName]]),
+                            breaks = contourBreaks,show.legend=TRUE)+
+        labs(x = xyLabels[1], y = xyLabels[2]) +
+        scale_x_continuous(expand=c(0.0001, 0.0001),labels=scales::percent_format(accuracy =0.1)) +                                          # no extra space on x and y axes
+        scale_y_continuous(expand=c(0.0001, 0.0001),labels=scales::percent_format(accuracy =0.1)) +
+        coord_cartesian(xlim=xlimits, ylim=ylimits) +
+        scale_fill_manual(drop=FALSE,values=coloursIn,labels=breaklab,name=perfName)+
+        guides(fill=guide_legend(order=1,override.aes = list(shape=rep(NA,length(breaklab)))))+
+        theme_heatPlot() +
+        theme(legend.position="right")
+      
+    } else if(tempInd[1]==1){ #if only x-axis
+      p1 <- ggplot() +
+        geom_contour_filled(data = plotDataMean,
+                            aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], z = .data[[perfName]]),
+                            breaks = contourBreaks,show.legend=TRUE)+
+        labs(x = xyLabels[1], y = xyLabels[2]) +
+        scale_x_continuous(expand=c(0.0001, 0.0001),labels=scales::percent_format(accuracy =0.1)) +                                          # no extra space on x and y axes
+        scale_y_continuous(expand=c(0.0001, 0.0001)) +
+        coord_cartesian(xlim=xlimits, ylim=ylimits) +
+        scale_fill_manual(drop=FALSE,values=coloursIn,labels=breaklab,name=perfName)+
+        guides(fill=guide_legend(order=1,override.aes = list(shape=rep(NA,length(breaklab)))))+
+        theme_heatPlot() +
+        theme(legend.position="right")
+      
+    }else{  # if only y-axis
+      p1 <- ggplot() +
+        geom_contour_filled(data = plotDataMean,
+                            aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], z = .data[[perfName]]),
+                            breaks = contourBreaks,show.legend=TRUE)+
+        labs(x = xyLabels[1], y = xyLabels[2]) +
+        scale_x_continuous(expand=c(0.0001, 0.0001)) +                                          # no extra space on x and y axes
+        scale_y_continuous(expand=c(0.0001, 0.0001),labels=scales::percent_format(accuracy =0.1)) +
+        coord_cartesian(xlim=xlimits, ylim=ylimits) +
+        scale_fill_manual(drop=FALSE,values=coloursIn,labels=breaklab,name=perfName)+
+        guides(fill=guide_legend(order=1,override.aes = list(shape=rep(NA,length(breaklab)))))+
+        theme_heatPlot() +
+        theme(legend.position="right")
+    }  
+  }else if (axesPercentLabel=="fraction"){ #if no percentage axes modification
     xyLabels <- paste0(xyAttDefs, " (", varUnits, ")")
     xlimits <- c(min(plotDataMean[ ,1]), max(plotDataMean[ ,1]))
     ylimits <- c(min(plotDataMean[ ,2]), max(plotDataMean[ ,2]))
