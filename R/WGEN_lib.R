@@ -24,7 +24,40 @@
 #FUNCTIONS
 #-----------------------------------------------------------------------------------------------------------
 
-switch_simulator<-function(type=NULL,          # what vartype is being simulated
+switch_simulator = function(type=NULL,          # what vartype is being simulated
+                            parS=NULL,
+                            modelEnv = NULL,
+                            randomVector = NULL,
+                            randomUnitNormalVector = NULL,
+                            wdSeries=NULL,
+                            resid_ts=NULL,
+                            seed=NULL,
+                            obs=NULL
+){
+
+  sim=switch_simulator1(type=type,
+                       parS=parS,
+                       modelEnv = modelEnv,
+                       randomVector = randomVector,
+                       randomUnitNormalVector = randomUnitNormalVector,
+                       wdSeries=wdSeries,
+                       resid_ts=resid_ts,
+                       seed=seed)
+
+  fac = quantile(sim$sim,0.99) / quantile(obs$P,0.99)
+  nTop = floor(length(sim$sim)/100)
+  tmp.sortSim = sort(sim$sim,decreasing = T,index.return=T)
+  i = tmp.sortSim$ix[1:nTop]
+  sortObs = sort(obs$P,decreasing = T)[1:nTop]
+  sim$sim[i] = fac*sortObs
+
+  return(sim)
+
+}
+
+#-----------------------------------------------------------------------------------------------------------
+
+switch_simulator1<-function(type=NULL,          # what vartype is being simulated
                            parS=NULL,
                            modelEnv = NULL,
                            randomVector = NULL,

@@ -16,6 +16,7 @@ targetFinder<- function(x,               # vector of pars (will change in optim)
                         randomUnitNormalVector = NULL,
                         target=NULL,        # target locations: desired changes in climate to be simulated, in % relative or abs diff to baseline levels (vector)
                         attObs=NULL,        # observed series attribute values
+                        obs=NULL,
                         lambda.mult=NULL,   # lambda multiplier for penalty function
                         simSeed=NULL,
                         wdSeries=NULL,
@@ -40,9 +41,10 @@ targetFinder<- function(x,               # vector of pars (will change in optim)
                        randomUnitNormalVector = randomUnitNormalVector,
                        wdSeries=wdSeries,
                        resid_ts=resid_ts,
-                       seed=simSeed)
-
-  if(length(which(is.na(sim$sim))) > 0){
+                       seed=simSeed,
+                       obs=obs)
+   
+    if(length(which(is.na(sim$sim))) > 0){
     score=-150  #default here
   }else{
     #CALCULATE SELECTED ATTRIBUTE VALUES

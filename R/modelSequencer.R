@@ -17,6 +17,7 @@ simulateTarget<-function(
                     attInfo=NULL,
                     attInd=NULL,
                     datInd=NULL,
+                    obs=obs,
                     initCalibPars=NULL,
                     targetLoc=NULL,     #is  a vector  (just 1 target here)
                     attObs=NULL,
@@ -94,8 +95,7 @@ simulateTarget<-function(
                                           randomUnitNormalVector = randomUnitNormalVector,
                                           wdSeries=wdStatus,
                                           resid_ts=NULL,
-                                          seed=setSeed)
-
+                                          seed=setSeed,obs=obs)
       parV=c(parV,parMin)
 
     }else{
@@ -126,6 +126,7 @@ simulateTarget<-function(
                                 parSuggest=parSel,
                                 target=targetLoc[attInd[[mod]]],
                                 attObs=attObs[attInd[[mod]]],
+                                obs=obs,
                                 lambda.mult=optimArgs$lambda.mult,
                                 simSeed=setSeed,
                                 wdSeries=wdStatus,   #selecting rainfall  if needed
@@ -192,8 +193,12 @@ simulateTarget<-function(
                                           randomUnitNormalVector = randomUnitNormalVector,
                                           wdSeries=wdStatus,
                                           resid_ts=NULL,
-                                          seed=optTest$seed)
+                                          seed=optTest$seed,obs=obs)
+      
+      
       parV=c(parV,optTest$par)
+      
+      
 
     }
 

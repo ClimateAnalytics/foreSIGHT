@@ -612,6 +612,7 @@ generateScenario <- function(reference,       # data frame of observed data with
                          attInfo=attInfo,
                          attInd=attInd,
                          datInd=datInd,
+                         obs=obs,
                          initCalibPars=NULL,
                          targetLoc=targetMat,     #is  a vector  (just 1 target here)
                          attObs=attObs,
