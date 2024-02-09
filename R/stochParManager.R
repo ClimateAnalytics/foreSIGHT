@@ -199,6 +199,9 @@ parManager.wgen <- function(parS = NULL,        # pars to split
          }
        }
  
+       
+       
+       
      #Culley 2019 setting 0-1 limits for pdd,pwd.
      pdd[pdd>1] = 1.
      pdd[pdd<0] = 0.
@@ -212,13 +215,24 @@ parManager.wgen <- function(parS = NULL,        # pars to split
 
    }
 
+  annAR1_coeff = annAR1_multRange = NULL 
+  if (!is.null(modelInfo$AR1type)){
+    if (modelInfo$AR1type=='annual'){
+      #      annAR1_coeff = parS[13]
+      #      annAR1_multRange = parS[14]
+      annAR1_coeff = parS[(modelInfo$npar-1)]
+      annAR1_multRange = parS[modelInfo$npar]
+    }
+  }
+  
 
    #out is to - CALCULATE PAR VECTORS (PDD,PWD,ALPA,BETA)
   out=list(pdd=pdd,
            pwd=pwd,
            alpha=alpha,
            beta=beta,
-           monAR1_coeff = monAR1_coeff, monAR1_multRange = monAR1_multRange)
+           annAR1_coeff = annAR1_coeff,
+           annAR1_multRange = annAR1_multRange)
    return(out)
 }
 
@@ -308,8 +322,10 @@ parManager.latent <- function(parS = NULL,          # pars to split
   annAR1_coeff = annAR1_multRange = NULL 
   if (!is.null(modelInfo$AR1type)){
     if (modelInfo$AR1type=='annual'){
-      annAR1_coeff = parS[13]
-      annAR1_multRange = parS[14]
+#      annAR1_coeff = parS[13]
+#      annAR1_multRange = parS[14]
+      annAR1_coeff = parS[(modelInfo$npar-1)]
+      annAR1_multRange = parS[modelInfo$npar]
     }
   }
   
@@ -320,13 +336,20 @@ parManager.latent <- function(parS = NULL,          # pars to split
     }
   }
   
+  mu_annSOI = NULL 
+  if (!is.null(modelInfo$covariate)){
+    if (modelInfo$covariate=='SOI_par'){
+      mu_annSOI = parS[13]
+    }
+  }
+  
   out=list(alpha = alpha,
            sigma = sigma,
            mu = mu,
            lambda = lambda,
            monAR1_coeff = monAR1_coeff, monAR1_multRange = monAR1_multRange,
            annAR1_coeff = annAR1_coeff, annAR1_multRange = annAR1_multRange,
-           annSOI_coeff = annSOI_coeff)
+           annSOI_coeff = annSOI_coeff, mu_annSOI = mu_annSOI)
  
   return(out)
 }

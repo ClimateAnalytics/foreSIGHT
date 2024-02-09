@@ -112,6 +112,7 @@ modelTaglist=c("Simple-ann",
                "Simple-seas",
                "P-ann-wgen",
                "P-seas-wgen",
+               "P-seas-wgen-annAR1",
                "P-har-wgen",
                "Temp-har-wgen",
                "Temp-har-wgen-wd",
@@ -120,7 +121,8 @@ modelTaglist=c("Simple-ann",
                "PET-har-wgen-wd",
                "Radn-har-wgen",
                "P-ann-latent",
-	       "P-seas-latent",
+               "P-seas-latent",
+               "P-seas-latent-annAR1",
                "P-har-latent",
                "P-har-latent-monAR1",
                "P-har-latent-annAR1",
@@ -143,7 +145,9 @@ modelTimeStep=c("daily",
                 "daily",
                 "daily",
                 "daily",
-		"daily",
+                "daily",
+		            "daily",
+		            "daily",
                 "daily",
                 "daily",
                 "daily",
@@ -257,12 +261,39 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
                             "pwd_1","pwd_2","pwd_3","pwd_4",
                             "alpha_1","alpha_2","alpha_3","alpha_4",
                             "beta_1","beta_2","beta_3","beta_4")
-         modelInfo$minBound=c(0.389, 0.334, 0.375, 0.277, 0.078, 0.079, 0.084, 0.036,
-                              0.295,	0.303, 0.309,	0.257, 0.043,	0.046, 0.048, 0.034) #Aus 3stdev hard bounds
-         modelInfo$maxBound=c(0.997, 0.989, 0.994, 0.998, 0.85, 0.714, 0.714, 0.808,
-                              0.998, 0.998, 0.998, 0.998, 15.716, 30.08, 27.877, 21.193)
+         modelInfo$minBound=c(0.389, 0.334, 0.375, 0.277, 
+                              0.078, 0.079, 0.084, 0.036,
+                              0.295,	0.303, 0.309,	0.257, 
+                              0.043,	0.046, 0.048, 0.034) #Aus 3stdev hard bounds
+         modelInfo$maxBound=c(0.997, 0.989, 0.994, 0.998, 
+                              0.85, 0.714, 0.714, 0.808,
+                              0.998, 0.998, 0.998, 0.998, 
+                              15.716, 30.08, 27.877, 21.193)
          #bounds here?????????????
          #npar.optim???? - then split into max, min bounds
+         },
+         "P-seas-wgen-annAR1" = {modelInfo$simVar="P"
+         modelInfo$simPriority=1
+         modelInfo$nperiod=4       # 4 periods in a year
+         modelInfo$fixedPars=NA    # No fixed pars
+         modelInfo$ncycle=NA       # No harmonic fit
+         modelInfo$AR1type='annual'
+         modelInfo$npars=modelInfo$nperiod*4 + 2 #par vector is of length 16
+         modelInfo$parNam=c("pdd_1","pdd_2","pdd_3","pdd_4",
+                            "pwd_1","pwd_2","pwd_3","pwd_4",
+                            "alpha_1","alpha_2","alpha_3","alpha_4",
+                            "beta_1","beta_2","beta_3","beta_4",
+                            "annAR1_coeff","annAR1_multRange")
+         modelInfo$minBound=c(0.389, 0.334, 0.375, 0.277, 
+                              0.078, 0.079, 0.084, 0.036,
+                              0.295,	0.303, 0.309,	0.257, 
+                              0.043,	0.046, 0.048, 0.034,
+                              0,0) 
+         modelInfo$maxBound=c(0.997, 0.989, 0.994, 0.998, 
+                              0.85, 0.714, 0.714, 0.808,
+                              0.998, 0.998, 0.998, 0.998, 
+                              15.716, 30.08, 27.877, 21.193,
+                              0,0)
          },
          "P-ann-wgen" = {modelInfo$simVar="P"
          modelInfo$simPriority=1
@@ -331,6 +362,28 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
                               10,10,10,10,
                               0,0,0,0,
                               4,4,4,4)
+         },
+         "P-seas-latent-annAR1" = {modelInfo$simVar="P"
+         modelInfo$simPriority=1
+         modelInfo$nperiod=4       # 4 periods in a year
+         modelInfo$fixedPars=NA    # No fixed pars
+         modelInfo$ncycle=NA       # No harmonic fit
+         modelInfo$AR1type='annual'
+         modelInfo$npars=modelInfo$nperiod*4+2 #par vector is of length 16
+         modelInfo$parNam=c("alpha_1","alpha_2","alpha_3","alpha_4",
+                            "sigma_1","sigma_2","sigma_3","sigma_4",
+                            "mu_1","mu_2","mu_3","mu_4",
+                            "lambda_1","lambda_2","lambda_3","lambda_4","annAR1_coeff","annAR1_multRange")
+         modelInfo$minBound=c(0,0,0,0,
+                              0.001,0.001,0.001,0.001,
+                              -15,-15,-15,-15,
+                              1,1,1,1,
+                              0,0)
+         modelInfo$maxBound=c(0.999,0.999,0.999,0.999,
+                              10,10,10,10,
+                              0,0,0,0,
+                              4,4,4,4,
+                              0,0)
          },
          "P-har-latent" = {modelInfo$simVar="P"
          modelInfo$simPriority=1

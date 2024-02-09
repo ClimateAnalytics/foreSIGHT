@@ -144,6 +144,28 @@ P_WGEN_master<- function(parS,               # vector of pars (will change in op
                 modelEnv = modelEnv,
                 randomVector = randomVector)
 
+  datInd <- modelEnv$datInd
+  
+  if(!is.null(parTS$annAR1_coeff)){
+    if (parTS$annAR1_multRange!=0){
+      randomAnnAR1seed = N + 100 # specify different random seed used for daily noise
+      # translated param values needed for AR1
+      multiplierMean=1
+      sdJumpDistr=parTS$annAR1_multRange/1.96*sqrt(1-parTS$annAR1_coeff^2)
+      # simulation
+      set.seed(randomAnnAR1seed)
+      X=stats::arima.sim(n = datInd$nyr, list(ar =parTS$annAR1_coeff),sd = sdJumpDistr)
+      X=X@.Data+multiplierMean # extract data and add on mean
+      multSim=rep(NA,datInd$ndays)
+      for(iy in 1:datInd$nyr){
+        ind=datInd$i.yy[[iy]]
+        multSim[ind]=X[iy]
+      }
+      multSim<-pmax(multSim,0)
+      sim$sim = sim$sim*multSim
+    }
+  }
+
   return(sim)  #return simulated rainfall
 }
 
@@ -257,25 +279,25 @@ P_latent_master <- function(parS,                 # vector of pars (will change 
 #     }
 #   }
   
-  # if(!is.null(parTS$annAR1_coeff)){
-  #   if (parTS$annAR1_multRange!=0){
-  #     randomAnnAR1seed = seed + 100 # specify different random seed used for daily noise
-  #     # translated param values needed for AR1
-  #     multiplierMean=1
-  #     sdJumpDistr=parTS$annAR1_multRange/1.96*sqrt(1-parTS$annAR1_coeff^2)
-  #     # simulation
-  #     set.seed(randomAnnAR1seed)
-  #     X=stats::arima.sim(n = datInd$nyr, list(ar =parTS$annAR1_coeff),sd = sdJumpDistr)
-  #     X=X@.Data+multiplierMean # extract data and add on mean
-  #     multSim=rep(NA,datInd$ndays)
-  #     for(iy in 1:datInd$nyr){
-  #       ind=datInd$i.yy[[iy]]
-  #       multSim[ind]=X[iy]
-  #     }
-  #     multSim<-pmax(multSim,0)
-  #     sim$sim = sim$sim*multSim
-  #   }
-  # }
+  if(!is.null(parTS$annAR1_coeff)){
+    if (parTS$annAR1_multRange!=0){
+      randomAnnAR1seed = seed + 100 # specify different random seed used for daily noise
+      # translated param values needed for AR1
+      multiplierMean=1
+      sdJumpDistr=parTS$annAR1_multRange/1.96*sqrt(1-parTS$annAR1_coeff^2)
+      # simulation
+      set.seed(randomAnnAR1seed)
+      X=stats::arima.sim(n = datInd$nyr, list(ar =parTS$annAR1_coeff),sd = sdJumpDistr)
+      X=X@.Data+multiplierMean # extract data and add on mean
+      multSim=rep(NA,datInd$ndays)
+      for(iy in 1:datInd$nyr){
+        ind=datInd$i.yy[[iy]]
+        multSim[ind]=X[iy]
+      }
+      multSim<-pmax(multSim,0)
+      sim$sim = sim$sim*multSim
+    }
+  }
   
   if(!is.null(parTS$annSOI_coeff)){
     fac = 1 + parTS$annSOI_coeff*(annSOI-mean(annSOI))
