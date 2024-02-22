@@ -44,13 +44,23 @@ switch_simulator = function(type=NULL,          # what vartype is being simulate
                        resid_ts=resid_ts,
                        seed=seed)
 
-  fac = quantile(sim$sim,0.99) / quantile(obs$P,0.99)
-  nTop = floor(length(sim$sim)/100)
-  tmp.sortSim = sort(sim$sim,decreasing = T,index.return=T)
-  i = tmp.sortSim$ix[1:nTop]
-  sortObs = sort(obs$P,decreasing = T)[1:nTop]
-  sim$sim[i] = fac*sortObs
+  # fac = quantile(sim$sim,0.99) / quantile(obs$P,0.99)
+  # nTop = floor(length(sim$sim)/100)
+  # tmp.sortSim = sort(sim$sim,decreasing = T,index.return=T)
+  # i = tmp.sortSim$ix[1:nTop]
+  # sortObs = sort(obs$P,decreasing = T)[1:nTop]
+  # sim$sim[i] = fac*sortObs
 
+  for (s in 1:4){
+    keep = modelEnv$P_modelEnv$datInd$i.ss[[s]]
+    fac = quantile(sim$sim[keep],0.99) / quantile(obs$P[keep],0.99)
+    nTop = floor(length(sim$sim[keep])/100)
+    tmp.sortSim = sort(sim$sim[keep],decreasing = T,index.return=T)
+    i = keep[tmp.sortSim$ix[1:nTop]]
+    sortObs = sort(obs$P[keep],decreasing = T)[1:nTop]
+    sim$sim[i] = fac*sortObs
+  }
+  
   return(sim)
 
 }
