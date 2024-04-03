@@ -667,7 +667,7 @@ calcStratIndex = function(indexName,opName,datInd){
     indx = stratIndx
   } else { # here we calculate stratification for each year (later used to calculate mean/max values over all years)
     yrIndx = list()
-    if (opName%in%c('m','sd','cor','dwellTime','range90','corSOI')){
+    if (opName%in%c('m','sd','cor','dwellTime','range90','corSOI','cv')){
       for (y in 1:length(datInd$i.yy)){
         yrIndx[[y]] = intersect(datInd$i.yy[[y]],stratIndx)
       }
