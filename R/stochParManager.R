@@ -343,13 +343,21 @@ parManager.latent <- function(parS = NULL,          # pars to split
     }
   }
   
+  annSD_fac = NULL 
+  if (!is.null(modelInfo$SD)){
+    if (modelInfo$SD=='fac'){
+      annSD_fac = parS[modelInfo$npar]
+    }
+  }
+  
   out=list(alpha = alpha,
            sigma = sigma,
            mu = mu,
            lambda = lambda,
            monAR1_coeff = monAR1_coeff, monAR1_multRange = monAR1_multRange,
            annAR1_coeff = annAR1_coeff, annAR1_multRange = annAR1_multRange,
-           annSOI_coeff = annSOI_coeff, mu_annSOI = mu_annSOI)
+           annSOI_coeff = annSOI_coeff, mu_annSOI = mu_annSOI,
+           annSD_fac=annSD_fac)
  
   return(out)
 }

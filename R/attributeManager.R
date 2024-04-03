@@ -338,6 +338,18 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
                            indx=attCalcInfo[[att]]$indx,
                            attArgs=attCalcInfo[[att]]$attArgs)
       }
+    } else if (attCalcInfo[[att]]$opName=='cv'){ # correlation between years
+      if (is.null(dim(data))){
+        out[[att]] = extractor.summaryCV(func=attCalcInfo[[att]]$func,
+                                          data=data,
+                                          indx=attCalcInfo[[att]]$indx,
+                                          attArgs=attCalcInfo[[att]]$attArgs)
+      } else {
+        out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryCV,
+                           func=attCalcInfo[[att]]$func,
+                           indx=attCalcInfo[[att]]$indx,
+                           attArgs=attCalcInfo[[att]]$attArgs)
+      }
     } else if (attCalcInfo[[att]]$opName=='corSOI'){ # 
       if (is.null(dim(data))){
         out[[att]] = extractor.summaryCorSOI(func=attCalcInfo[[att]]$func,

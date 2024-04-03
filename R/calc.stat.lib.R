@@ -218,6 +218,18 @@ extractor.summarySD<-function(func=NULL,
   return(m.series)
 }
 
+extractor.summaryCV<-function(func=NULL,
+                              data=NULL,
+                              indx=NULL,...){
+  nperiod=length(indx)
+  sim.series=rep(NA,nperiod)
+  for(p in 1:nperiod){
+    sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
+  }
+  m.series=stats::sd(x=sim.series,na.rm=TRUE) / mean(x=sim.series,na.rm=TRUE)
+  return(m.series)
+}
+
 extractor.summaryCor<-function(func=NULL,
                               data=NULL,
                               indx=NULL,...){

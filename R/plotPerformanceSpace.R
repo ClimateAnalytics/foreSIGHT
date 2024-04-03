@@ -74,7 +74,7 @@ getPerfStat <- function(performance,
                       simFitness,
                       topReps,
                       nRep,
-                      statFUN = mean
+                      statFUN = mean, ...
                       ) {
   nTar <- nrow(performance)
   # rank in order of fitness (take top X)
@@ -87,12 +87,12 @@ getPerfStat <- function(performance,
         sortedPerf[i, ] <- performance[i, ind]
       }
       # performance as the average of nReps (in terms of scenario fit) of the set (USER INPUT)
-      performanceStat <- as.data.frame(apply(sortedPerf[ , 1:topReps], 1, FUN = statFUN))
+      performanceStat <- as.data.frame(apply(sortedPerf[ , 1:topReps], 1, FUN = statFUN, ...))
     } else {
-      performanceStat <- as.data.frame(apply(performance, 1, FUN = statFUN))
+      performanceStat <- as.data.frame(apply(performance, 1, FUN = statFUN, ...))
     }
   } else {
-    performanceStat <- as.data.frame(apply(performance, 1, FUN = statFUN))
+    performanceStat <- as.data.frame(apply(performance, 1, FUN = statFUN, ...))
   }
   return(performanceStat)
 }

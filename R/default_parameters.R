@@ -123,6 +123,7 @@ modelTaglist=c("Simple-ann",
                "P-ann-latent",
                "P-seas-latent",
                "P-seas-latent-annAR1",
+               "P-seas-latent-annSD",
                "P-har-latent",
                "P-har-latent-monAR1",
                "P-har-latent-annAR1",
@@ -134,6 +135,7 @@ modelTaglist=c("Simple-ann",
 # the following data could even be in a format other than a vector for ease of implementation
 # assuming that stochastic models of other scale if added would have a separate model tag that includes "-" time step info
 modelTimeStep=c("daily",
+                "daily",
                 "daily",
                 "daily",
                 "daily",
@@ -384,6 +386,28 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
                               0,0,0,0,
                               4,4,4,4,
                               0,0)
+         },
+         "P-seas-latent-annSD" = {modelInfo$simVar="P"
+         modelInfo$simPriority=1
+         modelInfo$nperiod=4       # 4 periods in a year
+         modelInfo$fixedPars=NA    # No fixed pars
+         modelInfo$ncycle=NA       # No harmonic fit
+         modelInfo$SD='fac'
+         modelInfo$npars=modelInfo$nperiod*4+1 #par vector is of length 16
+         modelInfo$parNam=c("alpha_1","alpha_2","alpha_3","alpha_4",
+                            "sigma_1","sigma_2","sigma_3","sigma_4",
+                            "mu_1","mu_2","mu_3","mu_4",
+                            "lambda_1","lambda_2","lambda_3","lambda_4","annSD_fac")
+         modelInfo$minBound=c(0,0,0,0,
+                              0.001,0.001,0.001,0.001,
+                              -15,-15,-15,-15,
+                              1,1,1,1,
+                              1)
+         modelInfo$maxBound=c(0.999,0.999,0.999,0.999,
+                              10,10,10,10,
+                              0,0,0,0,
+                              4,4,4,4,
+                              1)
          },
          "P-har-latent" = {modelInfo$simVar="P"
          modelInfo$simPriority=1

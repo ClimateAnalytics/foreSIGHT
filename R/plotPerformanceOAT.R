@@ -43,8 +43,9 @@ plotPerformanceOAT <- function(performance,                   # system model per
                                # do we need this - attSlices = NULL,              # list containing the slices of attributes to use for plotting
                                # climData = NULL,               # changes in climate attributes from other sources - can include label. If the performance measure being plotted is a column in the data.frame, the points will be coloured accordingly
                                col = NULL,                    # colour of the ribbon
-                               ylim = NULL                    # ylim of the data, xlim is determined by the perturbation range
-) {
+                               ylim = NULL,                    # ylim of the data, xlim is determined by the perturbation range
+                               plim=c(0.05,0.95)              # probability limits
+                               ) {
   
   # assuming that performance is a list with a name
   # it may also be a matrix without a name; will be named "performance"
@@ -140,8 +141,13 @@ plotPerformanceOAT <- function(performance,                   # system model per
     
     # get the average performance to be plotted
     performanceAv <- getPerfStat(perfMatrix, simFitness, topReps, nRep, statFUN = mean)
-    pMin <- getPerfStat(perfMatrix, simFitness, topReps, nRep, statFUN = min)
-    pMax <- getPerfStat(perfMatrix, simFitness, topReps, nRep, statFUN = max)
+    #pMin <- getPerfStat(perfMatrix, simFitness, topReps, nRep, statFUN = min)
+    #pMax <- getPerfStat(perfMatrix, simFitness, topReps, nRep, statFUN = max)
+    
+    pMin <- getPerfStat(perfMatrix, simFitness, topReps, nRep, statFUN = quantile, probs=plim[1])
+    pMax <- getPerfStat(perfMatrix, simFitness, topReps, nRep, statFUN = quantile, probs=plim[2])
+    
+#    browser()
     
     # name appropriately
     names(performanceAv) <- perfName[1]
