@@ -113,6 +113,7 @@ modelTaglist=c("Simple-ann",
                "P-ann-wgen",
                "P-seas-wgen",
                "P-seas-wgen-annAR1",
+               "P-seas-wgen-annSD",
                "P-har-wgen",
                "Temp-har-wgen",
                "Temp-har-wgen-wd",
@@ -135,6 +136,7 @@ modelTaglist=c("Simple-ann",
 # the following data could even be in a format other than a vector for ease of implementation
 # assuming that stochastic models of other scale if added would have a separate model tag that includes "-" time step info
 modelTimeStep=c("daily",
+                "daily",
                 "daily",
                 "daily",
                 "daily",
@@ -296,6 +298,29 @@ get.model.info<-function(modelTag=NULL #string used to specify model for stochas
                               0.998, 0.998, 0.998, 0.998, 
                               15.716, 30.08, 27.877, 21.193,
                               0,0)
+         },
+         "P-seas-wgen-annSD" = {modelInfo$simVar="P"
+         modelInfo$simPriority=1
+         modelInfo$nperiod=4       # 4 periods in a year
+         modelInfo$fixedPars=NA    # No fixed pars
+         modelInfo$ncycle=NA       # No harmonic fit
+         modelInfo$SD='fac'
+         modelInfo$npars=modelInfo$nperiod*4 + 1 #par vector is of length 17
+         modelInfo$parNam=c("pdd_1","pdd_2","pdd_3","pdd_4",
+                            "pwd_1","pwd_2","pwd_3","pwd_4",
+                            "alpha_1","alpha_2","alpha_3","alpha_4",
+                            "beta_1","beta_2","beta_3","beta_4",
+                            "annSD_fac")
+         modelInfo$minBound=c(0.389, 0.334, 0.375, 0.277, 
+                              0.078, 0.079, 0.084, 0.036,
+                              0.295,	0.303, 0.309,	0.257, 
+                              0.043,	0.046, 0.048, 0.034,
+                              1) 
+         modelInfo$maxBound=c(0.997, 0.989, 0.994, 0.998, 
+                              0.85, 0.714, 0.714, 0.808,
+                              0.998, 0.998, 0.998, 0.998, 
+                              15.716, 30.08, 27.877, 21.193,
+                              1)
          },
          "P-ann-wgen" = {modelInfo$simVar="P"
          modelInfo$simPriority=1

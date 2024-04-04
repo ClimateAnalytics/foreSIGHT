@@ -225,6 +225,14 @@ parManager.wgen <- function(parS = NULL,        # pars to split
     }
   }
   
+  annSD_fac = NULL 
+  if (!is.null(modelInfo$SD)){
+    if (modelInfo$SD=='fac'){
+      annSD_fac = parS[modelInfo$npar]
+    }
+  }
+  
+  
 
    #out is to - CALCULATE PAR VECTORS (PDD,PWD,ALPA,BETA)
   out=list(pdd=pdd,
@@ -232,7 +240,8 @@ parManager.wgen <- function(parS = NULL,        # pars to split
            alpha=alpha,
            beta=beta,
            annAR1_coeff = annAR1_coeff,
-           annAR1_multRange = annAR1_multRange)
+           annAR1_multRange = annAR1_multRange,
+           annSD_fac=annSD_fac)
    return(out)
 }
 

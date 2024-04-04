@@ -176,6 +176,34 @@ P_WGEN_master<- function(parS,               # vector of pars (will change in op
     }
   }
 
+  if (!is.null(parTS$annSD_fac)){
+    Pann = rep(NA,datInd$nyr)
+    Pdaily = sim$sim
+    for(iy in 1:datInd$nyr){
+      ind=datInd$i.yy[[iy]]
+      Pann[iy] = sum(Pdaily[ind])
+    } 
+    meanPann = mean(Pann)
+    Pann_new = meanPann + parTS$annSD_fac*(Pann-meanPann)
+    Pann_fac = Pann_new/Pann
+    
+    multSim=rep(NA,datInd$ndays)
+    for(iy in 1:datInd$nyr){
+      ind=datInd$i.yy[[iy]]
+      multSim[ind]=Pann_fac[iy]
+    }
+    multSim<-pmax(multSim,0)
+    sim$sim = Pdaily*multSim
+    
+    # Pann.new = rep(NA,datInd$nyr)
+    # Pdaily.new = sim$sim
+    # for(iy in 1:datInd$nyr){
+    #   ind=datInd$i.yy[[iy]]
+    #   Pann.new[iy] = sum(Pdaily.new[ind])
+    # } 
+    
+  }
+  
   return(sim)  #return simulated rainfall
 }
 
