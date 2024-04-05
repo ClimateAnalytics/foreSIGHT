@@ -235,13 +235,15 @@ calc_meanClimDaily_dayOfYearWindow_allDates = function(obs,  # vector representi
 attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute names
                                data=NULL,           #timeseries data
                                datInd=NULL,         #dat indices and properties (e.g. datInd$nyr, datInd$i.yy)
-                               attInfo=NULL         #optional saved list of attribute information (from attribute.calculator.setup)
+                               attInfo=NULL,        #optional saved list of attribute information (from attribute.calculator.setup)
+                               return.attCalcInfo = F 
 ){
 
   if (!is.null(attInfo$attCalcInfo)){
     attCalcInfo = attInfo$attCalcInfo
   } else {
     attCalcInfo = attribute.calculator.setup(attSel,datInd)
+    browser()
   }
 
   if (any(c("P_ann_wettest6monSeasRatio","P_ann_wettest6monPeakDay")%in%attSel)){
@@ -970,7 +972,8 @@ tagBlender<-function(attLab=NULL
   } else {
     errMess = paste0('invalid attribute: built-in function not available for ',funcNameLong)
     cat(errMess)
-    return(invisible())
+    mtype = funcNameLong
+    #return(invisible())
   }
 
   #statType

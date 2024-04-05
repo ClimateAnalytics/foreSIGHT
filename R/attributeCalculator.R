@@ -39,8 +39,8 @@
 calculateAttributes<-function(climateData,                    # input data in the format of tank_obs (can be reference, obs, or, future projections)
                               attSel,                         # vector of selected attributes
                               startYr = NULL,                 # changed slice & window to startYr and endYr
-                              endYr = NULL                    #       - can specify one without the other as well 
-                              
+                              endYr = NULL,                    #       - can specify one without the other as well 
+                              attCalcInfo=NULL, return_attCalcInfo = F                            
 ){
   IOmode="verbose"
   arrayID=NULL
@@ -96,6 +96,14 @@ calculateAttributes<-function(climateData,                    # input data in th
   datInd[["obs"]]=get.date.ind(dd=dd,mm=mm,yy=yy,nperiod=12,southHemi=TRUE)
   attInd=get.att.ind(attInfo=attInfo,simVar=simVar)
   
+  if (return_attCalcInfo){
+      attCalcInfo = attribute.calculator.setup(attSel=attSel,
+                                                            datInd=datInd[[1]])
+      return(attCalcInfo)
+  } else {
+    attInfo$attCalcInfo = attCalcInfo
+  }
+
   #  progress("Dates indexed OK",file)
   
   #  banner("OBSERVED BASELINE ATTRIBUTE CALCULATION",file)
@@ -105,7 +113,8 @@ calculateAttributes<-function(climateData,                    # input data in th
   for(i in 1:nvar){
     attObs[[i]]=attribute.calculator(attSel=attSel[attInd[[i]]],
                                      data=obs[[simVar[i]]],
-                                     datInd=datInd[["obs"]]) 
+                                     datInd=datInd[["obs"]],
+                                     attInfo=attInfo) 
   }
   
   #  progress("Attributes calculated OK",file)   #NEED SOME ACTUAL CHECKING HERE BEFORE PRONOUNCING OK
