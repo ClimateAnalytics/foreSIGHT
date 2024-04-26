@@ -163,6 +163,33 @@ func_wettest6monPeakDay = function(data,attArgs=NULL){
   #  return(i-180)
 }
 
+func_WDcor = function(data){
+  N = length(data)
+  data[data==0] = NA
+#  print(data[1:100])
+  diff = data[2:N] - data[1:(N-1)]
+  if (length(which(!is.na(diff)))<2){
+    WDcor = 1e3
+  } else {
+    WDcor = cor(data[1:(N-1)],data[2:N],use = 'pairwise.complete.obs')
+  }
+#  print(WDcor)
+  
+  if (is.na(WDcor)){browser()}
+  return(WDcor)
+}
+
+func_cor = function(data){
+  N = length(data)
+  if (sum(data[1:(N-1)])==0|sum(data[2:N])==0){
+    cor = 1e3
+  } else {
+    cor = cor(data[1:(N-1)],data[2:N])
+  }
+  if (is.na(cor)){cor=1e3}
+  return(cor)
+}
+
 #' Calculates the ratio of wet season to dry season rainfall, based on wettest6monPeakDay
 #' @param data is a vector, representing a time series
 #' @param attArgs is a list, with attArgs$doy denoting the day of year for each value in the time series
@@ -181,6 +208,12 @@ func_wettest6monSeasRatio = function(data,attArgs=NULL){
   wettest6monSeasRatio = seas_iwet/seas_idry
   if ((seas_idry==0.)|(wettest6monSeasRatio>100.)){wettest6monSeasRatio=100.}
   return(wettest6monSeasRatio)
+}
+
+func_ma3P99 = function(data){
+  ma3 = movingAverage(data,n=3,centered = T)
+  ma3P99 = quantile(ma3,0.99)
+  return(ma3P99)
 }
 
 # for each doy calculate which dates have that doy, store results in matrix
@@ -243,7 +276,6 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
     attCalcInfo = attInfo$attCalcInfo
   } else {
     attCalcInfo = attribute.calculator.setup(attSel,datInd)
-    browser()
   }
 
   if (any(c("P_ann_wettest6monSeasRatio","P_ann_wettest6monPeakDay")%in%attSel)){
@@ -303,7 +335,7 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
                            indx=attCalcInfo[[att]]$indx,
                            attArgs=attCalcInfo[[att]]$attArgs)
       }
-    } else if (attCalcInfo[[att]]$opName%in%c('m','m10yrBlock')){ # mean of values calculated in each year
+    } else if (attCalcInfo[[att]]$opName%in%c('m','m10yrBlock','m40yrBlock')){ # mean of values calculated in each year
       if (is.null(dim(data))){
         out[[att]] = extractor.summaryMean(func=attCalcInfo[[att]]$func,
                                            data=data,
@@ -569,7 +601,19 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
       }
       mAll = 1:12
       # calculate dry months
-      mDry = mAll[!(mAll%in%mWet)]
+      
+      if (substring(suffix,11,14)=='Mdry'){
+        dry1 = match(substring(suffix,15,17),month.abb) # dry season start month
+        dry2 = match(substring(suffix,18,20),month.abb) # dry season end month
+        if (!is.integer(dry1)|dry1<1|dry1>12|!is.integer(dry2)|dry2<1|dry2>12){invalidSuffixStop(funcName=funcName,suffix=suffix)}
+        if (dry1<dry2){
+          mDry = seq(dry1,dry2)
+        } else { # handle case where wet season ends in next year
+          mDry = (seq(dry1,dry2+12)-1)%%12 + 1
+        }
+      } else {
+        mDry = mAll[!(mAll%in%mWet)]
+      }
       # use middle of dry/wet season to calculate phase of harmonic used in seasonla scaling
       if(max(diff(mDry))==1){
         midDry = stats::median(mDry)-0.5
@@ -685,6 +729,11 @@ calcStratIndex = function(indexName,opName,datInd){
       yrIndx = list()
       for (y in 1:length(datInd$i.10yyBlock)){
         yrIndx[[y]] = intersect(datInd$i.10yyBlock[[y]],stratIndx)
+      }
+    } else if (opName=='m40yrBlock'){ # note this is binned average, not moving average (unlike max5yr)
+      yrIndx = list()
+      for (y in 1:length(datInd$i.40yyBlock)){
+        yrIndx[[y]] = intersect(datInd$i.40yyBlock[[y]],stratIndx)
       }
     } else {
       invalidOperationStop(opName=opName)
