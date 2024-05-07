@@ -50,6 +50,26 @@ func_fracNwet = function(data,attArgs){
   return(fracNwet)
 }
 
+func_fracCor = function(data,attArgs){
+  corSeas = func_cor(data) 
+  fracCor = corSeas/attArgs$corTot
+  return(fracCor)
+}
+
+func_fracWDcor = function(data,attArgs){
+  WDcorSeas = func_WDcor(data) 
+  fracWDcor = WDcorSeas/attArgs$WDcorTot
+  return(fracWDcor)
+}
+
+
+# func_fracNwetT2 = function(data,attArgs){
+#   nWetSeas = func_nWet(data,attArgs) 
+#   fracNwet2 = nWetSeas/attArgs$nWetTot
+#   browser()
+#   return(fracNwet)
+# }
+
 func_fracP99 = function(data,attArgs){
   P99Seas = quantile(data,probs = 0.99) 
   fracP99 = P99Seas/attArgs$P99Tot
@@ -289,20 +309,37 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
     tot = max(tot,0.001)
     for (att in fracTotList){
       attCalcInfo[[att]]$attArgs$tot = tot
-      attCalcInfo[[att]]$attArgs$threshold = 0
+#      attCalcInfo[[att]]$attArgs$threshold = 0
     }
   }
   
   fracNwetList = attSel[grepl('fracNwet',attSel)]
   if (length(fracNwetList)>0){
-    nWet = func_nWet(data,attArgs=list(threshold=0))
+    threshold = attCalcInfo[[fracNwetList[1]]]$attArgs$threshold # note currently assumes thresold same for all attributes
+    nWet = func_nWet(data,attArgs=list(threshold=threshold))
     nWet = max(nWet,0.001)
     for (att in fracNwetList){
       attCalcInfo[[att]]$attArgs$nWetTot = nWet
-      attCalcInfo[[att]]$attArgs$threshold = 0.
+      attCalcInfo[[att]]$attArgs$threshold = threshold
     }
   }
 
+  fracCorList = attSel[grepl('fracCor',attSel)]
+  if (length(fracCorList)>0){
+    cor = func_cor(data)
+    for (att in fracCorList){
+      attCalcInfo[[att]]$attArgs$corTot = cor
+    }
+  }
+  
+  fracWDcorList = attSel[grepl('fracWDcor',attSel)]
+  if (length(fracWDcorList)>0){
+    WDcor = func_WDcor(data)
+    for (att in fracWDcorList){
+      attCalcInfo[[att]]$attArgs$WDcorTot = WDcor
+    }
+  }
+  
   fracP99List = attSel[grepl('fracP99',attSel)]
   if (length(fracP99List)>0){
     P99Tot = quantile(data,probs=0.99)
@@ -561,7 +598,7 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
                                 ){
 
   # functions that require threshold arguments
-  funcsWithThresh = c('nWet','dyWet','maxDSD','maxWSD','avgWSD','avgDSD')
+  funcsWithThresh = c('nWet','dyWet','maxDSD','maxWSD','avgWSD','avgDSD','fracNwet')
 
   attArgs = NULL
 
