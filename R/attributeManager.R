@@ -93,6 +93,28 @@ func_xP99overPave = function(data){
   return(xP99overPave)
 }
 
+#  function for calulcating ratio of P90 to average rainfall
+func_xP90overPave = function(data){
+  m = mean(data)
+  if (m==0){
+    xP90overPave = 1e3
+  } else {
+    xP90overPave = quantile(data,0.9)/mean(data)
+  }
+  return(xP90overPave)
+}
+
+#  function for calulcating ratio of P99.9 to average rainfall
+func_xP99.9overPave = function(data){
+  m = mean(data)
+  if (m==0){
+    xP99.9overPave = 1e3
+  } else {
+    xP99.9overPave = quantile(data,0.999)/mean(data)
+  }
+  return(xP99.9overPave)
+}
+
 #' Calculates number of wet days (above threshold)
 #' @param data is a vector, representing a time series
 #' @param attArgs is a list, with attArgs$threshold denoting the threshold
