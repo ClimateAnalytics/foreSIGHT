@@ -13,6 +13,8 @@ foreSIGHT_modelEnv$Radn_modelEnv <- new.env(parent = emptyenv())
 
 foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
 
+#foreSIGHT_optimizationSeedTrackerEnv <- new.env(parent = emptyenv())
+
 write_model_env <- function(envir,            # environment to write into
                             modelInfo,        # the values of the fields
                             modelTag = NULL,

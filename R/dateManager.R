@@ -112,7 +112,16 @@ get.date.ind<-function(dd=NULL,
   i.yy=get.year.ind(yy=yy,nyr=nyr,n=ndays)  #get indices for years
   i.3yy=get.nyear.ind(yy=yy,nyrEitherSide = 1)  #get indices for 3 year moving window
   i.5yy=get.nyear.ind(yy=yy,nyrEitherSide = 2)  #get indices for 5 year moving window
-  i.10yyBlock=get.nyearBlock.ind(yy=yy,inc=10)  #get indices for 10 year window
+  if (nyr>=10){
+    i.10yyBlock=get.nyearBlock.ind(yy=yy,inc=10)  #get indices for 10 year window
+  } else {
+    i.10yyBlock = NULL
+  }
+  if (nyr>=50){
+    i.50yyBlock=get.nyearBlock.ind(yy=yy,inc=50)  #get indices for 50 year window
+  } else {
+    i.50yyBlock = NULL
+  }
   if(southHemi==TRUE){
     i.ss=get.seas.ind(i.mm=i.mm)    #get indices for seasons
   }else{
@@ -140,6 +149,7 @@ get.date.ind<-function(dd=NULL,
               i.3yy=i.3yy,
               i.5yy=i.5yy,
               i.10yyBlock=i.10yyBlock,
+              i.50yyBlock=i.50yyBlock,
               i.ss=i.ss,
               i.pp=i.pp,
               jj=jj)

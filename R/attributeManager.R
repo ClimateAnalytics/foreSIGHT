@@ -394,7 +394,7 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
                            indx=attCalcInfo[[att]]$indx,
                            attArgs=attCalcInfo[[att]]$attArgs)
       }
-    } else if (attCalcInfo[[att]]$opName%in%c('m','m10yrBlock','m40yrBlock')){ # mean of values calculated in each year
+    } else if (attCalcInfo[[att]]$opName%in%c('m','m10yrBlock','m40yrBlock','m50yrBlock')){ # mean of values calculated in each year
       if (is.null(dim(data))){
         out[[att]] = extractor.summaryMean(func=attCalcInfo[[att]]$func,
                                            data=data,
@@ -793,6 +793,11 @@ calcStratIndex = function(indexName,opName,datInd){
       yrIndx = list()
       for (y in 1:length(datInd$i.40yyBlock)){
         yrIndx[[y]] = intersect(datInd$i.40yyBlock[[y]],stratIndx)
+      }
+    } else if (opName=='m50yrBlock'){ # note this is binned average, not moving average (unlike max5yr)
+      yrIndx = list()
+      for (y in 1:length(datInd$i.50yyBlock)){
+        yrIndx[[y]] = intersect(datInd$i.50yyBlock[[y]],stratIndx)
       }
     } else {
       invalidOperationStop(opName=opName)

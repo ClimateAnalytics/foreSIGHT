@@ -57,7 +57,8 @@ optimArgsdefault=list(optimizer='RGN',
                       NM.control = list(maximize=T,
                                         tol=1e-6),
                       lambda.mult=NULL,
-                      suggestions=NULL
+                      suggestions=NULL,
+                      use_different_seeds=F
                       )
 
 varShortToLong <- c("P" = "Precipitation",

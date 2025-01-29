@@ -25,7 +25,8 @@ simulateTarget<-function(
                     parSim=NULL,        #pars used to simulate targets so far
                     setSeed=1234,
                     file=NULL,
-                    randomUnitNormalVector=NULL
+                    randomUnitNormalVector=NULL,
+                    iRepTarg = NULL
                    # resid_ts=NULL    - for other models not currently in play
                     ){
 
@@ -129,6 +130,7 @@ simulateTarget<-function(
                                 obs=obs,
                                 lambda.mult=optimArgs$lambda.mult,
                                 simSeed=setSeed,
+                                iRepTarg = iRepTarg,
                                 wdSeries=wdStatus,   #selecting rainfall  if needed
                                 resid_ts=NULL)
 

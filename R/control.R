@@ -195,8 +195,12 @@ generateScenarios <- function(reference,                # data frame of observed
     stop("numReplicates should be a positive integer")
   }
 
+  # assign("optim_num",0,envir = foreSIGHT_optimizationSeedTrackerEnv)
+  
   allSim <- replicate(nRep, vector("list", nTarget), simplify = FALSE)
 
+  iRepTarg = 0
+  
   for (iRep in 1:nRep) {
 
     cat(paste0("Generating replicate number ", iRep,  " out of ", nRep, " replicates...\n"))
@@ -208,6 +212,8 @@ generateScenarios <- function(reference,                # data frame of observed
 
     for (iTarg in 1:nTarget) {
 
+      iRepTarg = iRepTarg + 1
+      
       # Get the target location in the exposure space
       expTarg <- expSpace
       expTarg$targetMat <- expSpace$targetMat[iTarg, ]
@@ -224,7 +230,8 @@ generateScenarios <- function(reference,                # data frame of observed
                                                   expTarg = expTarg,
                                                   simLengthNyrs = simLengthNyrs,
                                                   seedID = seedIDs[iRep],
-                                                  controlFile = controlFile
+                                                  controlFile = controlFile,
+                                                  iRepTarg = iRepTarg
                                                   )
 
       # Get & remove simDates and nml from the target simulation, will be added back later
@@ -380,7 +387,8 @@ generateScenario <- function(reference,       # data frame of observed data with
                              expTarg,
                              simLengthNyrs = NULL,
                              seedID = NULL,
-                             controlFile = NULL
+                             controlFile = NULL,
+                             iRepTarg = NULL
 ){
 
   # renamed obs to reference (rename everywhere sometime)
@@ -603,6 +611,8 @@ generateScenario <- function(reference,       # data frame of observed data with
         attApp <- attPrim
       }
 
+      browser()
+      
       sim=simulateTarget(optimArgs=optimArgs,         #sim[[i]]$P, $Temp $attSim $targetSim
                          simVar=simVar,
                          modelTag=modelTag,
@@ -620,6 +630,7 @@ generateScenario <- function(reference,       # data frame of observed data with
                          parSim=NULL,
                          # Anjana - do I need this?
                          setSeed=seedID,                   #seed based on loop counter
+                         iRepTarg=iRepTarg,
                          file=file)
 
       b<-Sys.time()
@@ -820,6 +831,7 @@ simulateTargetMarg = function(optimArgs=NULL,
                                          parLoc=parLoc,
                                          parSim=parSim,
                                          setSeed=setSeed,
+                                         iRepTarg=iRepTarg,
                                          file=file,
                                          randomUnitNormalVector=MVTsampleMat[,s])
 
@@ -918,6 +930,7 @@ simulateTargetCor = function(optimArgs=NULL,
                               attObs=attObs1,
                               parLoc=parLoc,
                               file=file,
+                              iRepTarg=iRepTarg,
                               randomUnitNormalVector=MVTsampleMat[,1])
 
         attObs2=attribute.calculator(attSel=attSel[attInd[[mod]]],
@@ -937,6 +950,7 @@ simulateTargetCor = function(optimArgs=NULL,
                               attObs=attObs2,
                               parLoc=parLoc,
                               file=file,
+                              iRepTarg=iRepTarg,
                               randomUnitNormalVector=MVTsampleMat[,2])
 
         cor_sim_list[i] = stats::cor(sim1$P$sim,sim2$P$sim)
@@ -971,6 +985,7 @@ simulateTargetCor = function(optimArgs=NULL,
                                  attObs=attObs2,
                                  parLoc=parLoc,
                                  file=file,
+                                 iRepTarg=iRepTarg,
                                  randomUnitNormalVector=MVTsampleMat[,s])
 
     sim$P$sim = cbind(sim$P$sim,sim$sites[[site]]$P$sim)

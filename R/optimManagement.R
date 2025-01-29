@@ -76,6 +76,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
                              target=NULL,
                              parSuggest=NULL,
                              simSeed=NULL,
+                             iRepTarg = NULL,
                              ...){
 
   timeStart=Sys.time()
@@ -111,11 +112,20 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
 
     print(r)
     
+    # optim_num = foreSIGHT_optimizationSeedTrackerEnv$optim_num + 1
+    # assign("optim_num",optim_num,envir = foreSIGHT_optimizationSeedTrackerEnv)
+    
     time1 = Sys.time()
     assign("WG_calls",0,envir = foreSIGHT_optimizationDiagnosticsEnv)
     assign("fTrace",c(),envir = foreSIGHT_optimizationDiagnosticsEnv)
 
-    seed = seed1 + r - 1
+    if (optimArgs$use_different_seeds){
+      seed = iRepTarg + (optimArgs$nMultiStart-1)*1000
+    } else {
+      seed = seed1 + r - 1
+    }
+    
+    print(paste0('seed =',seed))
 
     set.seed(seed) # set the random seed for selecting initial parameter values. note same set of seeds will be used for each target/replicate.
 

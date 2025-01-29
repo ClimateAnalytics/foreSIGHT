@@ -44,6 +44,7 @@ plotPerformanceOAT <- function(performance,                   # system model per
                                # climData = NULL,               # changes in climate attributes from other sources - can include label. If the performance measure being plotted is a column in the data.frame, the points will be coloured accordingly
                                col = NULL,                    # colour of the ribbon
                                ylim = NULL,                    # ylim of the data, xlim is determined by the perturbation range
+                               noPlot=T,
                                plim=c(0.05,0.95)              # probability limits
                                ) {
   
@@ -173,7 +174,10 @@ plotPerformanceOAT <- function(performance,                   # system model per
     #   print(perfPlots[[i]])
     # }
   #}
-  return(perfPlots)
+    
+    if(!noPlot){print(perfPlots)}
+    return(invisible(perfPlots))
+    
 }
 
 
