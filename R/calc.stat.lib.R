@@ -171,12 +171,50 @@ outersect=function(x,y){
 #INPUTS - TS, INDEXES,LIST OF REQUESTED STATS
 #GENERIC EXTRACTOR FUNCTION
 extractor=function(func=NULL,data=NULL,indx=NULL,attArgs=NULL,...){ # returns a number
-  if (is.null(attArgs)){
-    extractor.out=func(data=data[indx],...)
-  } else {
-    extractor.out=func(data=data[indx],attArgs=attArgs,...)
+  
+  if(is.null(func)){browser()}
 
+  if (is.list(data)){
+    data.1 = data[[1]]
+    data.2 = data[[2]]
+    data = NULL
+  } else if (is.vector(data)){
+    data.1 = data.2 = NULL
   }
+
+  # insert NAs at discontinuities
+  data.new = data[indx$val]
+  data.1.new = data.1[indx$val]
+  data.2.new = data.2[indx$val]
+  if (length(indx$i_breaks)>1){
+    for(i in 0:(length(i_breaks)-1)) {
+      data.new <- append(data.new, NA, after=(indx$i_breaks[i+1]+i))
+      data.1.new <- append(data.1.new, NA, after=(indx$i_breaks[i+1]+i))
+      data.2.new <- append(data.2.new, NA, after=(indx$i_breaks[i+1]+i))
+    }
+  }
+
+  if (!is.null(data)){
+    if (is.null(attArgs)){
+      extractor.out=func(data=data.new,...)
+    } else {
+      extractor.out=func(data=data.new,attArgs=attArgs,...)
+    }
+  } else {
+    if (is.null(attArgs)){
+      extractor.out=func(data.1=data.1.new,data.2=data.2.new,...)
+    } else {
+      extractor.out=func(data.1=data.1.new,data.2=data.2.new,attArgs=attArgs,...)
+    }
+  }
+
+  # if (is.null(attArgs)){
+  #   if (is.na(sum(data[indx]))){browser()}
+  #   extractor.out=func(data=data[indx],...)
+  # } else {
+  #   extractor.out=func(data=data[indx],attArgs=attArgs,...)
+  # }
+  
   return(extractor.out)
 }
 
@@ -204,6 +242,7 @@ extractor.summaryMean<-function(func=NULL,
 
 ####### NOTE: calling the following separately is inefficient (annual totals calculated for each)
 
+### followup note: this is resolved using aggrtegation periods of 1 year ion attributes
 
 #EXTRACTOR FOR MULTIPLE PERIODS (TEMPORARY FUNCTION here)
 extractor.summarySD<-function(func=NULL,
@@ -243,35 +282,6 @@ extractor.summaryCor<-function(func=NULL,
   return(m.series)
 }
 
-extractor.summaryCorSOI<-function(func=NULL,
-                               data=NULL,
-                               indx=NULL,...){
-  nperiod=length(indx)
-  sim.series=rep(NA,nperiod)
-  for(p in 1:nperiod){
-    sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
-  }
-  M = min(length(sim.series),length(annSOI))
-  m.series=stats::cor(x=sim.series[1:M],annSOI[1:M])
-  if (is.na(m.series)){m.series=-999}
-  return(m.series)
-}
-
-extractor.summaryDwellTime<-function(func=NULL,
-                               data=NULL,
-                               indx=NULL,...){
-  nperiod=length(indx)
-  sim.series=rep(NA,nperiod)
-  for(p in 1:nperiod){
-    sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
-  }
-  spell.lengths = get.spell.lengths(data=sim.series, 
-                                    thresh=median(sim.series),  
-                                    type="dry")    
-  m.series=mean(spell.lengths)
-  return(m.series)
-}
-
 extractor.summaryRange90<-function(func=NULL,
                                      data=NULL,
                                      indx=NULL,...){
@@ -305,30 +315,6 @@ extractor.summaryMax<-function(func=NULL,
     sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
   }
   m.series=max(x=sim.series,na.rm=TRUE)
-  return(m.series)
-}
-
-extractor.summaryP10<-function(func=NULL,
-                               data=NULL,
-                               indx=NULL,...){
-  nperiod=length(indx)
-  sim.series=rep(NA,nperiod)
-  for(p in 1:nperiod){
-    sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
-  }
-  m.series=quantile(x=sim.series,na.rm=TRUE,probs=0.1)
-  return(m.series)
-}
-
-extractor.summaryP1<-function(func=NULL,
-                               data=NULL,
-                               indx=NULL,...){
-  nperiod=length(indx)
-  sim.series=rep(NA,nperiod)
-  for(p in 1:nperiod){
-    sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
-  }
-  m.series=quantile(x=sim.series,na.rm=TRUE,probs=0.01)
   return(m.series)
 }
 
@@ -379,6 +365,7 @@ get.perc.above.thresh=function(data=NULL,
 
 #FUNCTION TO DETERMINE NUMBER OF INSTANCES ABOVE A THRESHOLD - nwet
 get.nwet=function(data=NULL,threshold=NULL){
+  data=data[!is.na(data)]
   temp=length(which(data>threshold))
   if(identical(temp,integer(0))){temp=0}
   return(temp)

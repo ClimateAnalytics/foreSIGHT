@@ -1,17 +1,3 @@
-# parameter variation definitions
-# link namelist input with shortened version in modelTag
-parVariationDef <- c(ann = "annual",
-                     har = "harmonic",
-                     seas = "seasonal")
-
-# There are multiple harmonic models - define the harmonic tags for each variable
-# this is required to create the modelTag from namelist
-# Anjana: this can be eliminated once all the modelTags for "Temp", "PET", and "Radn" are all updated to be "har" instead of "har26"
-# harDefinition <- c(P = "har",
-#                    Temp = "har26",
-#                    PET = "har26",
-#                    Radn = "har26")
-
 # TO DO: add an argument 'compatibleAtts' (default FALSE)
 # if set to 'TRUE' all attributes of the variable will be shown in the printed data.frame
 # - with T/F to indicate if the attribute is compatible to use with the model
@@ -34,24 +20,25 @@ parVariationDef <- c(ann = "annual",
 #' @export
 viewModels <- function(variable = NULL) {
 
-  # vector of stochastic model tags - exclude scaling
-  stochModels <- modelTaglist[!(modelTaglist%in%c("Simple-ann","Simple-seas"))]
-
+  stochModels = get_modelTags(modelInfoList=modelInfoList) 
+  exclude = c("Simple-ann","Simple-seas")
+  stochModels = stochModels[!stochModels%in%exclude]
+  
   # get stochastic model Info
   varNames <- sapply(strsplit(stochModels, "-"), `[[`, 1)
   parVariation <- sapply(strsplit(stochModels, "-"), `[[`, 2)
   modelType <- sapply(strsplit(stochModels, "-"), `[[`, 3)
-
-  # check if the model has additional info
-  tagLength <- sapply(strsplit(stochModels, "-"), length)
-  for (m in 1:length(modelType)){
-    if (tagLength[m] > 3) {
-      for (i in 4:tagLength[m]) {
-        modelType[m] <- paste0(modelType[m], "-", strsplit(stochModels[m], "-")[[1]][i])
-      }
+  
+  modelTimeStep = c()
+  for (i in 1:length(stochModels)){
+    stochModel = stochModels[i]
+    mts = modelInfoList[[stochModel]]$timeStep
+    if (length(mts)<1){
+      stop(paste0('require timeStep for model ',stochModel))
+    } else {
+      modelTimeStep[i] = mts
     }
   }
-  modelTimeStep <- modelTimeStep[stochModels]
   defaultModel <- rep(FALSE, length(stochModels))
   defaultModel[which(stochModels %in% defaultModelTags)] <- TRUE
 
@@ -61,12 +48,12 @@ viewModels <- function(variable = NULL) {
   } else {
     # get index
     ind <- which(varNames == variable)
-    modelTimeStep <- modelTimeStep[ind]   # subsetted ind here so that the column would be named modelTimeStep in the data.frame output by the function
-    defaultModel <- defaultModel[ind]
 
     # model information dataframe
-    varModels <- data.frame(modelType[ind], parVariationDef[parVariation[ind]], modelTimeStep, defaultModel)
+    varModels <- data.frame(modelType[ind], parVariation[ind], modelTimeStep[ind],defaultModel[ind])
     colnames(varModels)[1:2] <- mdlFields
+    colnames(varModels)[3] = 'timeStep'
+    colnames(varModels)[4] = 'default'
     rownames(varModels) <- NULL
 
     return(varModels)
@@ -77,6 +64,7 @@ viewModels <- function(variable = NULL) {
 getModelSpec <- function(colName, var = NULL) {
   modelSpec <- NULL
 
+  fSVars = get_fSVars(get_modelTags(modelInfoList=modelInfoList))
   # If variable is not specified - return data for all variables
   if(is.null(var)){
     var <- fSVars
@@ -109,6 +97,8 @@ mdlFields <- c("modelType", "modelParameterVariation") #NOTE: Both modelType & m
 
 mdlBounds <- c("modelParameterBounds")
 
+ppOps = c("postProcessing")
+
 spatialOps = c("spatialOptions")
 
 # Optimization fields - can be specified independent of - mdlFields & mdlBounds
@@ -123,6 +113,9 @@ getNamelistMaster <- function(){
     outList[[f]] <- getModelSpec(f)
   }
   for (f in mdlBounds) {
+    outList[[f]] <- list()
+  }
+  for (f in ppOps) {
     outList[[f]] <- list()
   }
   for (f in spatialOps) {
@@ -179,16 +172,7 @@ getModelTag <- function(nml, v) {
     # use default
     modelTag <- defaultModelTags[[v]]
   } else {
-    # create from nml specifications
-    parTagLong <- modelChoice[["modelParameterVariation"]]
-
-    # Get the harmonic part of the modelTag based on the variable
-#    if(parTagLong == "harmonic") {
-#      parTag <- 'har'
-#    } else {
-      parTag <- names(parVariationDef[parVariationDef == parTagLong])
-#    }
-
+    parTag <- modelChoice[["modelParameterVariation"]]
     modelType <- modelChoice[["modelType"]]
     modelTag <- paste(c(v, parTag, modelType), collapse = "-")
   }
@@ -375,7 +359,7 @@ writeControlFile <- function(jsonfile = "sample_controlFile.json", basic = TRUE,
 # 3. penaltyAtt - input namelist
 # 4. modelInfo - input namelist bounds + exisiting default bounds for unspecified parameters
 # The output is of type list - it can be passed to a writeNamelist function to write a json file
-toNamelist <- function(modelTag, modelInfoMod = NULL, optimArgs = NULL, attPenalty = NULL) {
+toNamelist <- function(modelTag, modelInfoMod = NULL, optimArgs = NULL, attPenalty = NULL, ppArgs=NULL) {
 
   if (!is.null(attPenalty)) penaltyWeights <- optimArgs[["lambda.mult"]]
   optimArgs[["lambda.mult"]] <- NULL
@@ -384,11 +368,8 @@ toNamelist <- function(modelTag, modelInfoMod = NULL, optimArgs = NULL, attPenal
   #----------------------------------------------------
   varNames <- sapply(strsplit(modelTag, "-"), `[[`, 1)
   parTag <- sapply(strsplit(modelTag, "-"), `[[`, 2)
-  parVar <- rep(NA, length(parTag))
-  for (i in 1:length(parTag)) {
-    parVar[i] <- parVariationDef[[parTag[i]]]
-  }
 
+  parVar = parTag
   # modelType
   #----------------------------------------------------
   mType <- sapply(strsplit(modelTag, "-"), `[[`, 3)
@@ -427,6 +408,7 @@ toNamelist <- function(modelTag, modelInfoMod = NULL, optimArgs = NULL, attPenal
   nml[["modelType"]] <- modelType
   nml[["modelParameterVariation"]] <- modelParametervariation
   nml[["modelParameterBounds"]] <- modelParameterBounds
+  nml[["ppArgs"]] <- ppArgs
   if (!is.null(optimArgs) & !is.null(names(optimArgs))) {
     nml[["optimisationArguments"]] <- optimArgs
     for (n in names(optimArgs)) {
@@ -518,6 +500,8 @@ checkControlFile <- function(nml) {
 # check mdlFields
 checkMdlFields <- function(nml) {
 
+  fSVars = get_fSVars(get_modelTags(modelInfoList=modelInfoList))
+  
   # Master Namelist
   nmlMaster <- getNamelistMaster()
 
@@ -567,6 +551,8 @@ checkMdlBounds <- function(nml) {
   vars <- names(nml[[field]])
   for (v in vars) {
 
+    fSVars = get_fSVars(get_modelTags(modelInfoList=modelInfoList))
+    
     if (!(v %in% fSVars)) stop(paste0("controlFile variable ", v, " specified in ", field, " is unrecognized. Type viewModels() to view the valid variables."))
 
     parIn <- names(nml[[field]][[v]])

@@ -481,8 +481,9 @@ getSimTraffic <- function(sim) {          # simulations generated using generate
   Tind <- which(attVar == "Temp")
     
   # Temperature variables exist
-  if (length(Tind) > 0) {
-    attName <- splitInTwo(attName_temp, Tind)
+#  if (length(Tind) > 0) {
+  if ((length(Tind) > 0) & (length(Tind)<length(attSel))) {
+      attName <- splitInTwo(attName_temp, Tind)
     markPrim <- splitInTwo(markPrim_temp, Tind)
     perturbed <- splitInTwo(perturbed_temp, Tind)
     df_diagMatMean <- splitInTwo(df_diagMatMean_temp, Tind)

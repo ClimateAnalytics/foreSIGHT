@@ -49,13 +49,15 @@ simulateTarget<-function(
   }
 
   #set.seed(setSeed)
-  # moved ar1 param calc up to control.R
 
   attSim=list()          #Make list to store simulated attributes
   targetSim=list()       #Make list to store simulated attributes(target space converted)
-  for(mod in 1:nMod){
+  for(mod in modelTag){
+      
+    out[[simVar[mod]]] = list()
+    
     if (is.null(randomUnitNormalVector)){
-      randomVector <- stats::runif(n=datInd[[modelTag[mod]]]$ndays) # Random vector to be passed into weather generator to reduce runtime
+      randomVector <- stats::runif(n=datInd[[mod]][[aggNameShort[[obs$timeStep]]]]$nTimes) # Random vector to be passed into weather generator to reduce runtime
     } else {
       randomVector=NULL
     }
@@ -63,7 +65,7 @@ simulateTarget<-function(
      #IF CONDITIONED ON DRY-WET STATUS, populate wdStatus
       switch(simVar[mod], #
              "P" = {wdStatus=NULL},
-             "Temp" = {if(modelInfo[[modelTag[mod]]]$WDcondition==TRUE){
+             "Temp" = {if(modelInfo[[mod]]$WDcondition==TRUE){
                            wdStatus=out[["P"]]$sim
                          }else{
                            wdStatus=NULL
@@ -75,28 +77,28 @@ simulateTarget<-function(
     # write data to model environment
     #----------------------------------
     write_model_env(envir = foreSIGHT_modelEnv,
-                    modelInfo = modelInfo[[modelTag[mod]]],
-                    modelTag = modelTag[mod],
-                    datInd = datInd[[modelTag[mod]]]
+                    modelInfo = modelInfo[[mod]],
+                    modelTag = mod,
+                    datInd = datInd[[mod]]
                     )
     #-----------------------------------
 
-    parMin = modelInfo[[modelTag[mod]]]$minBound
-    parMax = modelInfo[[modelTag[mod]]]$maxBound
-
+    parMin = modelInfo[[mod]]$minBound
+    parMax = modelInfo[[mod]]$maxBound
 
     if(length(which(parMin==parMax))==length(parMin)){#
       progress(p("    Working on variable ",simVar[mod]),file)
       progress(p("    Parameters specified by user, no optimisation ..."),file)
-
-      out[[simVar[mod]]]=switch_simulator(type=modelInfo[[modelTag[mod]]]$simVar,
-                                          parS=parMin,   #bounds become the pars
-                                          modelEnv = foreSIGHT_modelEnv,
-                                          randomVector = randomVector,
-                                          randomUnitNormalVector = randomUnitNormalVector,
-                                          wdSeries=wdStatus,
-                                          resid_ts=NULL,
-                                          seed=setSeed,obs=obs)
+      
+      out[[simVar[mod]]]$sim = simClim(parS=parMin,              
+                                    modelTag = mod,
+                                    ppTypes=modelInfo$ppTypes,
+                                    datInd=datInd[[mod]],
+                                    randomTerm = list(randomVector = randomVector,
+                                                      randomUnitNormalVector = randomUnitNormalVector,
+                                                      seed=setSeed),
+                                    obs=obs[[simVar]])
+      
       parV=c(parV,parMin)
 
     }else{
@@ -111,22 +113,34 @@ simulateTarget<-function(
         parSel=NULL      #no suggestions to be had
       }
 
+      timeStep = modelInfo[[mod]]$timeStep
+
       # calculate attribute info prior to start of optimization so it does not need to be recalculated each call to target finder
-      attInfo[[modelTag[mod]]]$attCalcInfo = attribute.calculator.setup(attSel=attSel[attInd[[mod]]],
-                                                                        datInd=datInd[[modelTag[mod]]])
+      
+      
+      attInfo$attCalcInfo = list()
+      
+      aggs = unique(attInfo$aggType)
+
+      for (i in aggs){
+        attInfo[[mod]]$attCalcInfo = attribute.calculator.setup(attCalcInfo=attInfo[[mod]]$attCalcInfo,
+                                                         attSel=attSel[attInd[[simVar[mod]]]],
+                                                         datInd=datInd[[mod]][[i]])
+      }
 
       optTest = multiStartOptim(optimArgs=optimArgs,
                                 modelEnv = foreSIGHT_modelEnv,
-                                modelInfo=modelInfo[[modelTag[mod]]],
-                                attSel=attSel[attInd[[mod]]],
+                                modelInfo=modelInfo[[mod]],
+                                modelTag=mod,
+                                attSel=attSel[attInd[[simVar[mod]]]],
                                 attPrim=attPrim,
-                                attInfo=attInfo[[modelTag[mod]]],
-                                datInd=datInd[[modelTag[mod]]],
+                                attInfo=attInfo[[mod]],
+                                datInd=datInd[[mod]],
                                 randomVector = randomVector,
                                 randomUnitNormalVector = randomUnitNormalVector,
                                 parSuggest=parSel,
-                                target=targetLoc[attInd[[mod]]],
-                                attObs=attObs[attInd[[mod]]],
+                                target=targetLoc[attInd[[simVar[mod]]]],
+                                attObs=attObs[attInd[[simVar[mod]]]],
                                 obs=obs,
                                 lambda.mult=optimArgs$lambda.mult,
                                 simSeed=setSeed,
@@ -134,83 +148,42 @@ simulateTarget<-function(
                                 wdSeries=wdStatus,   #selecting rainfall  if needed
                                 resid_ts=NULL)
 
-      # if (optimArgs$optimizer=='GA') {
-      #   optTest=gaWrapper(gaArgs=optimArgs,
-      #                     modelEnv = foreSIGHT_modelEnv,
-      #                     modelInfo=modelInfo[[modelTag[mod]]],
-      #                     attSel=attSel[attInd[[mod]]],
-      #                     attPrim=attPrim,
-      #                     attInfo=attInfo[[modelTag[mod]]],
-      #                     datInd=datInd[[modelTag[mod]]],
-      #                     randomVector = randomVector,
-      #                     randomUnitNormalVector = randomUnitNormalVector,
-      #                     parSuggest=parSel,
-      #                     target=targetLoc[attInd[[mod]]],
-      #                     attObs=attObs[attInd[[mod]]],
-      #                     lambda.mult=optimArgs$lambda.mult,
-      #                     simSeed=setSeed,
-      #                     wdSeries=wdStatus,   #selecting rainfall  if needed
-      #                     resid_ts=NULL)
-      # } else if (optimArgs$optimizer=='RGN') {
-      #   optTest=rgnWrapper(rgnArgs=optimArgs,
-      #                     modelEnv = foreSIGHT_modelEnv,
-      #                     modelInfo=modelInfo[[modelTag[mod]]],
-      #                     attSel=attSel[attInd[[mod]]],
-      #                     attPrim=attPrim,
-      #                     attInfo=attInfo[[modelTag[mod]]],
-      #                     datInd=datInd[[modelTag[mod]]],
-      #                     randomVector = randomVector,
-      #                     randomUnitNormalVector = randomUnitNormalVector,
-      #                     parSuggest=parSel,
-      #                     target=targetLoc[attInd[[mod]]],
-      #                     attObs=attObs[attInd[[mod]]],
-      #                     lambda.mult=optimArgs$lambda.mult,
-      #                     simSeed=setSeed,
-      #                     wdSeries=wdStatus,   #selecting rainfall  if needed
-      #                     resid_ts=NULL)
-      # }
-
-      # if (optimArgs$optimizer=='GA'){
-      #   nIter = optTest$opt@iter
-      #   out$ga_runtime=optTest$runtime
-      #   out$ga_fitness=optTest$fitness
-      #   out$ga_iter=optTest$opt@iter
-      #   out$ga_summary=optTest$opt@summary
-      # } else if (optimArgs$optimizer=='RGN'){
-      #   nIter = optTest$opt$info$nIter
-      #   out$rgn = optTest
-      #   browser()
-      # }
-
-      out = optTest
+      out[[simVar[mod]]] = append(out[[simVar[mod]]],optTest)
 
       #progress(p("    Best fitness: ",signif(optTest$fitness,digits=5), ". Optimisation stopped at iter ",nIter),file)
       #progress(p("    Note:",signif(summary(optTest$opt)$fitness,digits=5)),file)
-      #plot(optTest$opt)
 
-      out[[simVar[mod]]]=switch_simulator(type=modelInfo[[modelTag[mod]]]$simVar,
-                                          parS=optTest$par,
-                                          modelEnv = foreSIGHT_modelEnv,
-                                          randomVector = randomVector,
-                                          randomUnitNormalVector = randomUnitNormalVector,
-                                          wdSeries=wdStatus,
-                                          resid_ts=NULL,
-                                          seed=optTest$seed,obs=obs)
-      
-      
+      out[[simVar[mod]]]$sim=simClim(parS=optTest$par,              #RAIN SELECTED
+                                     modelTag = mod,
+                                     ppTypes=modelInfo$ppTypes,
+                                     datInd=datInd[[mod]],
+                                     randomTerm = list(randomVector = randomVector,
+                                                       randomUnitNormalVector = randomUnitNormalVector,
+                                                       seed=optTest$seed),
+                                     obs=obs)
       parV=c(parV,optTest$par)
-      
-      
 
     }
+    
+    aggPeriods = names(datInd[[mod]])
+    nagg = length(aggPeriods)
+    timeStep = obs$timeStep 
 
-      #CALCULATE SELECTED ATTRIBUTE VALUES
-      sim.att=attribute.calculator(attSel=attSel[attInd[[mod]]],data=out[[simVar[mod]]]$sim,datInd=datInd[[modelTag[mod]]])#,attribute.funcs=attribute.funcs)
+    
+      data = list(times=datInd[[mod]][[aggNameShort[[timeStep]]]]$times,
+                      timeStep=timeStep)
+      data[[simVar[mod]]] = out[[simVar[mod]]]$sim
+
+      sim.att = aggregate_calculate_attributes(varList=simVar[mod],
+                                               aggList=aggPeriods,
+                                               data=data,
+                                               attSel=attSel[attInd[[simVar[mod]]]],
+                                               datInd=datInd[[mod]],
+                                               attInfo=attInfo[[mod]])
       attSim[[mod]]=sim.att        #store simulated attributes in list
-
-      #RELATING TO BASELINE SERIES
-      simPt=unlist(Map(function(type, val,baseVal) simPt.converter.func(type,val,baseVal), attInfo$targetType[attInd[[mod]]], as.vector(sim.att),as.vector(attObs[attInd[[mod]]])),use.names = FALSE)
-      names(simPt)=attSel[attInd[[mod]]]
+      
+      simPt=unlist(Map(function(type, val,baseVal) simPt.converter.func(type,val,baseVal), attInfo[[mod]]$targetType, sim.att,attObs[attInd[[simVar[mod]]]]),use.names = FALSE)
+      names(simPt)=attSel[attInd[[simVar[mod]]]]
       targetSim[[mod]]=simPt             #Store in list
 
       # dist=eucDist(target=targetLoc[attInd[[mod]]],simPt=simPt)
@@ -224,11 +197,11 @@ simulateTarget<-function(
       # progress(paste("    simpt - ",paste(attPrim,": ",signif(simPt[attInd[[mod]]][primInd],digits=4),collapse = ", ",sep=""),sep=''),file)
       # progress(paste("    lambda - ",paste(attPrim,": ",signif(optimArgs$lambda.mult[attInfo[[modelTag[mod]]]$primMult],digits=4),collapse = ", ",sep=""),sep=''),file)
 
-      score=objFuncMC(attSel= attSel[attInd[[mod]]],     # vector of selected attributes
+      score=objFuncMC(attSel= attSel[attInd[[simVar[mod]]]],     # vector of selected attributes
                       attPrim=attPrim,      # any primary attributes
-                      attInfo=attInfo[[modelTag[mod]]],
+                      attInfo=attInfo,
                       simPt=simPt,
-                      target=targetLoc[attInd[[mod]]],
+                      target=targetLoc[attInd[[simVar[mod]]]],
                       obj.func=optimArgs$obj.func,
                       lambda=optimArgs$lambda.mult)
 
@@ -237,18 +210,19 @@ simulateTarget<-function(
 
       objScore=c(objScore,score)
 
+      #CALCULATE SIM ATTRIBUTES HERE (ABSOLUTE AND TARGET SPACE)
+      out[[simVar[mod]]]$parS=parV
+      out[[simVar[mod]]]$score=objScore
   }  #end model loop
 
-  #CALCULATE SIM ATTRIBUTES HERE (ABSOLUTE AND TARGET SPACE)
+  names(attSim) = names(targetSim) = NULL
   out$attSim=unlist(attSim)[attSel]        # unlist,relist & make sure order is correct
   progress(paste("    Attributes Simulated - ",paste(attSel,": ",signif(out$attSim,digits=4),collapse = ", ",sep=""),sep=''),file)
 
   out$targetSim=unlist(targetSim)[attSel]  # unlist,relist & make sure order is correct
   progress(paste("    Target Simulated - ",paste(attSel,": ",signif(out$targetSim,digits=4),collapse = ", ",sep=''),sep=""),file)
-
-  out$parS=parV
-  out$score=objScore
-
+  
+  
 
   return(out)
 }

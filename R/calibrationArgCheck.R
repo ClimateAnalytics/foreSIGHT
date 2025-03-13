@@ -4,7 +4,8 @@ argument_check_calibrator<-function(names=NULL,
                                     modelTag=NULL
 ){
   
-  names<-names[names!="year"];names<-names[names!="month"];names<-names[names!="day"]
+  #names<-names[names!="year"];names<-names[names!="month"];names<-names[names!="day"]
+  names<-names[names!="times"];names<-names[names!="timeStep"]
   
   #CHECKS FOR MODELTAGS
   if (modelTag[1]=="Simple-ann") { stop("Simple scaling does not require calibration - invalid request")}
@@ -23,7 +24,8 @@ argument_check_calibrator<-function(names=NULL,
   ### Checks for columns of data without model tags.
   if (length(which((names %in% modelVars)==FALSE))>0) {
     cat("There is a mismatch between provided model types and supplied variables. Calibration will only be executed for supplied model tags")
-    array<-c("year","month","day",modelVars)
+#    array<-c("year","month","day",modelVars)
+    array<-c("timeStep","times",modelVars)
     obs=obs[array]
   }
     
@@ -33,6 +35,8 @@ argument_check_calibrator<-function(names=NULL,
 
 input_check_calibrator<- function(obs
                                    ){  #This input has its dates in first three columns
+  
+  print('need to fix input_check_calibrator - replace years with times, etc')
   
   #TRUNCATE TO START AND END AT WHOLE YEAR
   first=obs$year[1]

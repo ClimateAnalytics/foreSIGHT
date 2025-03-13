@@ -23,23 +23,23 @@
 #' Calculates total of time series
 #' @param data is a vector, representing a time series
 #' @export
-func_tot = function(data) sum(data)
+func_tot = function(data) sum(data,na.rm=T)
 
 #' Calculates seasonality ratio
 #' @param data is a vector, representing a time series
-#' @param attArgs is a list, with attArgs$indexWet corresponding to wet season and attArgs$indexDry dry season
+#' @param attArgs is a list, with attArgs$indexSeas corresponding to season of interest
 # seasonality ratio
 #' @export
 func_seasRatio = function(data,attArgs){
-  Pdry = sum(data=data[attArgs$indexDry])
-  Pwet = sum(data=data[attArgs$indexWet])
-  Pdry = max(Pdry,0.001)
-  seasRatio = Pwet/Pdry
+  Pseas = sum(data=data[attArgs$indexSeas])
+  Pseas = max(Pseas,0.001)
+  Pall = sum(data=data)
+  seasRatio = Pseas/Pall
   return(seasRatio)
 }
 
 func_fracTot = function(data,attArgs){
-  Pseas = func_tot(data) 
+  Pseas = func_tot(data,na.rm=T) 
   fracTot = Pseas/attArgs$tot
   return(fracTot)
 }
@@ -62,13 +62,6 @@ func_fracWDcor = function(data,attArgs){
   return(fracWDcor)
 }
 
-
-# func_fracNwetT2 = function(data,attArgs){
-#   nWetSeas = func_nWet(data,attArgs) 
-#   fracNwet2 = nWetSeas/attArgs$nWetTot
-#   browser()
-#   return(fracNwet)
-# }
 
 func_fracP99 = function(data,attArgs){
   P99Seas = quantile(data,probs = 0.99) 
@@ -195,28 +188,19 @@ func_F0 = function(data) F0calc(x=data) # could be made generic
 #' @param attArgs is a list, with attArgs$doy denoting the day of year for each value in the time series
 #' @export
 func_wettest6monPeakDay = function(data,attArgs=NULL){
-#  if (is.null(attArgs$seas)){
-#    seas = calc_meanClimDaily_dayOfYearWindow(obs=data,doy=attArgs$doy,inc=91)
-#  } else {
-    seas = attArgs$seas
-#  }
+  seas = attArgs$seas
   i = stats::median(which(seas==max(seas)))
-  #  print(i)
-  #  return(i-180)
 }
 
 func_WDcor = function(data){
   N = length(data)
   data[data==0] = NA
-#  print(data[1:100])
   diff = data[2:N] - data[1:(N-1)]
   if (length(which(!is.na(diff)))<2){
     WDcor = 1e3
   } else {
     WDcor = cor(data[1:(N-1)],data[2:N],use = 'pairwise.complete.obs')
   }
-#  print(WDcor)
-  
   if (is.na(WDcor)){browser()}
   return(WDcor)
 }
@@ -237,14 +221,9 @@ func_cor = function(data){
 #' @param attArgs is a list, with attArgs$doy denoting the day of year for each value in the time series
 #' @export
 func_wettest6monSeasRatio = function(data,attArgs=NULL){
-#  if (is.null(attArgs$seas)){
-#    seas = calc_meanClimDaily_dayOfYearWindow(obs=data,doy=attArgs$doy,inc=91)
-#  } else {
-    seas = attArgs$seas
-#  }
+  seas = attArgs$seas
   iwet = stats::median(which(seas==max(seas)))
   idry = stats::median(which(seas==min(seas)))
-#  wettest6monSeasRatio = seas[iwet]/seas[idry]
   seas_iwet = seas[iwet]
   seas_idry = seas[idry]
   wettest6monSeasRatio = seas_iwet/seas_idry
@@ -310,8 +289,7 @@ calc_meanClimDaily_dayOfYearWindow_allDates = function(obs,  # vector representi
 attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute names
                                data=NULL,           #timeseries data
                                datInd=NULL,         #dat indices and properties (e.g. datInd$nyr, datInd$i.yy)
-                               attInfo=NULL,        #optional saved list of attribute information (from attribute.calculator.setup)
-                               return.attCalcInfo = F 
+                               attInfo=NULL        #optional saved list of attribute information (from attribute.calculator.setup)
 ){
 
   if (!is.null(attInfo$attCalcInfo)){
@@ -320,9 +298,9 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
     attCalcInfo = attribute.calculator.setup(attSel,datInd)
   }
 
-  if (any(c("P_ann_wettest6monSeasRatio","P_ann_wettest6monPeakDay")%in%attSel)){
-    seas = calc_meanClimDaily_dayOfYearWindow(obs=data,keepMat=attCalcInfo[["P_ann_wettest6monSeasRatio"]]$attArgs$keepMat,inc=91)
-    attCalcInfo[["P_ann_wettest6monSeasRatio"]]$attArgs$seas = attCalcInfo[["P_ann_wettest6monPeakDay"]]$attArgs$seas = seas
+  if (any(c("P_day_all_wettest6monSeasRatio","P_day_all_wettest6monPeakDay")%in%attSel)){
+    seas = calc_meanClimDaily_dayOfYearWindow(obs=data,keepMat=attCalcInfo[["P_day_all_wettest6monSeasRatio"]]$attArgs$keepMat,inc=91)
+    attCalcInfo[["P_day_all_wettest6monSeasRatio"]]$attArgs$seas = attCalcInfo[["P_day_all_wettest6monPeakDay"]]$attArgs$seas = seas
   }
 
   fracTotList = attSel[grepl('fracTot',attSel)]
@@ -331,7 +309,6 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
     tot = max(tot,0.001)
     for (att in fracTotList){
       attCalcInfo[[att]]$attArgs$tot = tot
-#      attCalcInfo[[att]]$attArgs$threshold = 0
     }
   }
   
@@ -566,8 +543,8 @@ invalidOperationStop = function(opName){
   stop(errMess)
 }
 
-invalidFuncStop = function(func){
-  errMess = paste0("Error: invalid attribute name (function '",func,"' does not exist)")
+invalidFuncStop = function(func,type){
+  errMess = paste0("Error: invalid attribute name (function '",type,func,"' does not exist)")
   cat(errMess)
   #  logfile(errMess,file)
   #  logfile("Program terminated",file)
@@ -575,37 +552,74 @@ invalidFuncStop = function(func){
 }
 
 ####################################
+
+calc_att_components = function(att){
+  
+  # split up attribute name
+  chopped=strsplit(x = att,split="_")[[1]]
+  
+  out = list()
+  
+  tmp = strsplit(chopped[1],'[.]')[[1]]
+  if (tmp[1]=='mv'){
+    out$type = 'multivariable'
+    if (length(tmp)!=3){
+      stop('require 2 variable names for multivariable attributes (e.g. mv.P.T)')
+    }
+    out$varName = paste0(tmp[2],'/',tmp[3])
+  } else if (tmp[1]=='ms'){
+    out$type = 'multisite'
+    if (length(tmp)!=2){
+      stop('require 1 variable name for multisite attributes (e.g. ms.P)')
+    }
+    out$varName = tmp[2]
+  } else {
+    out$type = 'single'
+    if (length(tmp)!=1){
+      stop('require 1 variable name for single site/variabvle attributes (e.g. P)')
+    }
+    out$varName = tmp[1]
+  }
+  
+  # variable name
+  #out$varName = chopped[1]
+  # aggregation
+  out$aggName = chopped[2]
+  # stratification index name
+  out$indexName = chopped[3]
+  # long function name (including parameters)
+  out$funcNameLong = chopped[4]
+  # operator name
+  out$opName = NULL
+  if (length(chopped)>4){out$opName=chopped[5]}
+  
+  return(out)
+  
+}
+
+####################################
 # calculate attribute info based on attribute name
 
 attribute.calculator.setup = function(attSel, # list of evaluated attribute names
-                                      datInd #dat indices and properties (e.g. datInd$nyr, datInd$i.yy)
-                                      ){
-
-  attCalcInfo = list()
+                                      datInd, #dat indices and properties (e.g. datInd$nyr, datInd$i.yy)
+                                      attCalcInfo = list()){
 
   for (att in attSel){
 
-    # split up attribute name
-    chopped=strsplit(x = att,split="_")[[1]]
-
-    # variable name
-    varName = chopped[1]
-    # stratification index name
-    indexName = chopped[2]
-    # long function name (including parameters)
-    funcNameLong = chopped[3]
-    # operator name
-    opName = NULL
-    if (length(chopped)>3){opName=chopped[4]}
-
+    o = calc_att_components(att); varName = o$varName; aggName = o$aggName; 
+    indexName = o$indexName; funcNameLong = o$funcNameLong; opName = o$opName; type=o$type; varName = o$varName
+    
     # calculate selected data indices
     indx = calcStratIndex(indexName,opName,datInd)
 
     # calculate function names and arguments
-    o = calcFuncNamesAndArgs(funcNameLong,datInd)
-
-    attCalcInfo[[att]] = list(func=o$func,attArgs=o$attArgs,indx=indx,opName=opName)
-
+    o = calcFuncNamesAndArgs(funcNameLong,datInd,type)
+    func=o$func;attArgs=o$attArgs
+    
+    attCalcInfo[[att]] = list(func=func,attArgs=attArgs,
+                              indx=indx,opName=opName,
+                              type=type,varName=varName)
+    
   }
 
   return(attCalcInfo)
@@ -616,8 +630,8 @@ attribute.calculator.setup = function(attSel, # list of evaluated attribute name
 # Calculate function names and arguments
 
 calcFuncNamesAndArgs = function(funcNameLong, # long function name (including parameters)
-                                datInd # dat indices and properties (e.g. datInd$nyr, datInd$i.yy)
-                                ){
+                                datInd, # dat indices and properties (e.g. datInd$nyr, datInd$i.yy)
+                                type){
 
   # functions that require threshold arguments
   funcsWithThresh = c('nWet','dyWet','maxDSD','maxWSD','avgWSD','avgDSD','fracNwet')
@@ -642,51 +656,28 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
     # seasonality ratios
   } else if (funcNameLong=='seasRatio'){ # note seasRatio not setup to work with monthly/seasonal stratification or with "_m" for mean annual
     funcName = 'seasRatio' # seasonality ratio from foreSIGHT 1.0 (wet season = MAM+JJA)
-    phi = (1/12)*2*pi + pi/2.
-    attArgs=list(indexWet=c(datInd$i.ss[[3]],datInd$i.ss[[4]]),
-                 indexDry=c(datInd$i.ss[[1]],datInd$i.ss[[2]]),
-                 phi=phi)
+    m1 = as.integer(3)
+    m2 = as.integer(8)
+    if (!is.integer(m1)|m1<1|m1>12|!is.integer(m2)|m2<1|m2>12){invalidSuffixStop(funcName=funcName,suffix=suffix)}
+    if (m1<m2){
+      mSeas = seq(m1,m2)
+    } else { # handle case where wet season ends in next year
+      mSeas = (seq(m1,m2+12)-1)%%12 + 1
+    }
+    attArgs=list(indexSeas=unlist(datInd$i.mm[mSeas]))
   } else if (startsWith(funcNameLong,'seasRatio')){
     funcName = 'seasRatio'
     suffix = strsplit(funcNameLong,funcName)[[1]][2]
-    if (substring(suffix,1,4)=='Mwet'){
-      wet1 = match(substring(suffix,5,7),month.abb) # wet season start month
-      wet2 = match(substring(suffix,8,10),month.abb) # wet season end month
-      if (!is.integer(wet1)|wet1<1|wet1>12|!is.integer(wet2)|wet2<1|wet2>12){invalidSuffixStop(funcName=funcName,suffix=suffix)}
-      if (wet1<wet2){
-        mWet = seq(wet1,wet2)
-      } else { # handle case where wet season ends in next year
-        mWet = (seq(wet1,wet2+12)-1)%%12 + 1
-      }
-      mAll = 1:12
-      # calculate dry months
-      
-      if (substring(suffix,11,14)=='Mdry'){
-        dry1 = match(substring(suffix,15,17),month.abb) # dry season start month
-        dry2 = match(substring(suffix,18,20),month.abb) # dry season end month
-        if (!is.integer(dry1)|dry1<1|dry1>12|!is.integer(dry2)|dry2<1|dry2>12){invalidSuffixStop(funcName=funcName,suffix=suffix)}
-        if (dry1<dry2){
-          mDry = seq(dry1,dry2)
-        } else { # handle case where wet season ends in next year
-          mDry = (seq(dry1,dry2+12)-1)%%12 + 1
-        }
-      } else {
-        mDry = mAll[!(mAll%in%mWet)]
-      }
-      # use middle of dry/wet season to calculate phase of harmonic used in seasonla scaling
-      if(max(diff(mDry))==1){
-        midDry = stats::median(mDry)-0.5
-        monBottom = midDry/12
-      } else if (max(diff(mWet))==1) {
-        midWet = stats::median(mWet)-0.5
-        monBottom = (midWet - 6)/12
-      }
-      phi = monBottom*2*pi - pi/2
-      attArgs=list(indexWet=unlist(datInd$i.mm[mWet]),indexDry=unlist(datInd$i.mm[mDry]),phi=phi)
-    } else {
-      invalidSuffixStop(funcName=funcName,suffix=suffix)
+    m1 = match(substring(suffix,1,3),month.abb) # start month
+    m2 = match(substring(suffix,4,6),month.abb) # end month
+    if (!is.integer(m1)|m1<1|m1>12|!is.integer(m2)|m2<1|m2>12){invalidSuffixStop(funcName=funcName,suffix=suffix)}
+    if (m1<m2){
+      mSeas = seq(m1,m2)
+    } else { # handle case where wet season ends in next year
+      mSeas = (seq(m1,m2+12)-1)%%12 + 1
     }
 
+    attArgs=list(indexSeas=unlist(datInd$i.mm[mSeas]))
     # quantile ranges
   } else if (funcNameLong=='rng'){
     funcName = 'rng'
@@ -732,8 +723,16 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
     funcName = funcNameLong
   }
 
-  if (!(funcName%in%attributeFuncs())){invalidFuncStop(func=funcName)}
-  func = get(paste0('func_',funcName))
+  if (type=='single'){
+    if (!(funcName%in%attributeFuncs()$single)){invalidFuncStop(func=funcName,type='func_')}
+    func = get(paste0('func_',funcName))  
+  } else if (type=='multivariable'){
+    if (!(funcName%in%attributeFuncs()$multivariable)){invalidFuncStop(func=funcName,type='mvFunc_')}
+    func = get(paste0('mvFunc_',funcName))  
+  } else if (type=='multisite'){
+    if (!(funcName%in%attributeFuncs()$multisite)){invalidFuncStop(func=funcName,type='msFunc_')}
+    func = get(paste0('msFunc_',funcName))  
+  }
 
   return(list(func=func,attArgs=attArgs,funcName=funcName,suffix=suffix))
 
@@ -750,8 +749,8 @@ calcStratIndex = function(indexName,opName,datInd){
   month_number <- c(1:12,1:12)   #month.str.abb as month numbers
 
   stratIndx = NULL
-  if (indexName=='ann'){ # this uses all data
-    stratIndx = 1:datInd$ndays
+  if (indexName=='all'){ # this uses all data
+    stratIndx = 1:datInd$nTimes
   } else if (indexName %in% month.abb){ # this only uses data from given month
     mSel = match(indexName,month.abb)
     stratIndx = datInd$i.mm[[mSel]]
@@ -769,7 +768,7 @@ calcStratIndex = function(indexName,opName,datInd){
   }
 
   if (is.null(opName)){
-    indx = stratIndx
+    indx = list(val = stratIndx,breaks = which(diff(stratIndx)>1))
   } else { # here we calculate stratification for each year (later used to calculate mean/max values over all years)
     yrIndx = list()
     if (opName%in%c('m','sd','cor','dwellTime','range90','corSOI','cv')){
@@ -802,7 +801,10 @@ calcStratIndex = function(indexName,opName,datInd){
     } else {
       invalidOperationStop(opName=opName)
     }
-    indx = yrIndx
+    indx = list()
+    for (y in 1:length(yrIndx)){
+      indx[[y]] = list(val=yrIndx[[y]],breaks=which(diff(yrIndx[[y]])>1))
+    }
   }
 
   return(indx)
@@ -823,6 +825,8 @@ attribute.info.check<-function(attSel=NULL,  # vector of selected attributes (st
   #attribute name chopper function
   attInfo$varType=vapply(attSel,FUN = get.attribute.varType,FUN.VALUE=character(1),USE.NAMES = FALSE) #drop use of names as comes ordered anyway
 
+  attInfo$aggType=vapply(attSel,FUN = get.attribute.aggType,FUN.VALUE=character(1),USE.NAMES = FALSE) #drop use of names as comes ordered anyway
+  
   #ASSIGN TARGET TYPE (IF P USE "FRAC", IF T USE "DIFF")
   attInfo$targetType=vapply(attInfo$varType,FUN=get.target.type,FUN.VALUE=character(1),USE.NAMES=FALSE)
 
@@ -854,6 +858,27 @@ attribute.info.check<-function(attSel=NULL,  # vector of selected attributes (st
   return(attInfo)
 }
 
+get.att.ind.withAggs <-function(attInfo=NULL,
+                      simVar=NULL,
+                      simAgg=NULL
+){
+  
+  simVar = unique(attInfo$varType)
+  simAgg = unique(attInfo$aggType)
+  #DETERMINE WHICH ATTRIBUTE RELATES TO WHICH SIMULATOR
+  attInd=list()
+  if(simVar[1] != "All"){                    # ONLY DO IF STOCHASTIC GENERATION IS SELECTED (not simple scaling)
+    for(i in 1:length(simVar)){
+      attInd[[simVar[i]]] = list()
+      for (j in 1:length(simAgg)){
+        attInd[[simVar[i]]][[simAgg[j]]]= which((attInfo$varType==simVar[i])
+                                                &(attInfo$aggType==simAgg[j]))
+      }
+    }
+  }
+  return(attInd)
+}
+
 get.att.ind<-function(attInfo=NULL,
                       simVar=NULL
 ){
@@ -877,6 +902,7 @@ update.att.Info<-function(attInfo=NULL,
   #divide up attInfo to different models
     for(i in 1:length(modelTag)){
       attInfo[[modelTag[i]]]$varType=attInfo$varType[attInd[[simVar[i]]]]
+      attInfo[[modelTag[i]]]$aggType=attInfo$aggType[attInd[[simVar[i]]]]
       attInfo[[modelTag[i]]]$targetType=attInfo$targetType[attInd[[simVar[i]]]]
       attInfo[[modelTag[i]]]$primType=attInfo$primType[attInd[[simVar[i]]]]
       attInfo[[modelTag[i]]]$primMult=attInfo$primMult[attInd[[simVar[i]]]]
@@ -884,14 +910,30 @@ update.att.Info<-function(attInfo=NULL,
   return(attInfo)
 }
 
-#GETS VARTYPE BY READING FIRST ELEMENT OF ATTRIBUTE STRING
+#GETS VARTYPE of attribute
 get.attribute.varType<-function(attrib=NULL, # attribute name
                                  sep="_"){
-  varType=strsplit(x = attrib,split=sep)[[1]][1]
+  varType=calc_att_components(attrib)$varName
+
   return(varType)
 }
 
-#get.attribute.varType(attrib=attSel[1], sep="_")
+#GETS aggregation type of attribute
+get.attribute.aggType<-function(attrib=NULL, # attribute name
+                                sep="_"){
+  aggType=calc_att_components(attrib)$aggName
+  
+  return(aggType)
+}
+
+#GETS function name of attribute
+get.attribute.funcType<-function(attrib=NULL, # attribute name
+                                sep="_"){
+  funcType=calc_att_components(attrib)$funcName
+  
+  return(funcType)
+}
+
 
 #TARGET TYPE CLASSIFIER
 get.target.type<-function(varType=NULL){
@@ -912,19 +954,9 @@ get.target.type<-function(varType=NULL){
 tagBlender<-function(attLab=NULL
 ){
 
-  # split up attribute name
-  chopped=strsplit(x = attLab,split="_")[[1]]
-
-  # variable name
-  varName = chopped[1]
-  # stratification index name
-  indexName = chopped[2]
-  # long function name (including parameters)
-  funcNameLong = chopped[3]
-  # operator name
-  opName = NULL
-  if (length(chopped)>3){opName=chopped[4]}
-
+  o = calc_att_components(attLab); varName = o$varName; aggName = o$aggName; 
+  indexName = o$indexName; funcNameLong = o$funcNameLong; opName = o$opName; type=o$type; varName = o$varName
+  
   #variable type
   if(varName== "P"){
     vtype="rainfall"
@@ -939,8 +971,8 @@ tagBlender<-function(attLab=NULL
   #stratification type
   month.str.abb <- c("JFMAMJJASONDJFMAMJJASOND") #2 year month abbreviation to allow for wrap around months
   month_number <- c(1:12,1:12)   #month.str.abb as month numbers
-  if(indexName== "ann"){
-    atype="annual"
+  if(indexName== "all"){
+    atype="All"
   }else if(indexName== "DJF"){
     atype="DJF"
   }else if(indexName== "MAM"){
@@ -981,20 +1013,20 @@ tagBlender<-function(attLab=NULL
   }
 
   # use calcFuncNamesAndArgs() to calculate parameter values from long function name
-  o = calcFuncNamesAndArgs(funcNameLong = funcNameLong,datInd = NULL)
+  o = calcFuncNamesAndArgs(funcNameLong = funcNameLong,datInd = NULL,type=type)
   if(funcNameLong== "tot"){
     mtype="total"
   } else if(funcNameLong== "avg"){
     mtype="average"
   } else if (startsWith(funcNameLong,'seasRatio')){
     if (is.null(o$suffix)){
-      mtype='ratio of wet to dry season totals'
+      mtype='ratio of season to total'
     } else {
       wetStart = substring(o$suffix,5,7)
       wetEnd = substring(o$suffix,8,10)
       mtype=paste0('ratio of wet (',wetStart,'-',wetEnd,') to dry season totals')
     }
-    if(indexName=='ann'){
+    if(indexName=='all'){
       atype = NULL
     } else {
       errMess = paste0('invalid attribute: cannot compute seasRatio for ',indexName,' stratification\n')
@@ -1010,7 +1042,7 @@ tagBlender<-function(attLab=NULL
       p=o$suffix
       mtype=paste0(p,'th percentile')
     }
-    if(indexName== "ann"){atype=NULL}
+    if(indexName== "all"){atype=NULL}
   } else if (startsWith(funcNameLong,'nWet')){
     if (is.null(o$suffix)){
       mtype="no. wet days"

@@ -136,8 +136,9 @@ check_duplicates_mismatch<-function(obs=NULL,
 
   # variables in the input data
   names <- names(obs)
-  names<-names[names!="year"];names<-names[names!="month"];names<-names[names!="day"]
-
+  #names<-names[names!="year"];names<-names[names!="month"];names<-names[names!="day"]
+  names<-names[names!="times"];names<-names[names!="timeStep"]
+  
   # Anjana - commented after createExpSpace
   # # Perturbed attributes should exist
   # if(is.null(attPerturb)){
@@ -190,6 +191,8 @@ check_duplicates_mismatch<-function(obs=NULL,
       stop("There are multiple entries of the same primary attribute")
     }
 
+    modelTaglist = get_modelTags(modelInfoList=modelInfoList)
+    
     # Check that modelTag and attribute names are recognized
     for(i in 1:length(modelTag)){
       if(sum(modelTag[i] %in% modelTaglist)==0){
@@ -223,7 +226,8 @@ check_duplicates_mismatch<-function(obs=NULL,
     if (length(which((names %in% modelVars)==FALSE))>0) {
       message("reference contains more variables than the specified attributes or models. Stochastic series will only be produced for the specified settings.")
       #warn("There is a mismatch between provided model types and supplied variables. Stochastic series will only be produced for supplied model tags",file)
-      array<-c("year","month","day",modelVars)
+      #array<-c("year","month","day",modelVars)
+      array<-c("times","timeStep")
       obs=obs[array]
     }
 

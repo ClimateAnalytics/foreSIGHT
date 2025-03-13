@@ -72,11 +72,13 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
 
   multiStartOptim = function(optimArgs=NULL,
                              modelInfo=NULL,
+                             modelTag=NULL,
                              lambda.mult=NULL,
                              target=NULL,
                              parSuggest=NULL,
                              simSeed=NULL,
                              iRepTarg = NULL,
+                             obs=NULL,
                              ...){
 
   timeStart=Sys.time()
@@ -146,10 +148,12 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
                             control=optimArgs$RGN.control,
                             lambda.mult=lambda.mult,
                             modelInfo=modelInfo,
+                         modelTag=modelTag,
                             target=target,
                             returnThis='resid',
                             simSeed=simSeed,
-                            ...)
+                            obs=obs,
+                         ...)
 
       fSingle = sqrt(2*outTmp$value)
       parsSingle = calcParFixedPars(outTmp$par,fixedPars)
@@ -162,10 +166,12 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
                               par = x0[fixedPars$fitParLoc],
                               fixedPars=fixedPars,
                               modelInfo=modelInfo,
+                              modelTag=modelTag,
                               target=target,
                               lambda.mult=lambda.mult,
                               obj.func=optimArgs$obj.func,
                               simSeed=simSeed,
+                              obs=obs,
                          ...,
                          lower = xLo[fixedPars$fitParLoc],
                          upper = xHi[fixedPars$fitParLoc],
@@ -204,7 +210,9 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
                   lambda.mult=lambda.mult,
                   obj.func=optimArgs$obj.func,
                   modelInfo=modelInfo,
+                  modelTag=modelTag,
                   simSeed=simSeed,
+                  obs=obs,
                   ...)
 
       fSingle = -outTmp@fitnessValue
@@ -225,7 +233,9 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
         lambda.mult=lambda.mult,
         obj.func=optimArgs$obj.func,
         modelInfo=modelInfo,
+        modelTag=modelTag,
         simSeed=simSeed,
+        obs=obs,
         ...)
 
       fSingle = outTmp$value
@@ -246,7 +256,9 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
                      lambda.mult=lambda.mult,
                      obj.func=optimArgs$obj.func,
                      modelInfo=modelInfo,
+                     modelTag=modelTag,
                      simSeed=simSeed,
+                     obs=obs,
                      ...)
 
       fSingle = -outTmp$value
@@ -269,7 +281,9 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
                      lambda.mult=lambda.mult,
                      obj.func=optimArgs$obj.func,
                      modelInfo=modelInfo,
+                     modelTag=modelTag,
                      simSeed=simSeed,
+                     obs=obs,
                      ...)
 
       fSingle = -outTmp$value

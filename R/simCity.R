@@ -118,7 +118,7 @@ modSimulator<-function(datStart=NULL,
   out=list()
 
   for(mod in 1:length(modelTag)){
-    randomVector <- stats::runif(n=datInd[[modelTag[mod]]]$ndays) # Random vector to be passed into weather generator to reduce runtime
+    randomVector <- stats::runif(n=datInd[[modelTag[mod]]]$nTimes) # Random vector to be passed into weather generator to reduce runtime
     #IF CONDITIONED ON DRY-WET STATUS, populate wdStatus
     switch(simVar[mod], #
            "P" = {wdStatus=NULL},
@@ -146,10 +146,23 @@ modSimulator<-function(datStart=NULL,
     out[[simVar[mod]]]=switch_simulator(type=modelInfo[[modelTag[mod]]]$simVar,
                                         parS=parSel,
                                         modelEnv = foreSIGHT_modelEnv,
-                                        randomVector = randomVector,
+                                        randomTerm = list(randomVector = randomVector,
+                                                          seed=seed),
                                         wdSeries=wdStatus,
-                                        resid_ts=NULL,
-                                        seed=seed)
+                                        resid_ts=NULL)
+    
+    
+    browser()
+    
+    out1[[simVar[mod]]]=simClim(parS=parSel,              #RAIN SELECTED
+                                   modelTag = modelTag,
+                                   ppTypes=modelInfo$ppTypes,
+                                   datInd=datInd[[modelTag]],
+                                   randomTerm = list(randomVector = randomVector,
+                                                     randomUnitNormalVector = randomUnitNormalVector,
+                                                     seed=optTest$seed),
+                                   obs=obs)
+    browser()
   }  #end model loop
 
   simDat=makeOutputDataframe(data=out,dates=dates,simVar=simVar,modelTag=modelTag[1])

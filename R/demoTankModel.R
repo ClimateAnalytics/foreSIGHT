@@ -114,8 +114,9 @@ tank_model<-function(roofArea=50,   #Roof area in m2
   
   outdoorDemand=rep(NA,nday)
   
+  month = as.integer(format(date,'%m'))
   for(i in 1:12){
-    ind=which(date$month == i)
+    ind=which(month == i)
     outdoorDemand[ind]=seasPattern[i]*outdoorDemandSum
   }
   
@@ -244,7 +245,7 @@ tankPerformance<-function(data=NULL,
                  firstFlush=firstFlush,
                  rainTS=data$P,
                  tempTS=data$Temp,
-                 date=data[,c("year","month","day")])
+                 date=data$times)
   
   # to test need to write to csv
   if(write.file==TRUE){

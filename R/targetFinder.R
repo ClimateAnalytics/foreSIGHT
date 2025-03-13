@@ -3,11 +3,12 @@
 ########################################################
 
 #CONTAINS
-  #targetFinder() -
+#targetFinder() -
 #------------------------------------------------------------------------------------------------
 targetFinder<- function(x,               # vector of pars (will change in optim)
                         modelInfo=NULL,
-                        modelEnv=NULL,      # tag to link/identify model
+                        modelTag=NULL,
+                        # modelEnv=NULL,      # tag to link/identify model
                         attSel=NULL,        # attributes selected (vector of strings)
                         attPrim=NULL,       # primary attribute label
                         attInfo=NULL,     # added info regarding attributes (maybe add in attPrim here)!!!!!!!!!!!!!
@@ -22,37 +23,53 @@ targetFinder<- function(x,               # vector of pars (will change in optim)
                         wdSeries=NULL,
                         resid_ts=NULL,
                         returnThis = 'objFunc',
-                        obj.func = 'SS_absPenalty'
+                        obj.func = 'SS_absPenalty',
+                        ...
                         #Nw=NULL,            # warmup period in days
                         # N=NULL,             # seeds
                         # seed1=NULL,
                         # seed2=NULL,
                         # seed3=NULL
 ){
-
+  
   parS = x
-
+  
   #SIMULATE SELECTED VARIABLE USING CHOSEN STOCHASTIC MODEL
-
-  sim=switch_simulator(type=modelInfo$simVar,          # what vartype is being simulated
-                       parS=parS,
-                       modelEnv=modelEnv,
-                       randomVector = randomVector,
-                       randomUnitNormalVector = randomUnitNormalVector,
-                       wdSeries=wdSeries,
-                       resid_ts=resid_ts,
-                       seed=simSeed,
-                       obs=obs)
-   
-    if(length(which(is.na(sim$sim))) > 0){
+  sim=simClim(parS=parS,              
+              modelTag = modelTag,
+              ppTypes=modelInfo$ppTypes,
+              datInd=datInd,
+              randomTerm = list(randomVector = randomVector,
+                                randomUnitNormalVector = randomUnitNormalVector,
+                                seed=simSeed),
+              obs=obs)
+  
+  if(length(which(is.na(sim))) > 0){
     score=-150  #default here
   }else{
-    #CALCULATE SELECTED ATTRIBUTE VALUES
-    sim.att=attribute.calculator(attSel=attSel,data=sim$sim,datInd=datInd,attInfo=attInfo)
-
-    #RELATING TO BASELINE SERIES
-    simPt=unlist(Map(function(type, val,baseVal) simPt.converter.func(type,val,baseVal), attInfo$targetType, as.vector(sim.att),as.vector(attObs)),use.names = FALSE)
-
+    
+    timeStep = obs$timeStep
+    
+    aggList = vapply(attSel,FUN = get.attribute.aggType,FUN.VALUE=character(1),USE.NAMES = FALSE)
+    aggList = unique(aggList)
+    nagg = length(aggList)
+    
+    simVar = modelInfo$simVar
+    data = list(times=datInd[[aggNameShort[[timeStep]]]]$times,
+                timeStep=timeStep)
+    data[[simVar]] = sim
+    
+    sim.att = aggregate_calculate_attributes(varList=modelInfo$simVar,
+                                             aggList=aggList,
+                                             data=data,
+                                             attSel=attSel,
+                                             datInd=datInd,
+                                             attInfo=attInfo)
+    
+    simPt=unlist(Map(function(type, val,baseVal) simPt.converter.func(type,val,baseVal), attInfo$targetType, sim.att,attObs),use.names = FALSE)
+    
+    if (length(simPt)!=length(unlist(target))){browser()}
+    
     if(returnThis=='sim'){
       return(simPt)
     } else if (returnThis=='resid') {
@@ -63,7 +80,7 @@ targetFinder<- function(x,               # vector of pars (will change in optim)
       if(is.infinite(asr)|is.nan(asr)|is.na(asr)){browser()}
       return(resid)
     } else if (returnThis=='objFunc'){
-
+      
       #GET OBJECTIVE FUNCTION VALUE ()
       score=objFuncMC(attSel= attSel,     # vector of selected attributes
                       attPrim=attPrim,      # any primary attributes

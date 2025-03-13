@@ -168,8 +168,8 @@ generateScenarios <- function(reference,                # data frame of observed
                               simLengthNyrs = NULL,      # desired length of simulation in years
                               numReplicates = 1,  # reps
                               seedID = NULL,      # seed - user may set this to reproduce a previous simulation
-                              controlFile = NULL   # NULL = default stochastic model options, "scaling" = simple scaling, json file = stochastic model options
-                              ) {
+                              controlFile = NULL,   # NULL = default stochastic model options, "scaling" = simple scaling, json file = stochastic model options
+                              tol=0.05) {
 
   # Number of targets
   nTarget <- dim(expSpace$targetMat)[1]
@@ -239,6 +239,29 @@ generateScenarios <- function(reference,                # data frame of observed
       simDates <- allSim[[iRep]][[iTarg]][["simDates"]]
       allSim[[iRep]][[iTarg]][["nml"]] <- NULL
       allSim[[iRep]][[iTarg]][["simDates"]] <- NULL
+
+      if (!is.null(allSim[[iRep]][[iTarg]]$attSim)){ # check if stochastic simulation performed
+          
+        varNames = names(allSim[[iRep]][[iTarg]])
+        varNames = varNames[!varNames%in%c('attSim','targetSim')]
+        
+        for (var in varNames){
+          
+          if (any(allSim[[iRep]][[iTarg]][[var]]$onBounds)){
+            warning(paste0('parameters for ', var,' stoch rep, ', iRep, ' for target ',iTarg, ' on bounds\n'))
+          }
+          
+          targDiff = abs(allSim[[iRep]][[iTarg]][[var]]$targetSim - expTarg$targetMat) 
+          if (any(targDiff > tol)){
+            warning(paste0('error in target atts for ', var,' stoch rep ', iRep, ' for target ',iTarg, ' greater than tol\n'))
+          }
+          
+        }
+        
+
+        
+      }
+      
     }
     names(allSim[[iRep]]) <- paste0("Target", 1:nTarget)
   }
@@ -257,8 +280,8 @@ generateScenarios <- function(reference,                # data frame of observed
 }
 
 
-checkObsVars <- function(obs, file) {
-  obsVars <- names(obs)[-which(names(obs) %in% c("year", "month", "day"))]
+checkObsVars <- function(obs, file, fSVars) {
+  obsVars <- names(obs)[-which(names(obs) %in% c("times", "timeStep"))]
   for (o in obsVars) {
     if(!(o %in% fSVars)){
       logfile(paste0("Input variable ", o, " unrecognized."), file)
@@ -274,11 +297,13 @@ checkObsVars <- function(obs, file) {
 # Anjana: pass "file" to readNamelist and modify checkNamelist functions to write errors into the file
 getUserModelChoices <- function(controlFile, obs, attSel, file = NULL) {
 
-  obsVars <- names(obs)[-which(names(obs) %in% c("year", "month", "day"))]
+  obsVars <- names(obs)[!(names(obs) %in% c("times","timeStep"))]
   attVars <- vapply(attSel,FUN = get.attribute.varType,FUN.VALUE=character(1),USE.NAMES = FALSE)
 
+  fSVars = get_fSVars(get_modelTags(modelInfoList=modelInfoList))
+
   if (!is.null(file)) {
-    checkObsVars(obs, file)
+    checkObsVars(obs, file, fSVars)
 
     for (i in 1:length(attSel)) {
         if(!(attVars[i] %in% obsVars)){
@@ -294,6 +319,7 @@ getUserModelChoices <- function(controlFile, obs, attSel, file = NULL) {
   attPenalty <- NULL
   optimArgs <- list()
   spatialArgs = list()
+  postProcessing = list()
 
   if (is.null(controlFile)) {
     modelTag <- NULL
@@ -325,6 +351,7 @@ getUserModelChoices <- function(controlFile, obs, attSel, file = NULL) {
     nmlVars <- names(nml[["modelType"]])
     allVars <- union(unique(attVars), nmlVars)
 
+    spatialArgs = ppArgs = list()
     modelTag <- NULL
     for (v in allVars) {
       modelTag <- c(modelTag, getModelTag(nml = nml, v))
@@ -332,14 +359,16 @@ getUserModelChoices <- function(controlFile, obs, attSel, file = NULL) {
     modelInfoMod <- getModelInfoMod(nml)
     optimArgs <- getOptimArgs(nml)
     attPenalty <- getAttPenalty(nml)
-    spatialArgs = list(sites=nml$spatialOptions$sites,spatCorMatIn=nml$spatialOptions$spatCorMatIn,spatCorFac=nml$spatialOptions$spatCorFac)
+    spatialArgs = nml$spatialArgs
+    postProcessing = nml$postProcessing
   }
 
   return(list(modelTag = modelTag,
               modelInfoMod = modelInfoMod,
               optimArgs = optimArgs,
               attPenalty = attPenalty,
-              spatialArgs = spatialArgs))
+              spatialArgs = spatialArgs,
+              postProcessing = postProcessing))
 
 }
 
@@ -347,14 +376,18 @@ getUserModelChoices <- function(controlFile, obs, attSel, file = NULL) {
 # note: this could possibly be incorporated into get.multi.model.info or check_duplicates_mismatch but would significant changes to either function
 add_scaling_info = function(obs,attSel,modelInfo){
 
-  obsVars <- names(obs)[-which(names(obs) %in% c("year", "month", "day"))]
+  obsVars <- names(obs)[-which(names(obs) %in% c("times", "timeStep"))]
+  
   attVars <- vapply(attSel,FUN = get.attribute.varType,FUN.VALUE=character(1),USE.NAMES = FALSE)
   for (v in intersect(obsVars, attVars)) {
     attSelVar = attSel[attVars==v]
     tmp = unlist(strsplit(attSelVar,paste0(v,'_')))
     suffix = tmp[tmp!='']
-    if (any(suffix%in%c('ann_tot_m','ann_avg_m'))){
-      if (length(attSelVar)==1){
+    if ( any(endsWith(x = attSelVar,'all_tot')) | 
+         any(endsWith(x = attSelVar,'all_tot_m')) | 
+         any(endsWith(x = attSelVar,'all_avg')) | 
+         any(endsWith(x = attSelVar,'all_avg_m')) ){
+        if (length(attSelVar)==1){
         modelInfo[["Simple-ann"]]$simVar = c(modelInfo[["Simple-ann"]]$simVar,v)
       } else if ((length(attSelVar)==2)){
         if (any(grepl('seasRatio',attSelVar))){
@@ -383,7 +416,7 @@ add_scaling_info = function(obs,attSel,modelInfo){
 #' @export
 #' @import GA
 
-generateScenario <- function(reference,       # data frame of observed data with column names compulsary [$year, $month, $day, $P,] additional [$Temp, $RH, $PET, $uz, $Rs] (or a subset of these)
+generateScenario <- function(reference,       # list observed data with column names compulsary [$times, $P,] additional [$Temp, $RH, $PET, $uz, $Rs] (or a subset of these)
                              expTarg,
                              simLengthNyrs = NULL,
                              seedID = NULL,
@@ -421,6 +454,7 @@ generateScenario <- function(reference,       # data frame of observed data with
   modelInfoMod <- userModelChoices$modelInfoMod
   optimArgs <- userModelChoices$optimArgs
   attPrim <- userModelChoices$attPenalty
+  ppArgs = userModelChoices$postProcessing
   spatialArgs = userModelChoices$spatialArgs
 
   # Update optimArgs
@@ -462,8 +496,8 @@ generateScenario <- function(reference,       # data frame of observed data with
   #CHECK FOR INPUTS
   banner("CHECK FOR DATAFRAME INPUT",file)
   progress("Checking dataframe input...",file)
-  inputcheck<-input_check(obs,file,simLengthNyrs)
-  obs=inputcheck$data                                      # USE NEW APPENDED/CHECKED DATA
+  inputcheck<-input_process_check(obs,file,simLengthNyrs)
+  obs=inputcheck                                      # USE NEW APPENDED/CHECKED DATA
   progress("Dataframe input OK",file)
 
   #GET ADDITIONAL MODEL INFO, ATT INFO & SORT (make into separate script/functions)
@@ -489,35 +523,54 @@ generateScenario <- function(reference,       # data frame of observed data with
                                                    maxUserBound=modPars$maxBound,
                                                    file=file)  #need to build in checks for this
     }
-  }
 
+    # add post-processing info to model. include parameters. 
+    # this can be movedf ot separate function
+    v = modelInfo[[modelTag[mod]]]$simVar
+    if (modelTag[mod]!='Simple-ann'){
+      ppTypes = ppArgs[[v]]$types
+      if (!is.null(ppTypes)){
+        modelInfo[[modelTag[mod]]]$ppTypes = ppTypes
+        for (type in ppTypes){
+          if (!is.null(ppInfoList[[type]])){
+            modelInfo[[modelTag[mod]]]$npars = modelInfo[[modelTag[mod]]]$npars + ppInfoList[[type]]$npars
+            modelInfo[[modelTag[mod]]]$parNames = c(modelInfo[[modelTag[mod]]]$parNames,ppInfoList[[type]]$parNames)
+            modelInfo[[modelTag[mod]]]$minBound = c(modelInfo[[modelTag[mod]]]$minBound,ppInfoList[[type]]$minBound)
+            modelInfo[[modelTag[mod]]]$maxBound = c(modelInfo[[modelTag[mod]]]$maxBound,ppInfoList[[type]]$maxBound)
+          }
+        }
+      } 
+    }
+
+  }
+  
   modelTag=update.simPriority(modelInfo=modelInfo)
   simVar=sapply(X=modelInfo[modelTag],FUN=return.simVar,USE.NAMES=TRUE)       #?CREATE MODEL MASTER INFO - HIGHER LEVEL?
 
-  attInfo=attribute.info.check(attSel=attSel,attPrim=attPrim, lambda.mult = optimArgs$lambda.mult)                                 # vector of selected attributes (strings)
+  attInfo=attribute.info.check(attSel=attSel,attPrim=attPrim, lambda.mult = optimArgs$lambda.mult)
+  simAgg = unique(attInfo$aggType)
+  nagg = length(simAgg)
+  
   if(modelTag[1]%in%c("Simple-ann","Simple-seas")){simVar=attInfo$varType}
   attInd=get.att.ind(attInfo=attInfo,simVar=simVar)
-  attInfo=update.att.Info(attInfo=attInfo,attInd=attInd,modelTag=modelTag,simVar=simVar) #add extra level for easier model mangmt
-  if(!(modelTag[1]%in%c("Simple-ann","Simple-seas"))){
-    nParTot=0
-    for(i in 1:nMod){
-      nParTot=nParTot+modelInfo[[i]]$npars #total number of pars
-    }
-  }
+
+   attInfo=update.att.Info(attInfo=attInfo,attInd=attInd,modelTag=modelTag,simVar=simVar) #add extra level for easier model mangmt
 
   #GET DATES DATA (and indexes for harmonic periods)
   banner("INDEXING DATES",file)
   progress("Indexing dates...",file)
   dateExtnd=dateExtender(obs=obs,simLengthNyrs=simLengthNyrs,file=file,modelTag=modelTag)  #Extend dates if needed
-  datInd=mod.get.date.ind.extnd(obs=obs,dateExtnd=dateExtnd,modelTag=modelTag,modelInfo=modelInfo,simLengthNyrs=simLengthNyrs,file=file,southHemi=TRUE)
+
+  datInd = list()
+  datInd[['obs']] = setup_datInd_agg(simAgg=simAgg,times=obs$times,timeStep=obs$timeStep)
+
+  for(i in 1:length(modelTag)){
+    if(!is.null(modelInfoList[[modelTag[i]]]$timeStep)){
+      datInd[[modelTag[i]]]=setup_datInd_agg(simAgg=simAgg,times=dateExtnd,timeStep=modelInfoList[[modelTag[i]]]$timeStep,nperiod=modelInfo[[modelTag[i]]]$nperiod)
+    }
+  }
 
   progress("Dates indexed OK",file)
-
-  # Adding AR1 parameter for P-har-wgen to ModelInfo (Anjana: moved to a separate fn from modelSequencer)
-  # Has to be after datInd since dates are used in the AR1 param calculation
-  modelInfo <- add_ar1Param(modelTag = modelTag,
-                            modelInfo = modelInfo,
-                            datInd = datInd)
 
   #-------------------------------------
   #SIMPLE/SEASONAL SCALING
@@ -535,25 +588,40 @@ generateScenario <- function(reference,       # data frame of observed data with
                                    data=obs,
                                    varType=attInfo$varType[i_simple_ann],
                                    period=modelInfo[[modelTag[mod]]]$nperiod,
-                                   i.pp=datInd[[modelTag[mod]]]$i.pp)[varSel]
+                                   i.pp=datInd$obs[[aggNameShort[[obs$timeStep]]]]$i.pp)[varSel]
         progress("Simple scaling OK",file)
       } else if (modelTag[mod]=='Simple-seas'){
         # seasonal scaling
         banner("SEASONAL SCALING FOR OBSERVED DATA",file)
         progress("Seasonal scaling data...",file)
         for (v in modelInfo[["Simple-seas"]]$simVar){
-          i1 = which(names(targetMat)%in%paste0(v,c('_ann_tot_m','_ann_avg_m'))) # tot/avg attribute
-          i2 = which(grepl(paste0(v,'_ann_seasRatio'),names(targetMat)))         # seasonality ratio attribute
+          timeStep = names(datInd$obs)
+          if (length(timeStep)>1){
+            stop('require single timestep/aggregation period in attribute names for seasonal scaling')
+          }
+          i1 = c()
+          for (t in 1:length(names(targetMat))){
+            if (any(endsWith(names(targetMat[t]),c('_all_tot','_all_avg','_all_tot_m','_all_avg_m')))){
+              i1 = c(i1,t)
+            }
+          }
+          if (length(i1)!=1){
+            stop("require single attribute that ends with '_all_tot','_all_avg','_all_tot_m' or '_all_avg_m'")
+          }
+          i2 = which(grepl(paste0(v,'_',timeStep,'_all_seasRatio'),names(targetMat)))         # seasonality ratio attribute
           attSeas = names(targetMat)[i2]
-          o = attribute.calculator.setup(attSeas,datInd[[modelTag[mod]]])
-          sim[[v]] = simple.scaling.seasonal(target_total_fac=unlist(targetMat)[i1],
+          
+          o = attribute.calculator.setup(attSeas,datInd$obs[[timeStep]])
+          targetTypes = attInfo$targetType[c(i1,i2)]
+          if (any(targetTypes!='frac')){
+            stop('seas scaling cann only handle targetType=frac')
+          }
+
+          sim[[v]] = seasonal.scaling(target_total_fac=unlist(targetMat)[i1],
                                              target_seas_fac=unlist(targetMat)[i2],
-                                             data=obs,
-                                             varType=v,
-                                             i.T= datInd[[modelTag[mod]]]$i.pp[[1]],
-                                             i.S2 = o[[attSeas]]$attArgs$indexWet,
-                                             i.S1=o[[attSeas]]$attArgs$indexDry,
-                                             phi=o[[attSeas]]$attArgs$phi)[[v]]
+                                             data=obs[[v]],
+                                             targetType=attInfo$targetType[i1],
+                                             i.seas = o[[attSeas]]$attArgs$indexSeas)
         }
         progress("Seasonal scaling OK",file)
       }
@@ -574,15 +642,13 @@ generateScenario <- function(reference,       # data frame of observed data with
       banner("OBSERVED BASELINE ATTRIBUTE CALCULATION",file)
       progress("Calculating attributes...",file)
 
-      attObs=list()                            #make this into its own function (also inserted into model sequencer)
-      for(i in 1:nMod){
-        attObs[[i]]=attribute.calculator(attSel=attSel[attInd[[i]]],
-                                         data=obs[[simVar[i]]],
-                                         datInd=datInd[["obs"]])#,
-        #                                             attribute.funcs=attribute.funcs)
-      }
-      attObs=unlist(attObs); attObs=attObs[attSel]   #unlist attObs and make sure order is correct
-
+      attObs = aggregate_calculate_attributes(varList=simVar,
+                                              aggList=simAgg,
+                                              data=obs,
+                                              attSel=attSel,
+                                              datInd=datInd$obs,
+                                              attInfo=attInfo)
+      
       progress(paste("Attributes of observed series - ",paste(attSel,": ",signif(attObs,digits=5),collapse = ", ",sep=""),sep=""),file)
       progress("Attributes calculated OK",file)   #NEED SOME ACTUAL CHECKING HERE BEFORE PRONOUNCING OK
 
@@ -611,8 +677,6 @@ generateScenario <- function(reference,       # data frame of observed data with
         attApp <- attPrim
       }
 
-      browser()
-      
       sim=simulateTarget(optimArgs=optimArgs,         #sim[[i]]$P, $Temp $attSim $targetSim
                          simVar=simVar,
                          modelTag=modelTag,
@@ -636,7 +700,7 @@ generateScenario <- function(reference,       # data frame of observed data with
       b<-Sys.time()
       runt <- b-a
       logfile(signif(runt,digits=3),file)
-      nmlOut <- toNamelist(modelTag = modelTag, modelInfoMod = modelInfoMod, optimArgs = optimArgs, attPenalty = attPrim)
+      nmlOut <- toNamelist(modelTag = modelTag, modelInfoMod = modelInfoMod, optimArgs = optimArgs, ppArgs=ppArgs, attPenalty = attPrim)
       sim[["nml"]] <- nmlOut
       sim[["simDates"]] <- dateExtnd
       progress("Stochastic model parameters and time series obtained at target location ", file)
@@ -729,15 +793,17 @@ generateScenario <- function(reference,       # data frame of observed data with
                               obs=obs,
                               spatialArgs=spatialArgs3)
 
-      sim = list()
-      sim$Stage1 = sim1
-      sim$Stage2 = sim2
-      sim$Stage3 = sim3
-
+      sim = sim3
+      
+      sim$stages = list()
+      sim$stages$Stage1 = sim1
+      sim$stages$Stage2 = sim2
+      sim$stages$Stage3 = sim3
+      
       b<-Sys.time()
       runt <- b-a
       logfile(signif(runt,digits=3),file)
-      nmlOut <- toNamelist(modelTag = modelTag, modelInfoMod = modelInfoMod, optimArgs = optimArgs, attPenalty = attPrim)
+      nmlOut <- toNamelist(modelTag = modelTag, modelInfoMod = modelInfoMod, optimArgs = optimArgs, ppArgs=ppArgs,attPenalty = attPrim)
       sim[["nml"]] <- nmlOut
       sim[["simDates"]] <- dateExtnd
       progress("Stochastic model parameters and time series obtained at target location ", file)
@@ -770,7 +836,8 @@ simulateTargetMarg = function(optimArgs=NULL,
                               obs=NULL,
                               spatialArgs=NULL){
 
-  nday = datInd$obs$ndays
+  timeStep =   aggNameShort[[modelInfoList[[modelTag]]$timeStep]]
+  nTimes = datInd[[modelTag]][[timeStep]]$nTimes
 
   ### DM NOTE: CODE CURRENTLY NOT PROPERLY SETUP TO WORK WITH MULTIPLE MODELS - PROB NEED TO ADD MODEL TO SIM LIST
   sim = list(sites=NULL)
@@ -786,16 +853,16 @@ simulateTargetMarg = function(optimArgs=NULL,
     set.seed(setSeed)
     if (nsite==1){
       spatCorMatIn = NULL
-      MVTsampleMat = matrix(stats::rnorm(n=nday,mean=0.,sd=1.),ncol=1)
+      MVTsampleMat = matrix(stats::rnorm(n=nTimes,mean=0.,sd=1.),ncol=1)
     } else {
       if (!is.null(spatialArgs$spatCorMatIn)){
         spatCorMatIn = spatialArgs$spatCorMatIn
       } else {
         spatCorMatIn = diag(nsite)
       }
-#      MVTsampleMat = mvtnorm::rmvnorm(n=nday,sigma=spatCorMatIn)
     spatCorMatIn_PD = as.matrix(Matrix::nearPD(spatCorMatIn,keepDiag = T)$mat)
-    MVTsampleMat = mvtnorm::rmvnorm(n=nday,sigma=spatCorMatIn_PD)
+    
+    MVTsampleMat = mvtnorm::rmvnorm(n=nTimes,sigma=spatCorMatIn_PD)
 
       colnames(MVTsampleMat) = sites
     }
@@ -807,9 +874,10 @@ simulateTargetMarg = function(optimArgs=NULL,
       #GET ATTRIBUTES OF OBSERVED DATA (testing attribute calc function)
       banner("OBSERVED BASELINE ATTRIBUTE CALCULATION",file)
       progress("Calculating attributes...",file)
-      attObs=attribute.calculator(attSel=attSel[attInd[[i]]],
+      
+      attObs=attribute.calculator(attSel=attSel[unlist(attInd[[i]])],
                                      data=obs[[simVar[i]]][,s],
-                                     datInd=datInd[["obs"]])
+                                     datInd=datInd[["obs"]][[timeStep]])
 
       attObs=unlist(attObs); attObs=attObs[attSel]   #unlist attObs and make sure order is correct
 
@@ -832,6 +900,7 @@ simulateTargetMarg = function(optimArgs=NULL,
                                          parSim=parSim,
                                          setSeed=setSeed,
                                          iRepTarg=iRepTarg,
+                                         obs=obs,
                                          file=file,
                                          randomUnitNormalVector=MVTsampleMat[,s])
 
@@ -879,13 +948,14 @@ simulateTargetCor = function(optimArgs=NULL,
   }
   sites = names(simIn$sites)
   nsite=length(sites)
-  nday = datInd$obs$ndays
-
+  timeStep =   aggNameShort[[modelInfoList[[modelTag]]$timeStep]]
+  nTimes = datInd[[modelTag]][[timeStep]]$nTimes
+  
   modelInfoSites = list()
   for (s in 1:nsite){
     site = sites[s]
     modelInfoSites[[site]] = modelInfo
-    modelInfoSites[[site]][[modelTag[mod]]]$minBound = modelInfoSites[[site]][[modelTag[mod]]]$maxBound = simIn$sites[[site]]$parS
+    modelInfoSites[[site]][[modelTag[mod]]]$minBound = modelInfoSites[[site]][[modelTag[mod]]]$maxBound = simIn$sites[[site]][[simVar]]$parS
   }
 
   cor_par = matrix(nrow=nsite,ncol=nsite)
@@ -909,52 +979,27 @@ simulateTargetCor = function(optimArgs=NULL,
         corMat[1,2] = corMat[2,1] = rho_1_2_list[i]
 
         set.seed(setSeed)
-#        MVTsampleMat = mvtnorm::rmvnorm(n=nday,sigma=corMat)
         corMat_PD = as.matrix(Matrix::nearPD(corMat,keepDiag = T)$mat)
-        MVTsampleMat = mvtnorm::rmvnorm(n=nday,sigma=corMat_PD)
+        
+        MVTsampleMat = mvtnorm::rmvnorm(n=nTimes,sigma=corMat_PD)
 
-        attObs1=attribute.calculator(attSel=attSel[attInd[[mod]]],
-                                    data=obs[[simVar[mod]]][,s1],
-                                    datInd=datInd[["obs"]])
-        attObs1=unlist(attObs1); attObs1=attObs1[attSel]
-        sim1 = simulateTarget(optimArgs=optimArgs,
-                              simVar=simVar,
-                              modelTag=modelTag,
-                              modelInfo=modelInfoSites[[site1]],
-                              attSel=attSel,
-                              attPrim=attPrim,
-                              attInfo=attInfo,
-                              attInd=attInd,
-                              datInd=datInd,
-                              targetLoc=targetLoc,
-                              attObs=attObs1,
-                              parLoc=parLoc,
-                              file=file,
-                              iRepTarg=iRepTarg,
-                              randomUnitNormalVector=MVTsampleMat[,1])
+        sim1 = simClim(parS=simIn$sites[[site1]][[simVar]]$parS,              #RAIN SELECTED
+                          modelTag = modelTag,
+                          ppTypes=modelInfo$ppTypes,
+                          datInd=datInd[[modelTag]],
+                          randomTerm = list(randomUnitNormalVector = MVTsampleMat[,1]),
+                          obs=obs[[simVar]])
+        
+        sim2 = simClim(parS=simIn$sites[[site2]][[simVar]]$parS,              #RAIN SELECTED
+                       modelTag = modelTag,
+                       ppTypes=modelInfo$ppTypes,
+                       datInd=datInd[[modelTag]],
+                       randomTerm = list(randomUnitNormalVector = MVTsampleMat[,2]),
+                       obs=obs[[simVar]])
 
-        attObs2=attribute.calculator(attSel=attSel[attInd[[mod]]],
-                                     data=obs[[simVar[mod]]][,s2],
-                                     datInd=datInd[["obs"]])
-        attObs2=unlist(attObs2); attObs2=attObs2[attSel]
-        sim2 = simulateTarget(optimArgs=optimArgs,
-                              simVar=simVar,
-                              modelTag=modelTag,
-                              modelInfo=modelInfoSites[[site2]],
-                              attSel=attSel,
-                              attPrim=attPrim,
-                              attInfo=attInfo,
-                              attInd=attInd,
-                              datInd=datInd,
-                              targetLoc=targetLoc,
-                              attObs=attObs2,
-                              parLoc=parLoc,
-                              file=file,
-                              iRepTarg=iRepTarg,
-                              randomUnitNormalVector=MVTsampleMat[,2])
+        cor_sim_list[i] = stats::cor(sim1,sim2)
 
-        cor_sim_list[i] = stats::cor(sim1$P$sim,sim2$P$sim)
-
+        
       }
 
       diff = abs(cor_sim_list-cor_obs)
@@ -966,30 +1011,20 @@ simulateTargetCor = function(optimArgs=NULL,
 
   sim = list(sites=NULL,P=NULL)
   set.seed(setSeed)
-#  MVTsampleMat = mvtnorm::rmvnorm(n=nday,sigma=cor_par)
   cor_par_PD = as.matrix(Matrix::nearPD(cor_par,keepDiag = T)$mat)
-  MVTsampleMat = mvtnorm::rmvnorm(n=nday,sigma=cor_par_PD)
+  MVTsampleMat = mvtnorm::rmvnorm(n=nTimes,sigma=cor_par_PD)
 
   for (s in 1:nsite){
     site = sites[s]
-    sim$sites[[site]] = simulateTarget(optimArgs=optimArgs,
-                                 simVar=simVar,
-                                 modelTag=modelTag,
-                                 modelInfo=modelInfoSites[[site]],
-                                 attSel=attSel,
-                                 attPrim=attPrim,
-                                 attInfo=attInfo,
-                                 attInd=attInd,
-                                 datInd=datInd,
-                                 targetLoc=targetLoc,
-                                 attObs=attObs2,
-                                 parLoc=parLoc,
-                                 file=file,
-                                 iRepTarg=iRepTarg,
-                                 randomUnitNormalVector=MVTsampleMat[,s])
-
-    sim$P$sim = cbind(sim$P$sim,sim$sites[[site]]$P$sim)
-
+    sim$sites[[site]] = simClim(parS=simIn$sites[[site]][[simVar]]$parS,              #RAIN SELECTED
+                   modelTag = modelTag,
+                   ppTypes=modelInfo$ppTypes,
+                   datInd=datInd[[modelTag]],
+                   randomTerm = list(randomUnitNormalVector = MVTsampleMat[,s]),
+                   obs=obs[[simVar]])
+    
+    sim$P$sim = cbind(sim$P$sim,sim$sites[[site]])
+    
   }
 
   sim$cor_par = cor_par
@@ -1337,22 +1372,16 @@ runSystemModel <- function(sim,                  # output from scenario generato
 
   nRep <- length(repNames)
   nTar <- length(tarNames)
-
-  # variable names (currently fSVars = c("P", "Temp", "PET", "Radn"))
-  temp <- names(sim[[repNames[1]]][[tarNames[1]]])
-  varNames <- temp[which(temp %in% fSVars)]
-  rm(temp)
-
-  # assuming that the system model takes in climate data in a data.frame of the form
-  # c(year, month, day, var1, var2)
-
+  
+  varNames = unlist(lapply(colnames(sim$expSpace$targetMat),get.attribute.varType))
+  
   performance <- vector("list", length = length(metrics))
   for (i in 1:length(metrics)) performance[[i]] <- matrix(NA, nrow = nTar, ncol = nRep)
 
   for(r in 1:nRep) {
     for (t in 1:nTar) {
       # initialising scenarioData
-      scenarioData <- sim[["simDates"]]
+      scenarioData = as.data.frame(sim[["simDates"]],nm = 'times')
       varTemp <- list()
       for (v in varNames) {
         if ((is.character(sim[["controlFile"]]))) {

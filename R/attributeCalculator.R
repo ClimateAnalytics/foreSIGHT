@@ -47,39 +47,37 @@ calculateAttributes<-function(climateData,                    # input data in th
   simLengthNyrs=NULL
   file<-filename(IOmode=IOmode,arrayID=arrayID)
   
-  input<-input_check(climateData,file,simLengthNyrs) #Checks for missing values/full years of data
-  obs<-input$data
-  
+ input<-input_process_check(climateData,file,simLengthNyrs) #Checks for missing values/full years of data
+ obs<-input
+ 
+ year = as.integer(format(obs$times,'%Y'))
+ 
   if(!is.null(startYr)) {
     if (!is.null(endYr)) {
       if(startYr > endYr) stop("startYr should be less than or equal to endYr.")
     }
     if (startYr < obs$year[1]) warning("startYr is less than the starting year of climateData.")
   } else {
-    startYr <- obs$year[1]
+    startYr <- year[1]
   }
   
   if(!is.null(endYr)) {
-    if (endYr > utils::tail(obs$year,1)) warning("endYr is greater than the last year of climateData.")
+    if (endYr > utils::tail(year,1)) warning("endYr is greater than the last year of climateData.")
   } else {
-    endYr <- utils::tail(obs$year,1)
+    endYr <- utils::tail(year,1)
   }
 
-  keep = which(obs$year>=startYr&obs$year<=endYr)
-  for (var in names(obs)){
+ varNames = names(obs)
+ varNames = varNames[!(varNames%in%c('times','timeStep'))]
+ 
+  keep = which(year>=startYr&year<=endYr)
+  for (var in varNames){
     if (is.null(dim(obs[[var]]))){
       obs[[var]] = obs[[var]][keep]
     } else {
-      obs[[var]][] = obs[[var]][keep,]
+      obs[[var]] = obs[[var]][keep,]
     }  
   }
-   
-  # if(!is.null(slice)){                       #For non historical records     ***** old code using 'slice' and 'window'
-  #   start=slice-window
-  #   text<-paste("Note: Window is set ",window," years before slice",sep="")
-  #   #    progress(text,file)
-  #   obs<-obs[which(obs$year>=start&obs$year<=slice),]
-  # }
   
   #Get necessary variables for historical atts
   attInfo=attribute.info.check(attSel=attSel)              # vector of selected attributes (strings)
@@ -87,42 +85,171 @@ calculateAttributes<-function(climateData,                    # input data in th
   simVar<-unique(simVar)
   nvar<-length(simVar)
   
-  #  banner("INDEXING DATES",file)
-  #  progress("Indexing dates...",file)                       # USE NEW APPENDED/CHECKED DATA
-  yy=obs$year;mm=obs$month;dd=obs$day  
-  # STORE DATE VECTORS
+  simAgg = unique(attInfo$aggType)
+
+  timeStep = obs$timeStep
   
-  datInd=list()
-  datInd[["obs"]]=get.date.ind(dd=dd,mm=mm,yy=yy,nperiod=12,southHemi=TRUE)
-  attInd=get.att.ind(attInfo=attInfo,simVar=simVar)
-  
+
+  datInd = setup_datInd_agg(simAgg=simAgg,obs$times,timeStep=timeStep)
+    
   if (return_attCalcInfo){
       attCalcInfo = attribute.calculator.setup(attSel=attSel,
-                                                            datInd=datInd[[1]])
+                                               datInd=datInd[[1]])
       return(attCalcInfo)
   } else {
     attInfo$attCalcInfo = attCalcInfo
   }
-
-  #  progress("Dates indexed OK",file)
-  
-  #  banner("OBSERVED BASELINE ATTRIBUTE CALCULATION",file)
-  #  progress("Calculating attributes...",file)
-  
-  attObs=list()                            #make this into its own function (also inserted into model sequencer)
-  for(i in 1:nvar){
-    attObs[[i]]=attribute.calculator(attSel=attSel[attInd[[i]]],
-                                     data=obs[[simVar[i]]],
-                                     datInd=datInd[["obs"]],
-                                     attInfo=attInfo) 
-  }
-  
-  #  progress("Attributes calculated OK",file)   #NEED SOME ACTUAL CHECKING HERE BEFORE PRONOUNCING OK
-  attObs=unlist(attObs)
-  if (length(attObs)==length(attSel)){
-    names(attObs)=attSel
-  }
-  #  progress(attObs)
+ 
+  attObs = aggregate_calculate_attributes(varList=simVar,
+                                     aggList=simAgg,
+                                     data=obs,
+                                     attSel=attSel,
+                                     datInd=datInd,
+                                     attInfo=attInfo)
   
   return(attObs)
 }
+
+########################
+# names used for timesteps
+
+aggNameLong = list()
+aggNameLong[['hour']]='1 hour'
+aggNameLong[['3hour']]='3 hour'
+aggNameLong[['12hour']]='12 hour'
+aggNameLong[['day']]='1 day'
+aggNameLong[['month']]='1 month'
+aggNameLong[['year']]='1 year'
+
+aggNameShort = list()
+aggNameShort[['1 hour']]='hour'
+aggNameShort[['3 hour']]='3hour'
+aggNameShort[['12 hour']]='12hour'
+aggNameShort[['1 day']]='day'
+aggNameShort[['1 month']]='month'
+aggNameShort[['1 year']]='year'
+
+########################
+# aggregate data to diffreent aggregation periods
+aggregate_data = function(data=NULL,times,timeStep,aggPeriod){
+  
+  
+  if (timeStep==aggNameLong[[aggPeriod]]){
+    
+    out = list(times=times,
+               data=data,
+               timeStep=timeStep)
+    
+  } else {
+    
+    d1 <- data.frame(timePeriod = seq(from=times[1],
+                                    to=times[length(times)],
+                                    by=aggNameLong[[aggPeriod]]))
+  
+    if (!is.null(data)){
+      d2 <- data.frame(times,data)
+    } else {
+      d2 <- data.frame(times)
+    }
+    
+    d3 = d2 %>%
+      dplyr::mutate(timePeriod = lubridate::floor_date(times, aggNameLong[[aggPeriod]])) %>%
+      dplyr::group_by(timePeriod) %>%
+      dplyr::summarise(sum = sum(data)) %>%
+      dplyr::right_join(d1,by = dplyr::join_by(timePeriod))
+
+    out = list(times=d3$timePeriod,
+               data=d3$sum,
+               timeStep=aggPeriod)
+    
+  }
+  
+  return(out)
+  
+}
+
+########################
+
+setup_datInd_agg = function(simAgg,times,timeStep,nperiod=1){
+  datInd=list()
+  for (agg in simAgg){
+    o = aggregate_data(data=NULL,times=times,timeStep=timeStep,aggPeriod=agg)
+    datInd[[agg]]=get.date.ind(o$times,nperiod=nperiod,southHemi=TRUE)
+    datInd[[agg]]$times=o$times
+  }
+  return(datInd)  
+}
+
+########################
+
+aggregate_calculate_attributes = function(varList,aggList,data,attSel,datInd,attInfo){
+
+  att.ind = get.att.ind.withAggs(attInfo)
+
+  if (is.null(varList)){browser()}
+  if (is.null(aggList)){browser()}
+  
+  varAll = c()
+  for (var in varList){
+    tmp = strsplit(x=var,split='[/]')[[1]]
+    varAll = c(varAll,tmp)
+  }
+  varAll = unique(varAll)
+
+  agg_data = list()                            #make this into its own function (also inserted into model sequencer)
+  for(var in varAll){
+    agg_data[[var]] = list()
+    for (agg in aggList){
+      
+      agg_data[[var]][[agg]] = aggregate_data(data=data[[var]],
+                                             times=data$times,
+                                             timeStep=data$timeStep,
+                                             aggPeriod=agg)
+      
+    }
+    
+  }
+
+  attValues = list()                            #make this into its own function (also inserted into model sequencer)
+  for(v in 1:length(varList)){
+    var = varList[v]
+    attValues[[v]] = list()
+    for (a in 1:length(aggList)){
+      agg = aggList[a]
+      tmp = strsplit(var,split = '/')[[1]]
+      
+      if (length(tmp)==1){
+        data = agg_data[[var]][[agg]]$data
+      } else if (length(tmp)==2){
+        data = list()
+        data[[1]] = agg_data[[tmp[1]]][[agg]]$data
+        data[[2]] = agg_data[[tmp[2]]][[agg]]$data
+      } 
+
+      if(any(is.na(attSel[att.ind[[var]][[agg]]]))){browser()}
+      
+      attValues[[v]][[a]]=attribute.calculator(attSel=attSel[att.ind[[var]][[agg]]],
+                                                data=data,
+                                                datInd=datInd[[agg]],
+                                                attInfo=attInfo) 
+
+    }
+    
+  }
+
+  
+  attValues=unlist(attValues)
+  
+  if (length(attValues)!=length(attSel)){browser()}
+  
+  attValues=attValues[attSel]
+
+  return(attValues)
+  
+}
+
+##########################################
+
+
+
+
