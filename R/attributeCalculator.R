@@ -237,12 +237,13 @@ aggregate_calculate_attributes = function(varList,aggList,data,attSel,datInd,att
     
   }
 
-  
   attValues=unlist(attValues)
-  
-  if (length(attValues)!=length(attSel)){browser()}
-  
-  attValues=attValues[attSel]
+
+  # revert original attributes to original order - except when dealing with multisite data
+  if (is.null(dim(data))){
+    if (length(attValues)!=length(attSel)){browser()}
+    attValues=attValues[attSel]
+  } 
 
   return(attValues)
   

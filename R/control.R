@@ -302,7 +302,7 @@ getUserModelChoices <- function(controlFile, obs, attSel, file = NULL) {
 
   fSVars = get_fSVars(get_modelTags(modelInfoList=modelInfoList))
 
-  if (!is.null(file)) {
+  if ((!is.null(file)&(controlFile!="scaling"))) {
     checkObsVars(obs, file, fSVars)
 
     for (i in 1:length(attSel)) {
@@ -379,6 +379,7 @@ add_scaling_info = function(obs,attSel,modelInfo){
   obsVars <- names(obs)[-which(names(obs) %in% c("times", "timeStep"))]
   
   attVars <- vapply(attSel,FUN = get.attribute.varType,FUN.VALUE=character(1),USE.NAMES = FALSE)
+  
   for (v in intersect(obsVars, attVars)) {
     attSelVar = attSel[attVars==v]
     tmp = unlist(strsplit(attSelVar,paste0(v,'_')))
@@ -388,7 +389,7 @@ add_scaling_info = function(obs,attSel,modelInfo){
          any(endsWith(x = attSelVar,'all_avg')) | 
          any(endsWith(x = attSelVar,'all_avg_m')) ){
         if (length(attSelVar)==1){
-        modelInfo[["Simple-ann"]]$simVar = c(modelInfo[["Simple-ann"]]$simVar,v)
+          modelInfo[["Simple-ann"]]$simVar = c(modelInfo[["Simple-ann"]]$simVar,v)
       } else if ((length(attSelVar)==2)){
         if (any(grepl('seasRatio',attSelVar))){
           modelInfo[["Simple-seas"]]$simVar = c(modelInfo[["Simple-seas"]]$simVar,v)
@@ -587,7 +588,7 @@ generateScenario <- function(reference,       # list observed data with column n
                                    targetType=attInfo$targetType[i_simple_ann],
                                    data=obs,
                                    varType=attInfo$varType[i_simple_ann],
-                                   period=modelInfo[[modelTag[mod]]]$nperiod,
+                                   period=1,#modelInfo[[modelTag[mod]]]$nperiod,
                                    i.pp=datInd$obs[[aggNameShort[[obs$timeStep]]]]$i.pp)[varSel]
         progress("Simple scaling OK",file)
       } else if (modelTag[mod]=='Simple-seas'){
@@ -600,8 +601,10 @@ generateScenario <- function(reference,       # list observed data with column n
             stop('require single timestep/aggregation period in attribute names for seasonal scaling')
           }
           i1 = c()
-          for (t in 1:length(names(targetMat))){
-            if (any(endsWith(names(targetMat[t]),c('_all_tot','_all_avg','_all_tot_m','_all_avg_m')))){
+          attNames = names(targetMat)
+          for (t in 1:length(attNames)){
+            if (any(endsWith(attNames[t],c('_all_tot','_all_avg','_all_tot_m','_all_avg_m')))
+                &(startsWith(attNames[t],paste0(v,'_')))){
               i1 = c(i1,t)
             }
           }

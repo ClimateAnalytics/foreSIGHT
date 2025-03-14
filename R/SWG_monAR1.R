@@ -107,7 +107,7 @@ SWGsim.monAR1 = function(SWGpar,
   X = latentX_calc_cpp(SWGpar[['phi']], epsilonT, nTimes)
 
   X = X + SWGpar[['mu']]
-  
+
   P = rep(0,nTimes)
   P[X>0] = X[X>0] ^ SWGpar$lambda[X>0]
   

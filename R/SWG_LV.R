@@ -1,5 +1,7 @@
 #################################
 
+#' @include default_parameters.R
+
 modelInfoList[["P-ann-LV"]] = list(simVar="P",
                                    timeStep = "1 day",
                                    simPriority=1,
