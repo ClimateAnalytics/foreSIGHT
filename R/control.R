@@ -1415,10 +1415,34 @@ runSystemModel <- function(sim,                  # output from scenario generato
         } else{
           scenarioData <- varTemp
         }
-
       }
+      
+
+  #### move this to separate function     
+      
+      # store information about replicate, target, and target attributes
+      # names of target attributes
+      n=names(sim$expSpace$targetMat) 
+      # values of target attributes
+      v=as.numeric(sim$expSpace$targetMat[t,])
+      # string combining target attribute names and values (e.g. 'PET_day_all_avg_m_1__P_day_all_tot_m_0.7')
+      tmp = paste(n,v,sep='_') 
+      tmp1 = paste(tmp,collapse = '__') 
+      
+      # string combining rep number and target number
+      strShort = paste0('Rep',r,'_Target',t)
+      # longer string including target attribute name and values from above
+      strLong = paste0(strShort,'__',tmp1)
+      
+      targetRepInfo = list(repNum=r,
+                           tarNum=t,
+                           tarAttNames=n,
+                           tarAttVals=v,
+                           strLong=strLong,
+                           strShort=strShort)
+      
       # run the systemModel
-      perfTemp <- systemModel(data = scenarioData, systemArgs = systemArgs, metrics = metrics)
+      perfTemp <- systemModel(data = scenarioData, systemArgs = systemArgs, metrics = metrics, targetRepInfo=targetRepInfo)
 
       # store performance metrics
       for (i in 1:length(metrics)) performance[[i]][t, r] <- perfTemp[[i]]
