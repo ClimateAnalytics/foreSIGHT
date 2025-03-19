@@ -302,15 +302,17 @@ getUserModelChoices <- function(controlFile, obs, attSel, file = NULL) {
 
   fSVars = get_fSVars(get_modelTags(modelInfoList=modelInfoList))
 
-  if ((!is.null(file)&(controlFile!="scaling"))) {
-    checkObsVars(obs, file, fSVars)
-
-    for (i in 1:length(attSel)) {
-        if(!(attVars[i] %in% obsVars)){
-          logfile(paste0("Observations do not contain the variable ", attVars[i], " to compute the selected attribute attSel [",i,"]"), file)
-          logfile("Program terminated",file)
-          stop(paste0("Observations do not contain the variable ", attVars[i], " to compute the selected attribute attSel [",i,"]"))
-        }
+  if (!is.null(controlFile)){
+    if(controlFile!="scaling") {
+      checkObsVars(obs, file, fSVars)
+  
+      for (i in 1:length(attSel)) {
+          if(!(attVars[i] %in% obsVars)){
+            logfile(paste0("Observations do not contain the variable ", attVars[i], " to compute the selected attribute attSel [",i,"]"), file)
+            logfile("Program terminated",file)
+            stop(paste0("Observations do not contain the variable ", attVars[i], " to compute the selected attribute attSel [",i,"]"))
+          }
+      }
     }
   }
 
