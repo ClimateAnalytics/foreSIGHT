@@ -45,8 +45,9 @@ plotPerformanceOAT <- function(performance,                   # system model per
                                col = NULL,                    # colour of the ribbon
                                ylim = NULL,                    # ylim of the data, xlim is determined by the perturbation range
                                noPlot=T,
-                               plim=c(0.05,0.95)              # probability limits
-                               ) {
+                               use_ggplot=T,
+                               plim=c(0.05,0.95),              # probability limits
+                               attSel=NULL) {
   
   # assuming that performance is a list with a name
   # it may also be a matrix without a name; will be named "performance"
@@ -165,18 +166,85 @@ plotPerformanceOAT <- function(performance,                   # system model per
     
     # create data.frame for plotting
     plotData <- getOATData(attPerturb, targetMat, performanceAv, pMin, pMax)
+
+    # determine indices in target matrix corresponding to OAT perturbations
+    iInd <- getOATData(attPerturb, targetMat, performanceAv, pMin, pMax, return_iInd = T)
     
-    perfPlots <- lapply(plotData, OATPlot, col = col, ylimits = ylim)
-    # for (i in 1:length(plotData)) {
-    #   perfPlots[[i]] <- OATPlot(plotData[[i]], col = col, ylimits = ylim)
-    #                             # Add later if required
-    #                             # perfThresh = perfThresh, perfThreshLabel = perfThreshLabel, climData = climData)
-    #   print(perfPlots[[i]])
-    # }
-  #}
+    # only consider changes associated with single attribute attSel (if attSel provided)
+    if (!is.null(attSel)){
+      i = which(plotData[[1]][,'attribute']==attSel)
+      plotData[[1]] = plotData[[1]][i,]
+      iInd = iInd[[attSel]]
+    }
     
-    if(!noPlot){print(perfPlots)}
-    return(invisible(perfPlots))
+    if (!use_ggplot){
+    
+      colLine = 'black'
+      colShade='grey'
+      lwd=1
+      
+      # determine target values associated with OAT perturbations  
+      targetMat = sim$expSpace$targetMat
+      if (metric %in% colnames(targetMat)){
+        targetVal =targetMat[iInd,metric]
+        targetVal = (targetVal-1)*100
+      } else {
+        targetVal = NULL
+      }
+      
+      # determine median and upper and lower limits
+      m = 1
+      x = plotData[[m]][,1]
+      med = plotData[[m]][,2]
+      if (dim(plotData[[m]])[2]==5){
+        lo = plotData[[m]][,3]
+        hi = plotData[[m]][,4]
+      } else {
+        lo=NULL
+        hi=NULL
+      }
+
+      if (is.null(ylim)){
+        yMin = min(med,lo,hi)
+        yMax = max(med,lo,hi)
+        ylim = c(yMin,yMax)
+      }
+      
+      plot(x=x,y=med,type='o',ylim=ylim,xaxs='i',xlab='',ylab='',col=col)
+      abline(h=0,lty=2,lwd=0.5,col='darkgrey')
+      abline(v=0,lty=2,lwd=0.5,col='darkgrey')
+      if (!is.null(lo)){
+        polygon(c(rev(x), x), c(rev(hi), lo), col = colShade, border = NA)
+      }
+      lines(x,med,type='l',col=colLine,lwd=lwd)
+      box()
+      if(!is.null(targetVal)){lines(x,targetVal,col='blue')}
+      points(x,med,col=colLine,lwd=lwd)
+      
+      title(metric)
+      
+      attribute = unique(plotData[[m]][,'attribute'])
+      
+      if(length(attribute)>1){
+        browser()
+      } else {
+          mtext(side=1,text=attribute,line = 2,cex = 0.7)
+      }
+      
+    } else {
+      perfPlots <- lapply(plotData, OATPlot, col = col, ylimits = ylim)
+      # for (i in 1:length(plotData)) {
+      #   perfPlots[[i]] <- OATPlot(plotData[[i]], col = col, ylimits = ylim)
+      #                             # Add later if required
+      #                             # perfThresh = perfThresh, perfThreshLabel = perfThreshLabel, climData = climData)
+      #   print(perfPlots[[i]])
+      # }
+      #}
+      
+      if(!noPlot){print(perfPlots)}
+      return(invisible(perfPlots))
+      
+    }
     
 }
 
@@ -199,7 +267,8 @@ getOATData <- function(attPerturb,   # vector; perturbed attNames
                       targetMat,    # data.frame; targets x attributes
                       pAv,          # vector; average performance at targets
                       pMin = NULL,  # vector; minimum performance at t      
-                      pMax = NULL   # vector; maximum performance at t
+                      pMax = NULL,   # vector; maximum performance at t
+                      return_iInd = F
 ) {
   attNames <- colnames(targetMat)
   nAtt <- ncol(targetMat)
@@ -208,6 +277,7 @@ getOATData <- function(attPerturb,   # vector; perturbed attNames
   count <- 0
   OATDataList <- list()
   OATAttVar <- NULL
+  iInd_save = list()
   for (i in 1:length(attPerturb)) {
     icol <- which(attNames == attPerturb[i])
     attVar <- strsplit(attPerturb[i], "_")[[1]][1]
@@ -234,7 +304,7 @@ getOATData <- function(attPerturb,   # vector; perturbed attNames
       # Intersect all index where the other attributes are not perturbed
       iInd <-  Reduce(intersect, iIndList)
     }
-    
+
     if(!(identical(iInd, numeric(0)))) {
       if(!identical(iInd, integer(0))) {
         count <- count + 1
@@ -249,7 +319,11 @@ getOATData <- function(attPerturb,   # vector; perturbed attNames
         OATAttVar <- c(OATAttVar, attVar)
       }
     }
+    iInd_save[[attPerturb[i]]] = iInd
+    
   }
+  
+  if(return_iInd){return(iInd_save)}
   
   if (count == 0) stop("The simulation does not contain OAT perturbed attributes to plot.")
   
