@@ -1444,7 +1444,11 @@ runSystemModel <- function(sim,                  # output from scenario generato
                            strShort=strShort)
       
       # run the systemModel
-      perfTemp <- systemModel(data = scenarioData, systemArgs = systemArgs, metrics = metrics, targetRepInfo=targetRepInfo)
+      if ('targetRepInfo' %in% formalArgs(systemModel)){
+        perfTemp <- systemModel(data = scenarioData, systemArgs = systemArgs, metrics = metrics, targetRepInfo=targetRepInfo)
+      } else {
+        perfTemp <- systemModel(data = scenarioData, systemArgs = systemArgs, metrics = metrics)
+      }
 
       # store performance metrics
       for (i in 1:length(metrics)) performance[[i]][t, r] <- perfTemp[[i]]
