@@ -100,9 +100,7 @@ calculateAttributes<-function(climateData,                    # input data in th
     attInfo$attCalcInfo = attCalcInfo
   }
  
-  attObs = aggregate_calculate_attributes(varList=simVar,
-                                     aggList=simAgg,
-                                     data=obs,
+  attObs = aggregate_calculate_attributes(data=obs,
                                      attSel=attSel,
                                      datInd=datInd,
                                      attInfo=attInfo)
@@ -182,13 +180,19 @@ setup_datInd_agg = function(simAgg,times,timeStep,nperiod=1){
 
 ########################
 
-aggregate_calculate_attributes = function(varList,aggList,data,attSel,datInd,attInfo){
-
-  att.ind = get.att.ind.withAggs(attInfo)
-
+#aggregate_calculate_attributes = function(varList=NULL,aggList=NULL,data,attSel,datInd,attInfo=NULL){
+aggregate_calculate_attributes = function(data,attSel,datInd,attInfo=NULL){
+    
+  # varList = unique(sapply(X=attSel,FUN=get.attribute.varType))
+  varList = unique(attInfo$varType)
   if (is.null(varList)){browser()}
+  
+  #aggList = unique(sapply(X=attSel,FUN=get.attribute.aggType))
+  aggList = unique(attInfo$aggType)
   if (is.null(aggList)){browser()}
   
+  att.ind = get.att.ind.withAggs(attInfo)
+
   varAll = c()
   for (var in varList){
     tmp = strsplit(x=var,split='[/]')[[1]]
@@ -196,7 +200,7 @@ aggregate_calculate_attributes = function(varList,aggList,data,attSel,datInd,att
   }
   varAll = unique(varAll)
 
-  agg_data = list()                            #make this into its own function (also inserted into model sequencer)
+  agg_data = list()                            
   for(var in varAll){
     agg_data[[var]] = list()
     for (agg in aggList){
@@ -213,10 +217,12 @@ aggregate_calculate_attributes = function(varList,aggList,data,attSel,datInd,att
   attValues = list()                            #make this into its own function (also inserted into model sequencer)
   for(v in 1:length(varList)){
     var = varList[v]
+#    print(var)
+    tmp = strsplit(var,split = '/')[[1]]
     attValues[[v]] = list()
     for (a in 1:length(aggList)){
       agg = aggList[a]
-      tmp = strsplit(var,split = '/')[[1]]
+#      print(agg)
       
       if (length(tmp)==1){
         data = agg_data[[var]][[agg]]$data
@@ -240,10 +246,11 @@ aggregate_calculate_attributes = function(varList,aggList,data,attSel,datInd,att
   attValues=unlist(attValues)
 
   # revert original attributes to original order - except when dealing with multisite data
-  if (is.null(dim(data))){
-    if (length(attValues)!=length(attSel)){browser()}
+  if (length(attValues)==length(attSel)){
     attValues=attValues[attSel]
-  } 
+  } else {
+    browser()
+  }
 
   return(attValues)
   
