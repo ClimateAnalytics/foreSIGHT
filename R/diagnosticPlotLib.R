@@ -399,14 +399,15 @@ getSimTraffic <- function(sim) {          # simulations generated using generate
   }
   
   # Attributes
-  attSel <- c(expSpace[["attPerturb"]], expSpace[["attHold"]])
+  attSel = colnames(expSpace$targetMat)
   attPerturb <- expSpace[["attPerturb"]]
   attPrim <- nml[["penaltyAttributes"]]
   
   # Variable and target type
   varType <- vapply(attSel, FUN = get.attribute.varType, FUN.VALUE = character(1), USE.NAMES = FALSE)
   targetType <- vapply(varType, FUN = get.target.type, FUN.VALUE = character(1), USE.NAMES = FALSE)
-  
+  print('fix targetType')
+
   # modelTag and variables
   simVar <- names(nml[["modelType"]])
   modelTag <- NULL
@@ -439,7 +440,6 @@ getSimTraffic <- function(sim) {          # simulations generated using generate
       simTarget <- sim[[nameReps[r]]][[nameTarg[t]]][["targetSim"]]
       targetTraffic <- getTargetTraffic(attSel = attSel, attPerturb = attPerturb, attPrim = attPrim, simPt = simTarget, target = target, targetType = targetType)
       diagDataTemp <- targetTraffic[[colName]]
-      
       if (colName == "Performance") {
         # Assign numbers for performance (1 = good, 2 = fair, 3 = good)
         pNum <- list(good = 1, fair = 2, poor = 3)
@@ -477,9 +477,9 @@ getSimTraffic <- function(sim) {          # simulations generated using generate
   # this ordering takes priority over primary attributes
   # rearranging the df columns
   attSplit <- strsplit(attName_temp, "_")
-  attVar <- unlist(lapply(attSplit, `[[`, 1))
-  Tind <- which(attVar == "Temp")
-    
+  attVar = sapply(attName_temp,get.attribute.varType)
+  Tind <- which((attVar%in%c('Temp','Temp/P')))
+  
   # Temperature variables exist
 #  if (length(Tind) > 0) {
   if ((length(Tind) > 0) & (length(Tind)<length(attSel))) {
