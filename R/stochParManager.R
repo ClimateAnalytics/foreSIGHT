@@ -634,21 +634,35 @@ assignSeasPars <- function(par1, par2, par3, par4, seasInd) {
 # #simHarTS.parmanager(parS=seq(1,13),modelTag="Temp-har26-wgen",modelInfo=modelInfo,initCalibPars=NULL)
 # 
 #WHICHPARS
-whichPars<-function(simVar=NULL,
-                    modelInfo=NULL
+# whichPars<-function(simVar=NULL,
+#                     modelInfo=NULL
+# ){
+#   parLoc=list()
+#   pos.start=1
+#   for(i in 1:length(simVar)){
+#     dummyA=modelInfo[[i]]$npars
+#     pos.end=(dummyA-1) + pos.start
+#     tmp=c(pos.start,pos.end)
+#     parLoc[[i]]=tmp         # store in list
+#     pos.start=pos.end + 1     # update pos.start ready for next model
+#   }
+#   return(parLoc)
+# }
+
+whichPars<-function(modelInfo=NULL
 ){
   parLoc=list()
   pos.start=1
-  for(i in 1:length(simVar)){
-    dummyA=modelInfo[[i]]$npars
+  modelTag = names(modelInfo)
+  for(mod in modelTag){
+    dummyA=modelInfo[[mod]]$npars
     pos.end=(dummyA-1) + pos.start
     tmp=c(pos.start,pos.end)
-    parLoc[[i]]=tmp         # store in list
+    parLoc[[mod]]=tmp         # store in list
     pos.start=pos.end + 1     # update pos.start ready for next model
   }
   return(parLoc)
 }
-
 
 #Update modelTag order
 update.simPriority<-function(modelInfo=NULL){
