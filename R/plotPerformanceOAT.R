@@ -45,7 +45,8 @@ plotPerformanceOAT <- function(performance,                   # system model per
                                col = NULL,                    # colour of the ribbon
                                ylim = NULL,                    # ylim of the data, xlim is determined by the perturbation range
                                noPlot=T,
-                               use_ggplot=T,
+                               plotType='ggplot',
+                               baseSettings=list(),
                                plim=c(0.05,0.95),              # probability limits
                                attSel=NULL) {
   
@@ -115,10 +116,11 @@ plotPerformanceOAT <- function(performance,                   # system model per
   #   tarInd <- NULL
   # }
   
-  
   # get attPerturb with at least 2 samples
   # doing this here instead of using attPerturbSamp directly since the targetMat may be subsetted
-  attPerturb <- getAttPerturb(targetMat)
+#  if (is.null(attPerturb)){attPerturb <- getAttPerturb(targetMat)}
+#  if (is.null(attPerturb)){attPerturb <- sim$expSpace$attPerturb}
+  attPerturb <- sim$expSpace$attPerturb
   if (is.null(attPerturb)) stop("The simulation does not contain OAT perturbed attributes to plot.")
   
   # identify x and y columns
@@ -149,8 +151,6 @@ plotPerformanceOAT <- function(performance,                   # system model per
     pMin <- getPerfStat(perfMatrix, simFitness, topReps, nRep, statFUN = quantile, probs=plim[1])
     pMax <- getPerfStat(perfMatrix, simFitness, topReps, nRep, statFUN = quantile, probs=plim[2])
     
-#    browser()
-    
     # name appropriately
     names(performanceAv) <- perfName[1]
     # "pMin" and "pMax" are used in the OATPlot code
@@ -177,10 +177,17 @@ plotPerformanceOAT <- function(performance,                   # system model per
       iInd = iInd[[attSel]]
     }
     
-    if (!use_ggplot){
+    if (plotType=='base'){
     
-      colLine = 'black'
-      colShade='grey'
+      if(is.null(baseSettings$bias_base_thresh)){baseSettings$bias_base_thresh = 20}
+      if(is.null(baseSettings$slope_thresh)){baseSettings$slope_thresh = 1.5}
+
+      colMed = 'black'; lwdMed = 1
+      colShade='lightgrey'
+      colHold = 'green'; ltyHold = 2; lwdHold = 3
+      colTied = 'cyan'; ltyTied = 2; lwdTied = 3
+      colPert = 'blue'; ltyPert = 2; lwdPert = 3
+      colZero = 'black'; ltyZero = 3; lwdZero=0.5 
       lwd=1
       
       # determine target values associated with OAT perturbations  
@@ -195,6 +202,7 @@ plotPerformanceOAT <- function(performance,                   # system model per
       # determine median and upper and lower limits
       m = 1
       x = plotData[[m]][,1]
+      x = (x-1)*100
       med = plotData[[m]][,2]
       if (dim(plotData[[m]])[2]==5){
         lo = plotData[[m]][,3]
@@ -204,43 +212,58 @@ plotPerformanceOAT <- function(performance,                   # system model per
         hi=NULL
       }
 
-      if (is.null(ylim)){
-        yMin = min(med,lo,hi)
-        yMax = max(med,lo,hi)
+     if (is.null(ylim)){
+        yMin = min(med,lo,hi,-10)
+        yMax = max(med,lo,hi,10)
         ylim = c(yMin,yMax)
       }
       
-      plot(x=x,y=med,type='o',ylim=ylim,xaxs='i',xlab='',ylab='',col=col)
-      abline(h=0,lty=2,lwd=0.5,col='darkgrey')
-      abline(v=0,lty=2,lwd=0.5,col='darkgrey')
+      plot(x=x,y=med,type='o',ylim=ylim,xaxs='i',xlab='',ylab='',col=colMed)
       if (!is.null(lo)){
         polygon(c(rev(x), x), c(rev(hi), lo), col = colShade, border = NA)
       }
-      lines(x,med,type='l',col=colLine,lwd=lwd)
+      lines(x,med,type='l',col=colMed,lwd=lwdMed)
       box()
-      if(!is.null(targetVal)){lines(x,targetVal,col='blue')}
-      points(x,med,col=colLine,lwd=lwd)
-      
-      title(metric)
-      
-      attribute = unique(plotData[[m]][,'attribute'])
-      
-      if(length(attribute)>1){
-        browser()
-      } else {
-          mtext(side=1,text=attribute,line = 2,cex = 0.7)
+      if(!is.null(targetVal)){
+        if (metric==attSel){
+          col=colPert
+          lty=ltyPert
+          lwd=lwdPert
+        } else {
+          col=colHold
+          lty=ltyHold
+          lwd=lwdHold          
+        }
+        lines(x,targetVal,col=col,lty=lty,lwd=lwd)
       }
+      points(x,med,col=colMed,lwd=lwdMed)
+
+      abline(h=0,lty=ltyZero,lwd=lwdZero,col=colZero)
+      abline(v=0,lty=ltyZero,lwd=lwdZero,col=colZero)
       
-    } else {
+      bias_base = med[x==0]
+      bias_base_hi = abs(bias_base) > baseSettings$bias_base_thresh
+      if (bias_base_hi){points(x=0,bias_base,col='red',pch=4,cex=2,lwd=2)}
+      
+      mod = lm(med~x)
+      slope = mod$coefficients[2] 
+      inflated_response = abs(slope)>baseSettings$slope_thresh  
+      if (inflated_response){lines(x,med,col='red',lwd=2)}
+      
+      title_str = metric
+      if (bias_base_hi){title_str=paste0(title_str,' B')}
+      if (inflated_response){title_str=paste0(title_str,' I')}
+      title(title_str,cex.main=0.8)
+      
+      #attribute = unique(plotData[[m]][,'attribute'])
+      #mtext(side=1,text=attribute,line = 2,cex = 0.7)
+      
+      mtext(side=1,text=paste0('D ',attPerturb,' (%)'),line = 2,cex = 0.7)
+      mtext(side=2,text=paste0('D ',metric,' (%)'),line = 2,cex = 0.7)
+      
+    } else if (plotType=='ggplot') {
+      
       perfPlots <- lapply(plotData, OATPlot, col = col, ylimits = ylim)
-      # for (i in 1:length(plotData)) {
-      #   perfPlots[[i]] <- OATPlot(plotData[[i]], col = col, ylimits = ylim)
-      #                             # Add later if required
-      #                             # perfThresh = perfThresh, perfThreshLabel = perfThreshLabel, climData = climData)
-      #   print(perfPlots[[i]])
-      # }
-      #}
-      
       if(!noPlot){print(perfPlots)}
       return(invisible(perfPlots))
       
