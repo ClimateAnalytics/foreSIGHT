@@ -1,0 +1,499 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+rm(list=ls())
+devtools::load_all()
+```
+
+
+```{r}
+
+load_data = function(data.dir,catchment,date.start,date.end){
+ 
+  load(paste0(data.dir,'average_Macquarie_rain_mwet.RData'))
+  dates = seq( as.Date('1889/01/01'),as.Date('2022/12/31'),by='days')
+  P = rain_mwet$rain[[catchment]]
+  siteLabel = catchment
+  
+  ######################
+  # select range of dates
+  keep = which( (dates >= date.start) & (dates <= date.end))
+  
+  dates = dates[keep]
+  P = P[keep]
+  
+  ######################
+  # setup climate data list
+  
+  day = as.integer(format(dates,'%d'))
+  month = as.integer(format(dates,'%m'))
+  year = as.integer(format(dates,'%Y'))
+  
+  clim = list(year=year,month=month,day=day,P=P)
+  
+  return(clim)
+}
+
+```
+
+```{r}
+data.dir = 'C:/Users/a1065639/Work/Macquarie/data/'
+catchment = '421018'
+date.start = as.Date('1971/01/01')
+date.end = as.Date('2010/12/31')
+
+clim = load_data(data.dir,catchment,date.start,date.end)
+clim = convert_climYMD_POSIXct(clim)
+
+```
+
+```{r}
+
+#################################################################
+
+attPerturb = c('P_day_all_tot_m')
+attHold = c('P_day_DJF_fracTot','P_day_MAM_fracTot','P_day_JJA_fracTot','P_day_SON_fracTot',
+           'P_day_all_nWet_m','P_day_DJF_fracNwet','P_day_MAM_fracNwet','P_day_JJA_fracNwet','P_day_SON_fracNwet',
+           'P_day_all_xP99overPave','P_day_DJF_fracxP99overPave','P_day_MAM_fracxP99overPave','P_day_JJA_fracxP99overPave','P_day_SON_fracxP99overPave',
+           'P_day_all_cor','P_day_DJF_fracCor','P_day_MAM_fracCor','P_day_JJA_fracCor','P_day_SON_fracCor',
+           'P_day_all_seasRatioDecFeb','P_day_all_tot_cv')
+attSel = c(attPerturb,attHold)
+
+attPerturbType = "regGrid"
+attPerturbSamp = c(1)
+attPerturbMin = c(1)
+attPerturbMax = c(1)
+
+expSpace = createExpSpace(attPerturb = attPerturb,
+                          attPerturbSamp = attPerturbSamp,
+                          attPerturbMin = attPerturbMin,
+                          attPerturbMax = attPerturbMax,
+                          attPerturbType = attPerturbType,
+                          attHold = attHold)
+
+
+# #################################################################
+# 
+# modelType = 'latent-annSD'
+# modelParameterVariation = 'seasonal'
+# attPerturb = 'P_ann_tot_m'
+# numReplicates = 50
+# 
+# #################################################################
+# 
+# annAR1_multRange = c(0.0,0.8)
+# if (modelType == 'latent-annSD'){
+#   annSD_fac_lims = c(0.8,2.5)
+# } else if (modelType == 'wgen-annSD'){
+#   annSD_fac_lims = c(0.8,3.5)
+# }
+# 
+# attCal = c('P_ann_tot_m','P_DJF_fracTot','P_MAM_fracTot','P_JJA_fracTot','P_SON_fracTot',
+#            'P_ann_nWet_m','P_DJF_fracNwet','P_MAM_fracNwet','P_JJA_fracNwet','P_SON_fracNwet',
+#            'P_ann_xP99overPave','P_DJF_fracxP99overPave','P_MAM_fracxP99overPave','P_JJA_fracxP99overPave','P_SON_fracxP99overPave',
+#            'P_ann_avgDSD_m','P_DJF_avgDSD_m','P_MAM_avgDSD_m','P_JJA_avgDSD_m','P_SON_avgDSD_m',
+#            'P_ann_seasRatioDecFeb','P_ann_tot_cv')
+# 
+# 
+# #################################################################
+# 
+# nMultiStart = 3
+# #nMultiStart = 1
+# #print('only 1 multistart')
+# #numReplicates = 10
+# #numReplicates = 10
+# 
+# #readBase = F
+# 
+# #Nyears_long = 10000
+# Nyears_long = 1000
+# 
+# seedID = 1
+# 
+# ######################
+# 
+# fnamePre = paste0(run.dirname,catchment,'_',
+#                          modelType,'_',modelParameterVariation)
+# 
+# ######################
+# # select range of dates
+# 
+# 
+# pause
+# 
+# ######################
+# 
+# settings.base = setup_base_simulation(attBase=attCal,
+#                       modelType=modelType,
+#                       modelParameterVariation=modelParameterVariation,
+#                       nMultiStart = nMultiStart,
+#                       annAR1_multRange=annAR1_multRange,
+#                       annSD_fac_lims = annSD_fac_lims)
+# 
+# fname = paste0(fnamePre,'_base.seed',seedID,'.RData')
+# if (!file.exists(fname)){
+# #if (!readBase){
+#   sim.base = generateScenarios(reference = clim,   # reference time series
+#                            expSpace = settings.base$expSpace,    # exposure space
+#                            seedID=seedID,
+#                            controlFile = settings.base$controlFileName)
+#   save(file=fname,sim.base)
+#   #stop()
+# } else {
+#  load(fname)
+# }
+
+```
+
+
+```{r}
+calculateAttributes(clim,attSel=attSel)
+```
+```{r}
+modelSelection = list()
+
+modelSelection$modelType = list()
+modelSelection$modelType$P = "latent"
+
+modelSelection$modelParameterVariation = list()
+modelSelection$modelParameterVariation$P = "seas"
+
+modelSelection$postProcessing = list(P=list())
+modelSelection$postProcessing$P$types = c('scaleExtremes','annVar')
+
+modelSelection[["optimisationArguments"]] <- list()
+modelSelection[["optimisationArguments"]][["nMultiStart"]] <- 1
+
+modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
+controlFile = paste0(tempdir(), "\\eg_controlFile.json")
+write(modelSelectionJSON, file = controlFile)
+
+```
+
+```{r}
+
+devtools::load_all()
+sim_base = generateScenarios(reference = clim,
+                             expSpace = expSpace,
+                             controlFile = controlFile,
+                             seedID = 1,
+                             numReplicates = 1)
+
+plotScenarios(sim_base)
+
+```
+
+```{r}
+###################
+
+calcAC = function(x){
+  nx = length(x)
+  AC = cor(x[1:(nx-1)],x[2:nx])
+  return(AC)
+}
+
+###################
+
+shuffle = function(x,Nyears_long,sort.P.ann.long,index.P.ann.long,return.all=F,seed=1){
+
+  set.seed(seed)
+  
+  # print(x)
+  
+  ar1 = as.numeric(arima.sim(n=Nyears_long,list(ar=x)))
+  
+  rankAR1 = rank(ar1)
+  
+  P.new = sort.P.ann.long[rankAR1]
+  year.new=index.P.ann.long[rankAR1]
+  
+  P.ann.cor = calcAC(P.new) 
+  
+  if (return.all){
+    out = list(P.ann.cor=P.ann.cor,P.new=P.new,year.new=year.new)
+  } else {
+    out = P.ann.cor
+  }
+  
+  return(out)
+  
+}
+
+shuffle.OF = function(x,Nyears_long,sort.P.ann.long,index.P.ann.long,targetCorVal,seed=seed){
+ 
+  o = shuffle(x=x,
+              Nyears_long=Nyears_long,
+              sort.P.ann.long=sort.P.ann.long,
+              index.P.ann.long=index.P.ann.long,seed=seed) 
+  
+  OF = abs(o-targetCorVal)
+  
+#  print(paste(x,OF))
+  
+  return(OF)
+   
+}
+  
+###################
+
+sort_Plong_targetCor = function(P.long,P.ann.long,years.long,corList,seed=1,iyy=NULL){
+  
+#  Nyears_long = length(years.long)
+  Nyears_long = length(P.ann.long)
+  
+  sort.P.ann.long = sort(P.ann.long)
+  index.P.ann.long =sort(P.ann.long,index.return=T)$ix
+  
+  #    P.daily.changeCor = P.ann.changeCor = P.ann.cor = list()
+  
+  out = list()
+  
+  for (corVal in corList){
+    
+    label = paste0('cor',corVal)
+    
+#    print(label)
+    
+    out[[label]] = list()
+    
+    # o = shuffle(x=corVal,
+    #             Nyears_long=Nyears_long,
+    #             sort.P.ann.long=sort.P.ann.long,
+    #             index.P.ann.long=index.P.ann.long)
+
+    outTmp = RGN::rgn(simFunc = shuffle.OF,simTarget = 0,par = corVal,lower = -0.5,upper = 0.9,
+             control=list(nMulti=3),
+	     Nyears_long=Nyears_long,
+             sort.P.ann.long=sort.P.ann.long,
+             index.P.ann.long=index.P.ann.long,targetCorVal=corVal,seed=seed)
+    
+    # outTmp = SoilHyP::SCEoptim(
+    #   FUN=shuffle.OF,
+    #   par=corVal,
+    #   lower = -0.2,
+    #   upper = 0.5,
+    #   Nyears_long=Nyears_long,
+    #   sort.P.ann.long=sort.P.ann.long,
+    #   index.P.ann.long=index.P.ann.long,targetCorVal=corVal,seed=seed)
+      
+    o = shuffle(x=outTmp$par,
+                Nyears_long=Nyears_long,
+                sort.P.ann.long=sort.P.ann.long,
+                index.P.ann.long=index.P.ann.long,seed=seed,return.all = T)
+    
+    P.ann.cor=o$P.ann.cor
+    P.new=o$P.new
+    year.new=o$year.new
+     
+    # ar1 = as.numeric(arima.sim(n=Nyears_long,list(ar=corVal)))
+    # 
+    # rankAR1 = rank(ar1)
+    # 
+    # P.new = sort.P.ann.long[rankAR1]
+    # year.new=index.P.ann.long[rankAR1]
+    # 
+    # out[[label]]$P.ann.cor = calcAC(P.new)
+
+    out[[label]]$P.ann.cor = o$P.ann.cor
+    
+    #################################
+
+    P.new.daily = c()
+    keepList = c()
+    for (y in 1:Nyears_long){
+      if (y%%1000==0){print(y)}
+      year = years.long[1] + (year.new[y]-1)
+      if (is.null(iyy)){
+        keep = which(years.long==year)
+      } else {
+        keep = iyy[[year+1]]
+      }
+      keepList = c(keepList,keep)
+    }
+    
+    P.new.daily = P.long[keepList]
+    
+    #      P.daily.changeCor[[label]] = P.new.daily
+    
+    out[[label]]$P.daily.changeCor = P.new.daily
+    
+    
+    
+  }
+  
+  return(out)
+  
+}
+
+###################
+sim.base.shuffle = function(sim.base.reps,corList){
+  
+  sim.base.reps.shuffle = sim.base.reps
+  
+  years = unique(as.integer(format(sim.base.reps$simDates,'%Y')))
+  numReplicates = length(sim.base.reps)-3
+  for (r in 1:numReplicates){
+    repName = paste0('Rep',r)
+    print(repName)
+    P = sim.base.reps[[repName]][[1]]$P$sim
+    P.ann = c()
+    for (y in 1:length(years)){
+      year = years[y]
+      keep = which(as.integer(format(sim.base.reps$simDates,'%Y'))==year)
+      P.ann[y] = sum(P[keep])
+    }
+    P.shuffle = sort_Plong_targetCor(P,P.ann,as.integer(format(sim.base.reps$simDates,'%Y')),corList,seed=r)
+    
+    for (t in 1:length(corList)){
+      tarName = paste0('Target',t)
+      sim.base.reps.shuffle[[repName]][[tarName]]$P$sim = P.shuffle[[t]]$P.daily.changeCor
+    }
+    
+  }
+  
+  return(sim.base.reps.shuffle)
+  
+}
+
+#################################################################
+
+sim.shuffle = function(sim,corVal){
+  
+  sim.shuffle = sim
+  
+  years = unique(as.integer(format(sim$simDates,'%Y')))
+  numReplicates = length(sim)-3
+  numTargets = length(sim[[1]])
+  for (r in 1:numReplicates){
+    repName = paste0('Rep',r)
+    print(repName)
+    for (t in 1:numTargets){
+      print(t)
+      P = sim[[repName]][[t]]$P$sim
+      P.ann = c()
+      for (y in 1:length(years)){
+        year = years[y]
+        keep = which(as.integer(format(sim$simDates,'%Y'))==year)
+        P.ann[y] = sum(P[keep])
+      }
+      P.shuffle = sort_Plong_targetCor(P,P.ann,as.integer(format(sim$simDates,'%Y')),c(corVal),seed=r)
+      sim.shuffle[[repName]][[t]]$P = NULL
+      sim.shuffle[[repName]][[t]]$P$sim = P.shuffle[[1]]$P.daily.changeCor
+    }
+    
+  }
+  
+  return(sim.shuffle)
+  
+}
+
+
+
+#################################################################
+
+
+```
+
+
+```{r}
+sim = sim.shuffle(sim_base,corVal=0)
+climSim = list(times=clim$times,P=sim$Rep1$Target1$P$sim)
+calculateAttributes(climSim,'P_day_all_tot_cor_m')
+
+sim = sim.shuffle(sim_base,corVal=0.5)
+climSim = list(times=clim$times,P=sim$Rep1$Target1$P$sim)
+calculateAttributes(climSim,'P_day_all_tot_cor_m')
+```
+
+
+
+
+
+
+
+
+
+
+repeat, but now include shuffling in main calibration 
+
+
+```{r}
+attPerturb = c('P_day_all_tot_cor')
+attHold = c('P_day_all_tot_m','P_day_DJF_fracTot','P_day_MAM_fracTot','P_day_JJA_fracTot','P_day_SON_fracTot',
+           'P_day_all_nWet_m','P_day_DJF_fracNwet','P_day_MAM_fracNwet','P_day_JJA_fracNwet','P_day_SON_fracNwet',
+           'P_day_all_xP99overPave','P_day_DJF_fracxP99overPave','P_day_MAM_fracxP99overPave','P_day_JJA_fracxP99overPave','P_day_SON_fracxP99overPave',
+           'P_day_all_cor','P_day_DJF_fracCor','P_day_MAM_fracCor','P_day_JJA_fracCor','P_day_SON_fracCor',
+           'P_day_all_seasRatioDecFeb','P_day_all_tot_cv')
+attSel = c(attPerturb,attHold)
+
+# attPerturb = c('P_day_all_tot_cor')
+# attHold = c('P_day_all_tot_m')
+
+attPerturbType = "regGrid"
+attPerturbSamp = c(1)
+attPerturbMin = c(0.5)
+attPerturbMax = c(0.5)
+
+targetTypes = list(P_day_all_tot_cor='val')
+
+#targetTypes = NULL
+
+expSpace1 = createExpSpace(attPerturb = attPerturb,
+                          attPerturbSamp = attPerturbSamp,
+                          attPerturbMin = attPerturbMin,
+                          attPerturbMax = attPerturbMax,
+                          attPerturbType = attPerturbType,
+                          attHold = attHold,
+                          targetTypes = targetTypes)
+
+```
+
+
+
+```{r}
+modelSelection1 = list()
+
+modelSelection1$modelType = list()
+modelSelection1$modelType$P = "latent"
+
+modelSelection1$modelParameterVariation = list()
+modelSelection1$modelParameterVariation$P = "seas"
+
+modelSelection1$postProcessing = list(P=list())
+modelSelection1$postProcessing$P$types = c('scaleExtremes','annVar','annCor')
+
+modelSelection1[["optimisationArguments"]] <- list()
+modelSelection1[["optimisationArguments"]][["nMultiStart"]] <- 5
+
+# modelSelection1[["modelParameterBounds"]] <- list()
+# modelSelection1[["modelParameterBounds"]][["P"]] <- list()
+# parS = sim_base$Rep1$Target1$P$parS
+# parNames = names(parS)
+# for (par in parNames){
+#   modelSelection1[["modelParameterBounds"]][["P"]][[par]]=rep(parS[[par]],2)
+# }
+# modelSelection1[["modelParameterBounds"]][["P"]][['annVarFac']] = NULL 
+
+modelSelectionJSON1 = jsonlite::toJSON(modelSelection1, pretty = TRUE, auto_unbox = TRUE)
+controlFile1 = paste0(tempdir(), "\\eg_controlFile1.json")
+write(modelSelectionJSON1, file = controlFile1)
+```
+
+
+
+
+
+```{r}
+devtools::load_all()
+sim_base1 = generateScenarios(reference = clim,
+                             expSpace = expSpace1,
+                             controlFile = controlFile1,
+                             seedID = 1,
+                             numReplicates = 1)
+
+plotScenarios(sim_base1)
+```
+

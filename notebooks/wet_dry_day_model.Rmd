@@ -1,0 +1,272 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+
+```{r}
+rm(list=ls())
+devtools::load_all()
+```
+
+```{r}
+mvFunc_cor = function(data.1,data.2){
+  return(cor(data.1,data.2,use='pairwise.complete.obs'))
+}
+
+mvFunc_avgWetDay = function(data.1,data.2){
+  return(func_avg(data.1[data.2>0]))
+}
+
+mvFunc_avgDryDay = function(data.1,data.2){
+  return(func_avg(data.1[data.2==0]))
+}
+
+func_sd = function(data){
+  return(sd(data,na.rm=T))
+}
+
+mvFunc_sdWetDay = function(data.1,data.2){
+#  return(sd(data.1[data.2>0],na.rm=T))
+  return(func_sd(data.1[data.2>0]))
+}
+
+mvFunc_sdDryDay = function(data.1,data.2){
+  return(func_sd(data.1[data.2==0]))
+}
+
+func_xP90 = function(data){
+  P90 = quantile(data,probs = 0.9,na.rm=T,names=F)
+  if(is.na(P90)){browser()}
+  return(P90)
+}
+
+mvFunc_xP90WetDay = function(data.1,data.2){
+  return(func_xP90(data.1[data.2>0]))
+}
+
+mvFunc_xP90DryDay = function(data.1,data.2){
+  return(func_xP90(data.1[data.2==0]))
+}
+
+```
+
+
+```{r}
+# attPerturb = c('P_day_all_avgDSD_m')
+# attHold = c('P_day_all_tot_m','P_day_all_P99','P_day_all_nWet',
+#             "PET_day_all_avg","PET_day_all_cor","PET_day_all_xP90")
+
+attPerturb = c("PET_day_all_avg")
+attHold = c('P_day_all_avgDSD_m','P_day_all_tot_m','P_day_all_P99','P_day_all_nWet',
+            "PET_day_all_cor","PET_day_all_xP90")
+
+attPerturbType = "regGrid"
+attPerturbSamp = c(5)
+attPerturbMin = c(1.)
+attPerturbMax = c(1.4)
+
+expSpace = createExpSpace(attPerturb = attPerturb,
+                          attPerturbSamp = attPerturbSamp,
+                          attPerturbMin = attPerturbMin,
+                          attPerturbMax = attPerturbMax,
+                          attPerturbType = attPerturbType,
+                          attHold = attHold,
+                          targetTypes = targetTypes)
+
+# print(expSpace$targetMat)
+
+attTied = list(wDdD=c("PET_day_all_avg","PET_day_all_xP90"),
+              seas='allTargets')
+
+# attTied = list(seas='allTargets')
+
+# attTied = list(wDdD=c("PET_day_all_avg","PET_day_all_xP90"))
+
+# for (tieType in names(attTied)){
+# 
+#   attSel = attTied[[tieType]]
+# 
+#   if (length(attSel)==1){
+#     if (attSel=='allTargets'){
+#       attSel=colnames(expSpace$targetMat)
+#     }
+#   }
+#   
+#   if (!all(attSel%in%colnames(expSpace$targetMat))){stop("must have tied attributes in targetMat attributes")}
+# 
+#   if(tieType=='wDdD'){
+#     for (att in attSel){
+#       var = get.attribute.varType(att)
+#       if(grepl('/',var)){stop("can't have multivariable tied attributes in perturb/hold atts")}
+#       var.new = paste0(var,'.P')
+#       for (cond in c('WetDay','DryDay')){
+#         att.cond = gsub(var,var.new,att)
+#         att.cond = paste0('mv.',att.cond,cond)
+#         if (att.cond%in%expSpace$attTied){
+#           expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]*expSpace$targetMat[att]
+#         } else {
+#           expSpace$targetMat[att.cond] = expSpace$targetMat[att]
+#           expSpace$attTied = c(expSpace$attTied,att.cond)
+#         }
+#       }
+#     }
+#   }
+#   
+#   if(tieType=='seas'){
+#     for (att in attSel){
+#       for (seas in c('DJF','MAM','JJA','SON')){
+#         att.seas = gsub('all',seas,att)
+#         if (att.seas%in%expSpace$attTied){
+#           expSpace$targetMat[att.seas] = expSpace$targetMat[att.seas]*expSpace$targetMat[att]
+#         } else {
+#           expSpace$targetMat[att.seas] = expSpace$targetMat[att]
+#           expSpace$attTied = c(expSpace$attTied,att.seas)
+#         }
+#       }
+#     }
+#   }
+# 
+# }
+
+expSpace = tieAttributes(expSpace,attTied)
+
+
+```
+
+
+
+
+```{r}
+# clim_ref = convert_climYMD_POSIXct(tank_obs )
+
+# path for data files
+dataDir = 'C:/Users/a1065639/Box/2025_DEW_foreSIGHT/Data/'
+
+# climate reference data file name
+fname = paste0(dataDir,'24007_LOXTON_Dec2023.csv')
+
+# read in evap reference data
+d = read.csv(fname,header=T,skip=4017) # note there is different format for dates pre and post 1900. have chosen to not read in pre-1900 data.
+
+date = as.Date(d[,1],format = '%d/%m/%Y')
+P = d[,2]
+PET = d[,3]
+
+# select time periods of data to use for simulations
+#startYr = 1976
+#endYr = 2005
+startYr = 1980
+endYr = 1989
+year = as.integer(format(date,'%Y'))
+keep = which((year>=startYr)&(year<=endYr))
+# create reference data 
+clim_ref <- list(times = as.POSIXct(date[keep],tz='UTC'),
+                 P = P[keep],
+                 PET = PET[keep])
+
+calculateAttributes(clim_ref,attSel=colnames(expSpace$targetMat))
+
+```
+```{r}
+modelSelection = list()
+
+modelSelection$modelType = list()
+modelSelection$modelType$P = "latent"
+modelSelection$modelType$PET = "wgenLM"
+
+modelSelection$modelParameterVariation = list()
+modelSelection$modelParameterVariation$P = "seas"
+# modelSelection$modelParameterVariation$P = "har"
+modelSelection$modelParameterVariation$PET = "seasWD"
+
+modelSelection[["modelParameterBounds"]] <- list()
+modelSelection[["modelParameterBounds"]][["P"]] <- list()
+modelSelection[["modelParameterBounds"]][["P"]][["sigma.SON"]] <- c(0.001, 20)
+modelSelection[["modelParameterBounds"]][["P"]][["sigma.DJF"]] <- c(0.001, 20)
+modelSelection[["modelParameterBounds"]][["P"]][["sigma.MAM"]] <- c(0.001, 20)
+modelSelection[["modelParameterBounds"]][["P"]][["sigma.JJA"]] <- c(0.001, 20)
+modelSelection[["modelParameterBounds"]][["P"]][["mu.SON"]] <- c(-20, 1)
+modelSelection[["modelParameterBounds"]][["P"]][["mu.DJF"]] <- c(-20, 1)
+modelSelection[["modelParameterBounds"]][["P"]][["mu.MAM"]] <- c(-20, 1)
+modelSelection[["modelParameterBounds"]][["P"]][["mu.JJA"]] <- c(-20, 1)
+modelSelection[["modelParameterBounds"]][["P"]][["lambda.SON"]] <- c(0.5, 5)
+modelSelection[["modelParameterBounds"]][["P"]][["lambda.DJF"]] <- c(0.5, 5)
+modelSelection[["modelParameterBounds"]][["P"]][["lambda.MAM"]] <- c(0.5, 5)
+modelSelection[["modelParameterBounds"]][["P"]][["lambda.JJA"]] <- c(0.5, 5)
+
+modelSelection[["modelParameterBounds"]][["PET"]] <- list()
+modelSelection[["modelParameterBounds"]][["PET"]][["cor0.SON"]] <- c(0.1, 0.99)
+modelSelection[["modelParameterBounds"]][["PET"]][["cor0.DJF"]] <- c(0.1, 0.99)
+modelSelection[["modelParameterBounds"]][["PET"]][["cor0.MAM"]] <- c(0.1, 0.99)
+modelSelection[["modelParameterBounds"]][["PET"]][["cor0.JJA"]] <- c(0.1, 0.99)
+modelSelection[["modelParameterBounds"]][["PET"]][["muW.SON"]] <- c(0, 10)
+modelSelection[["modelParameterBounds"]][["PET"]][["muW.DJF"]] <- c(0, 10)
+modelSelection[["modelParameterBounds"]][["PET"]][["muW.MAM"]] <- c(0, 10)
+modelSelection[["modelParameterBounds"]][["PET"]][["muW.JJA"]] <- c(0, 10)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigmaW.SON"]] <- c(0.01, 5)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigmaW.DJF"]] <- c(0.01, 5)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigmaW.MAM"]] <- c(0.01, 5)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigmaW.JJA"]] <- c(0.01, 5)
+modelSelection[["modelParameterBounds"]][["PET"]][["muD.SON"]] <- c(0, 15)
+modelSelection[["modelParameterBounds"]][["PET"]][["muD.DJF"]] <- c(0, 15)
+modelSelection[["modelParameterBounds"]][["PET"]][["muD.MAM"]] <- c(0, 15)
+modelSelection[["modelParameterBounds"]][["PET"]][["muD.JJA"]] <- c(0, 15)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigmaD.SON"]] <- c(0.01, 5)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigmaD.DJF"]] <- c(0.01, 5)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigmaD.MAM"]] <- c(0.01, 5)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigmaD.JJA"]] <- c(0.01, 5)
+
+# parNam=c("alpha.SON","alpha.DJF","alpha.MAM","alpha.JJA",
+#          "sigma.SON","sigma.DJF","sigma.MAM","sigma.JJA",
+#          "mu.SON","mu.DJF","mu.MAM","mu.JJA",
+#          "lambda.SON","lambda.DJF","lambda.MAM","lambda.JJA"),
+# 
+# minBound=c(0,0,0,0,
+#            0.001,0.001,0.001,0.001,
+#            -15,-15,-15,-15,
+#            1,1,1,1),
+# maxBound=c(0.999,0.999,0.999,0.999,
+#            10,10,10,10,
+#            1,1,1,1,
+#            4,4,4,4)
+
+modelSelection[["optimisationArguments"]] <- list()
+modelSelection[["optimisationArguments"]][["nMultiStart"]] <- 5
+
+modelSelection[["penaltyAttributes"]] <- c("P_day_all_tot_m", "P_day_all_P99",
+                                             "P_day_all_nWet", "P_day_all_avgDSD_m",
+                                           "PET_day_all_avg","PET_day_all_cor","PET_day_all_xP90")
+#modelSelection[["penaltyWeights"]] <-c(2,2,2,2)
+modelSelection[["penaltyWeights"]] = rep(2,7)
+
+
+modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
+controlFile = paste0(tempdir(), "\\eg_controlFile.json")
+write(modelSelectionJSON, file = controlFile)
+```
+
+
+```{r}
+
+sim_stoch = generateScenarios(reference = clim_ref,
+                             expSpace = expSpace,
+                             controlFile = controlFile,
+                             seedID = 1,
+                             numReplicates = 1)
+
+plotScenarios(sim_stoch)
+
+# attSel = colnames(expSpace$targetMat)
+# 
+# P = calcPerformanceAttributes(clim=clim_ref,sim=sim_stoch,attSel=attSel)
+# 
+# par(mfrow=c(5,5),mar=c(4,5,2,1))
+# for (att in names(P)){
+#   plotPerformanceOAT(P, sim_stoch, metric=att,plotType='base',attSel=attPerturb)
+# }
+```
+
+

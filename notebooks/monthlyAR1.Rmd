@@ -1,0 +1,349 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+rm(list=ls())
+devtools::load_all()
+```
+
+Annual model
+
+```{r}
+
+######################
+# generate monthly rainfall 
+
+clim = convert_climYMD_POSIXct(tank_obs)
+
+P.zoo = zoo::zoo(clim$P,clim$times)
+P.zoo.mon = aggregate(P.zoo,zoo::as.yearmon,sum)
+times.mon = time(P.zoo.mon)
+clim_mon = list(times=as.POSIXct(times.mon,tz = 'UTC'),
+                P=zoo::coredata(P.zoo.mon))
+
+####################
+# setup seasonal monAR1 model
+
+modelSelection = list()
+modelSelection$modelType = list()
+modelSelection$modelType$P = "monAR1"
+modelSelection$modelParameterVariation = list()
+modelSelection$modelParameterVariation$P = "ann"
+
+modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
+controlFile = paste0(tempdir(), "\\eg_controlFile.json")
+write(modelSelectionJSON, file = controlFile)
+
+####################
+
+attPerturb = c("P_month_all_tot_m")
+attHold = c("P_month_all_P50","P_month_all_P90","P_month_all_cor")
+
+attPerturbType = "regGrid"
+attPerturbSamp = c(1)
+attPerturbMin = c(1)
+attPerturbMax = c(1)
+
+# create the exposure space
+expSpace = createExpSpace(attPerturb = attPerturb,
+                          attPerturbSamp = attPerturbSamp,
+                          attPerturbMin = attPerturbMin,
+                          attPerturbMax = attPerturbMax,
+                          attPerturbType = attPerturbType,
+                          attHold = attHold)
+
+####################
+
+sim_stoch = generateScenarios(reference = clim_mon,
+                             expSpace = expSpace,
+                             controlFile = controlFile,
+                             seedID=1)
+
+plotScenarios(sim_stoch)
+
+
+
+```
+Annual model - synthetic 
+
+```{r}
+
+par = sim_stoch$Rep1$Target1$P$par
+#par = c(400,200,0.2,1)
+
+# modelSelection[["modelParameterBounds"]] <- list()
+# modelSelection[["modelParameterBounds"]][["P"]] <- list()
+# modelSelection[["modelParameterBounds"]][["P"]][["mu.SON"]] = c(400,400)
+# modelSelection[["modelParameterBounds"]][["P"]][["mu.DJF"]] = c(400,400)
+# modelSelection[["modelParameterBounds"]][["P"]][["mu.MAM"]] = c(400,400)
+# modelSelection[["modelParameterBounds"]][["P"]][["mu.JJA"]] = c(400,400)
+# modelSelection[["modelParameterBounds"]][["P"]][["sigma.SON"]] = c(200,200)
+# modelSelection[["modelParameterBounds"]][["P"]][["sigma.DJF"]] = c(200,200)
+# modelSelection[["modelParameterBounds"]][["P"]][["sigma.MAM"]] = c(200,200)
+# modelSelection[["modelParameterBounds"]][["P"]][["sigma.JJA"]] = c(200,200)
+# modelSelection[["modelParameterBounds"]][["P"]][["phi.SON"]] = c(0.2,0.2)
+# modelSelection[["modelParameterBounds"]][["P"]][["phi.DJF"]] = c(0.2,0.2)
+# modelSelection[["modelParameterBounds"]][["P"]][["phi.MAM"]] = c(0.2,0.2)
+# modelSelection[["modelParameterBounds"]][["P"]][["phi.JJA"]] = c(0.2,0.2)
+# modelSelection[["modelParameterBounds"]][["P"]][["lambda.SON"]] = c(1,1)
+# modelSelection[["modelParameterBounds"]][["P"]][["lambda.DJF"]] = c(1,1)
+# modelSelection[["modelParameterBounds"]][["P"]][["lambda.MAM"]] = c(1,1)
+# modelSelection[["modelParameterBounds"]][["P"]][["lambda.JJA"]] = c(1,1)
+
+# modelSelection[["modelParameterBounds"]] <- list()
+# modelSelection[["modelParameterBounds"]][["P"]][["mu"]] = c(300,500)
+# modelSelection[["modelParameterBounds"]][["P"]][["sigma"]] = c(100,300)
+# modelSelection[["modelParameterBounds"]][["P"]][["phi"]] = c(0.1,0.3)
+# modelSelection[["modelParameterBounds"]][["P"]][["lambda"]] = c(0.5,1.5)
+
+modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
+controlFile = paste0(tempdir(), "\\eg_controlFile.json")
+write(modelSelectionJSON, file = controlFile)
+
+datInd = list(month=get.date.ind(times=clim_mon$times))
+
+set.seed(1)
+P=simClim(parS=par,modelTag='P-ann-monAR1',datInd =datInd,randomTerm=list(randomVector=runif(length(clim_mon$times))))
+
+climSynth = list(times=clim_mon$times,P=P)
+
+sim_synth = generateScenarios(reference = climSynth,
+                             expSpace = expSpace,
+                             controlFile = controlFile,
+                             seedID=1)
+
+plotScenarios(sim_synth)
+
+```
+
+
+
+Seasonal model
+
+```{r}
+
+######################
+# generate monthly rainfall 
+
+clim = convert_climYMD_POSIXct(tank_obs)
+
+P.zoo = zoo::zoo(clim$P,clim$times)
+P.zoo.mon = aggregate(P.zoo,zoo::as.yearmon,sum)
+times.mon = time(P.zoo.mon)
+clim_mon = list(times=as.POSIXct(times.mon,tz = 'UTC'),
+                P=zoo::coredata(P.zoo.mon))
+
+####################
+# setup seasonal monAR1 model
+
+modelSelection = list()
+modelSelection$modelType = list()
+modelSelection$modelType$P = "monAR1"
+modelSelection$modelParameterVariation = list()
+modelSelection$modelParameterVariation$P = "seas"
+
+# # specify the penalty settings in a list
+# modelSelection[["penaltyAttributes"]] <- c("P_month_all_tot_m","P_month_all_P50","P_month_all_P90","P_month_all_cor")
+# modelSelection[["penaltyWeights"]] <- c(2,2,2,2)
+
+modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
+controlFile = paste0(tempdir(), "\\eg_controlFile.json")
+write(modelSelectionJSON, file = controlFile)
+
+####################
+
+# attPerturb = c("P_month_all_tot_m")
+# attHold = c("P_month_all_P50","P_month_all_P90","P_month_all_cor",
+#            "P_month_DJF_tot_m","P_month_DJF_P50","P_month_DJF_P90","P_month_DJF_cor",
+#            "P_month_MAM_tot_m","P_month_MAM_P50","P_month_MAM_P90","P_month_MAM_cor",
+#            "P_month_JJA_tot_m","P_month_JJA_P50","P_month_JJA_P90","P_month_JJA_cor",
+#            "P_month_SON_tot_m","P_month_SON_P50","P_month_SON_P90","P_month_SON_cor")
+
+attPerturb = c("P_month_DJF_tot_m")
+attHold = c("P_month_DJF_P50","P_month_DJF_P90","P_month_DJF_cor",
+           "P_month_MAM_tot_m","P_month_MAM_P50","P_month_MAM_P90","P_month_MAM_cor",
+           "P_month_JJA_tot_m","P_month_JJA_P50","P_month_JJA_P90","P_month_JJA_cor",
+           "P_month_SON_tot_m","P_month_SON_P50","P_month_SON_P90","P_month_SON_cor")
+
+attPerturbSamp = c(1)
+attPerturbMin = c(1)
+attPerturbMax = c(1)
+
+# create the exposure space
+expSpace = createExpSpace(attPerturb = attPerturb,
+                          attPerturbSamp = attPerturbSamp,
+                          attPerturbMin = attPerturbMin,
+                          attPerturbMax = attPerturbMax,
+                          attPerturbType = attPerturbType,
+                          attHold = attHold)
+
+####################
+
+sim_stoch_seas = generateScenarios(reference = clim_mon,
+                             expSpace = expSpace,
+                             controlFile = controlFile,
+                             seedID=1)
+
+plotScenarios(sim_stoch_seas)
+
+clim_sim_stoch_seas = list(times=clim_mon$times,P=sim_stoch_seas$Rep1$Target1$P$sim)
+
+attSel = c("P_month_all_tot_m","P_month_all_P50","P_month_all_P90","P_month_all_cor")
+
+calculateAttributes(clim_mon,attSel)
+calculateAttributes(clim_sim_stoch_seas,attSel)
+
+```
+adding annual attributes to calibration
+
+add initial parameter values based on cal without annual atts
+
+```{r}
+
+modelSelection[["optimisationArguments"]] = list()
+modelSelection[["optimisationArguments"]]$suggestions = sim_stoch_seas$Rep1$Target1$P$par
+
+modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
+controlFile = paste0(tempdir(), "\\eg_controlFile.json")
+write(modelSelectionJSON, file = controlFile)
+
+attPerturb = c("P_month_all_tot_m")
+attHold = c("P_month_all_P50","P_month_all_P90","P_month_all_cor",
+           "P_month_DJF_tot_m","P_month_DJF_P50","P_month_DJF_P90","P_month_DJF_cor",
+           "P_month_MAM_tot_m","P_month_MAM_P50","P_month_MAM_P90","P_month_MAM_cor",
+           "P_month_JJA_tot_m","P_month_JJA_P50","P_month_JJA_P90","P_month_JJA_cor",
+           "P_month_SON_tot_m","P_month_SON_P50","P_month_SON_P90","P_month_SON_cor")
+
+attPerturbSamp = c(1)
+attPerturbMin = c(1)
+attPerturbMax = c(1)
+
+# create the exposure space
+expSpace = createExpSpace(attPerturb = attPerturb,
+                          attPerturbSamp = attPerturbSamp,
+                          attPerturbMin = attPerturbMin,
+                          attPerturbMax = attPerturbMax,
+                          attPerturbType = attPerturbType,
+                          attHold = attHold)
+
+####################
+
+sim_stoch_seas.1 = generateScenarios(reference = clim_mon,
+                             expSpace = expSpace,
+                             controlFile = controlFile,
+                             seedID=1)
+
+plotScenarios(sim_stoch_seas.1)
+
+```
+can't get both seasonal and annual attributes right with this model
+
+______________
+
+
+Seasonal model with annual phi
+
+```{r}
+
+######################
+# generate monthly rainfall 
+
+clim = convert_climYMD_POSIXct(tank_obs)
+
+P.zoo = zoo::zoo(clim$P,clim$times)
+P.zoo.mon = aggregate(P.zoo,zoo::as.yearmon,sum)
+times.mon = time(P.zoo.mon)
+clim_mon = list(times=as.POSIXct(times.mon,tz = 'UTC'),
+                P=zoo::coredata(P.zoo.mon))
+
+####################
+# setup seasonal monAR1 model
+
+modelSelection = list()
+modelSelection$modelType = list()
+modelSelection$modelType$P = "monAR1"
+modelSelection$modelParameterVariation = list()
+modelSelection$modelParameterVariation$P = "seas1"
+
+# specify the penalty settings in a list
+modelSelection[["penaltyAttributes"]] <- c("P_month_all_tot_m","P_month_all_P50","P_month_all_P90","P_month_all_cor")
+modelSelection[["penaltyWeights"]] <- c(2,2,2,2)
+
+modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
+controlFile = paste0(tempdir(), "\\eg_controlFile.json")
+write(modelSelectionJSON, file = controlFile)
+
+####################
+
+attPerturb = c("P_month_all_tot_m")
+attHold = c("P_month_all_P50","P_month_all_P90","P_month_all_cor",
+           "P_month_DJF_tot_m","P_month_DJF_P50","P_month_DJF_P90",
+           "P_month_MAM_tot_m","P_month_MAM_P50","P_month_MAM_P90",
+           "P_month_JJA_tot_m","P_month_JJA_P50","P_month_JJA_P90",
+           "P_month_SON_tot_m","P_month_SON_P50","P_month_SON_P90")
+
+attPerturbSamp = c(1)
+attPerturbMin = c(1)
+attPerturbMax = c(1)
+
+# create the exposure space
+expSpace = createExpSpace(attPerturb = attPerturb,
+                          attPerturbSamp = attPerturbSamp,
+                          attPerturbMin = attPerturbMin,
+                          attPerturbMax = attPerturbMax,
+                          attPerturbType = attPerturbType,
+                          attHold = attHold)
+
+####################
+
+sim_stoch_seas1 = generateScenarios(reference = clim_mon,
+                             expSpace = expSpace,
+                             controlFile = controlFile,
+                             seedID=1)#,simLengthNyrs = 1000)
+
+plotScenarios(sim_stoch_seas1)
+
+clim_sim_stoch_seas1 = list(times=clim_mon$times,P=sim_stoch_seas1$Rep1$Target1$P$sim)
+
+# attSel = c("P_month_all_tot_m","P_month_all_P50","P_month_all_P90","P_month_all_cor")
+# 
+# calculateAttributes(clim_mon,attSel)
+# calculateAttributes(clim_sim_stoch_seas,attSel)
+
+```
+Above results show that we can't get both seasonal attributes and annual attributes right.
+
+
+_______________________________________________
+
+Seasonal model - synthetic 
+
+```{r}
+
+par = sim_stoch_seas1$Rep1$Target1$P$par
+
+datInd = list(month=get.date.ind(times=clim_mon$times))
+
+set.seed(1)
+P=simClim(parS=par,modelTag='P-seas1-monAR1',datInd =datInd,randomTerm=list(randomVector=runif(length(clim_mon$times))))
+
+climSynth = list(times=clim_mon$times,P=P)
+
+modelSelection[["optimisationArguments"]] = list()
+modelSelection[["optimisationArguments"]]$suggestions = par
+
+modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
+controlFile = paste0(tempdir(), "\\eg_controlFile.json")
+write(modelSelectionJSON, file = controlFile)
+
+sim_synth_seas1 = generateScenarios(reference = climSynth,
+                             expSpace = expSpace,
+                             controlFile = controlFile,
+                             seedID=1)
+
+plotScenarios(sim_synth_seas1)
+
+```
