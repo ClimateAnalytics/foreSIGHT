@@ -90,7 +90,8 @@ createExpSpace <- function(attPerturb,
                            attPerturbType = "regGrid",
                            attPerturbBy = NULL,
                            attHold = NULL,
-                           attTargetsFile = NULL # If this file is specified, use this, else create based on sample space
+                           attTargetsFile = NULL, # If this file is specified, use this, else create based on sample space
+                           targetTypes = NULL
 ) {
   
   # print("CHECKING INPUT ARGUMENTS")
@@ -141,7 +142,13 @@ createExpSpace <- function(attPerturb,
   attInfo$varType=vapply(attSel,FUN = get.attribute.varType,FUN.VALUE=character(1),USE.NAMES = FALSE) #drop use of names as comes ordered anyway
   #ASSIGN TARGET TYPE (IF P USE "FRAC", IF T USE "DIFF")
   attInfo$targetType=vapply(attInfo$varType,FUN=get.target.type,FUN.VALUE=character(1),USE.NAMES=FALSE)
-  
+  if (!is.null(targetTypes)){
+    for (att in names(targetTypes)){
+      i = which(att==attSel)
+      attInfo$targetType[i] = targetTypes[[att]]
+    }
+  }
+
   # create temporary log file
   file <- paste0(tempdir(), "/generateExpSpace_log.txt")
   
@@ -158,7 +165,8 @@ createExpSpace <- function(attPerturb,
   spaceInfo$attPerturbMax <- attPerturbMax
   spaceInfo$attPerturbType <- attPerturbType
   spaceInfo$attPerturbBy <- attPerturbBy
-  
+  spaceInfo$targetType <- attInfo$targetType
+
   return(spaceInfo)
   
 }
@@ -211,4 +219,74 @@ addExpArgs_attHold <- function(attPerturb = attPerturb, attHold = attHold, exSpA
   exSpArgs$samp=c(exSpArgs$samp,rep(1,length(attHold)))
   
   return(exSpArgs)
+}
+
+#' @export
+tieAttributes = function(expSpace,attTied){
+  
+  for (tieType in names(attTied)){
+    
+    attSel = attTied[[tieType]]
+    
+    if (length(attSel)==1){
+      if (attSel=='allTargets'){
+        attSel=colnames(expSpace$targetMat)
+      }
+    }
+    
+    if (!all(attSel%in%colnames(expSpace$targetMat))){stop("must have tied attributes in targetMat attributes")}
+    
+    if(tieType=='wDdD'){
+      for (att in attSel){
+        i=which(colnames(expSpace$targetMat)==att)
+        var = get.attribute.varType(att)
+        if(grepl('/',var)){stop("can't have multivariable tied attributes in perturb/hold atts")}
+        var.new = paste0(var,'.P')
+        for (cond in c('WetDay','DryDay')){
+          att.cond = gsub(var,var.new,att)
+          att.cond = paste0('mv.',att.cond,cond)
+          if (att.cond%in%expSpace$attTied){
+            if (expSpace$targetType[i]=='frac'){
+              expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]*expSpace$targetMat[att]
+            } else if (expSpace$targetType[i]=='diff'){
+              expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]+expSpace$targetMat[att]
+            } 
+            expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]*expSpace$targetMat[att]
+          } else {
+            expSpace$targetMat[att.cond] = expSpace$targetMat[att]
+            expSpace$attTied = c(expSpace$attTied,att.cond)
+            expSpace$targetType = c(expSpace$targetType,expSpace$targetType[i])
+          }
+        }
+      }
+    } else if(tieType=='seas'){
+      for (att in attSel){
+        i=which(colnames(expSpace$targetMat)==att)
+        for (seas in c('DJF','MAM','JJA','SON')){
+          att.seas = gsub('all',seas,att)
+          if (att.seas%in%expSpace$attTied){
+            if (expSpace$targetType[i]=='frac'){
+              expSpace$targetMat[att.seas] = expSpace$targetMat[att.seas]*expSpace$targetMat[att]
+            } else if (expSpace$targetType[i]=='diff'){
+              expSpace$targetMat[att.seas] = expSpace$targetMat[att.seas]+expSpace$targetMat[att]
+            } 
+          } else {
+            expSpace$targetMat[att.seas] = expSpace$targetMat[att]
+            expSpace$attTied = c(expSpace$attTied,att.seas)
+            expSpace$targetType = c(expSpace$targetType,expSpace$targetType[i])
+          }
+        }
+      }
+    } else {
+      
+      stop(paste0('cannot handle tie type',tieType))
+      
+    }
+    
+    
+    
+  }
+  
+  return(expSpace)
+  
 }
