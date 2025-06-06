@@ -70,19 +70,17 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
 
 #-----------------------------------------------
 
-  multiStartOptim = function(optimArgs=NULL,
-                             modelInfo=NULL,
-                             modelTag=NULL,
-                             lambda.mult=NULL,
-                             target=NULL,
+  multiStartOptim = function(optimArgs,
+                             modelInfo,
+                             target,
                              parSuggest=NULL,
-                             simSeed=NULL,
                              iRepTarg = NULL,
-                             obs=NULL,
                              ...){
 
   timeStart=Sys.time()
 
+  rownames(target) = NULL # make sure that if same targets are used, then we don't perform optimization each time
+  
   ##################################
 
   xLo = modelInfo$minBound
@@ -102,7 +100,6 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
   parsMulti = onBoundsMulti = matrix(nrow=optimArgs$nMultiStart,ncol=length(xLo))
   fTraceMulti = callsTraceMulti = list()
 
-  convergenceCodeSingle = messageSingle = NA
 
   if(!is.null(optimArgs$seed)){
     seed1=optimArgs$seed
@@ -137,203 +134,235 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
       x0 = xLo + stats::runif(length(xLo))*(xHi-xLo)
     }
 
-    if (optimArgs$optimizer=='RGN') {
-
-      outTmp <- RGN::rgn(simFunc=targetFinderFixPars,
-                            fixedPars=fixedPars,
-                            par = x0[fixedPars$fitParLoc],
-                            upper = xHi[fixedPars$fitParLoc],
-                            lower = xLo[fixedPars$fitParLoc],
-                            simTarget = rep(0.,length(target)),
-                            control=optimArgs$RGN.control,
-                            lambda.mult=lambda.mult,
-                            modelInfo=modelInfo,
-                         modelTag=modelTag,
-                            target=target,
-                            returnThis='resid',
-                            simSeed=simSeed,
-                            obs=obs,
-                         ...)
-
-      fSingle = sqrt(2*outTmp$value)
-      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
-      convergedSingle = (outTmp$convergence)
-
-     } else if (optimArgs$optimizer=='CMAES') {
-
-       set.seed(r)
-        outTmp <- cmaes::cma_es(fn=targetFinderFixPars,
-                              par = x0[fixedPars$fitParLoc],
-                              fixedPars=fixedPars,
-                              modelInfo=modelInfo,
-                              modelTag=modelTag,
-                              target=target,
-                              lambda.mult=lambda.mult,
-                              obj.func=optimArgs$obj.func,
-                              simSeed=simSeed,
-                              obs=obs,
-                         ...,
-                         lower = xLo[fixedPars$fitParLoc],
-                         upper = xHi[fixedPars$fitParLoc],
-                         control=optimArgs$CMAES.control)
-
-        fSingle = -outTmp$value
-        if (is.null(outTmp$par)){
-          fSingle=9e9
-          parSingle = NULL
-        } else {
-          parsSingle = calcParFixedPars(outTmp$par,fixedPars)
-        }
-
-        convergedSingle = (outTmp$convergence==0)
-        convergenceCodeSingle = outTmp$convergence
-
-      } else if (optimArgs$optimizer=='GA') {
-
-      outTmp = GA::ga(type = "real-valued",
-                  fitness=targetFinderFixPars,
-                  lower = xLo[fixedPars$fitParLoc],
-                  upper = xHi[fixedPars$fitParLoc],
-                  pcrossover= optimArgs$GA$pcrossover,
-                  pmutation=optimArgs$GA.args$pmutation,
-                  maxiter=optimArgs$GA.args$maxiter,
-                  popSize = optimArgs$GA.args$popSize,
-                  maxFitness = optimArgs$GA.args$maxFitness,
-                  run=optimArgs$GA.args$run,
-                  seed = seed,
-                  parallel = optimArgs$GA.args$parallel,
-                  keepBest=optimArgs$GA.args$keepBest,
-                  suggestions = parSuggest,
-                  monitor = FALSE,             #switchback
-                  fixedPars=fixedPars,
-                  target=target,
-                  lambda.mult=lambda.mult,
-                  obj.func=optimArgs$obj.func,
-                  modelInfo=modelInfo,
-                  modelTag=modelTag,
-                  simSeed=simSeed,
-                  obs=obs,
-                  ...)
-
-      fSingle = -outTmp@fitnessValue
-      parsSingle = calcParFixedPars(outTmp@solution[1,],fixedPars)
-
-      convergedSingle = NA
-
-      } else if (optimArgs$optimizer=='SCE') {
-
-      outTmp = SoilHyP::SCEoptim(
-        FUN=targetFinderFixPars,
-        par=x0[fixedPars$fitParLoc],
-        lower = xLo[fixedPars$fitParLoc],
-        upper = xHi[fixedPars$fitParLoc],
-        control=optimArgs$SCE.control,
-        fixedPars=fixedPars,
-        target=target,
-        lambda.mult=lambda.mult,
-        obj.func=optimArgs$obj.func,
-        modelInfo=modelInfo,
-        modelTag=modelTag,
-        simSeed=simSeed,
-        obs=obs,
-        ...)
-
-      fSingle = outTmp$value
-      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
-
-      convergedSingle = (outTmp$convergence==0)
-
-    } else if (optimArgs$optimizer=='optim.LBFGSB') {
-
-      outTmp<- stats::optim(par=x0[fixedPars$fitParLoc],
-                     fn=targetFinderFixPars,
-                     method='L-BFGS-B',
-                     lower=xLo[fixedPars$fitParLoc]-1e-6,
-                     upper=xHi[fixedPars$fitParLoc]+1e-6,
-                     fixedPars=fixedPars,
-                     target=target,
-                     control=list(fnscale=-1),
-                     lambda.mult=lambda.mult,
-                     obj.func=optimArgs$obj.func,
-                     modelInfo=modelInfo,
-                     modelTag=modelTag,
-                     simSeed=simSeed,
-                     obs=obs,
-                     ...)
-
-      fSingle = -outTmp$value
-      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
-
-      convergedSingle = (outTmp$convergence==0)
-      messageSingle = outTmp$message
-      convergenceCodeSingle = outTmp$convergence
-
-
-    } else if (optimArgs$optimizer=='NM') {
-
-      outTmp<- dfoptim::nmkb(par=x0[fixedPars$fitParLoc],
-                     fn=targetFinderFixPars,
-                     lower=xLo[fixedPars$fitParLoc],
-                     upper=xHi[fixedPars$fitParLoc],
-                     fixedPars=fixedPars,
-                     target=target,
-                     control=optimArgs$NM.control,
-                     lambda.mult=lambda.mult,
-                     obj.func=optimArgs$obj.func,
-                     modelInfo=modelInfo,
-                     modelTag=modelTag,
-                     simSeed=simSeed,
-                     obs=obs,
-                     ...)
-
-      fSingle = -outTmp$value
-      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
-
-      convergedSingle = (outTmp$convergence==0)
-      messageSingle = outTmp$message
-      convergenceCodeSingle = outTmp$convergence
-
-    }
+    optInput = list(fixedPars=fixedPars,
+                    par = x0[fixedPars$fitParLoc],
+                    seed = seed,
+                    upper = xHi[fixedPars$fitParLoc],
+                    lower = xLo[fixedPars$fitParLoc],
+                    optimArgs=optimArgs,
+                    modelInfo=modelInfo,
+                    target=target,
+                    suggestions = parSuggest)
+    
+    
+    optOutput = singleOptim(optInput,...)
+      
+      
+    #                           #                                modelEnv = foreSIGHT_modelEnv,
+    #                           attSel=attSel[attInd[[simVar[mod]]]],
+    #                           attPrim=attPrim,
+    #                           attInfo=attInfo[[mod]],
+    #                           datInd=datInd[[mod]],
+    #                           randomVector = randomVector,
+    #                           randomUnitNormalVector = randomUnitNormalVector,
+    #                           attObs=attObs[attInd[[simVar[mod]]]],
+    #                           auxInfo=auxInfo,
+    #                           lambda.mult=optimArgs$lambda.mult,
+    #                           iRepTarg = iRepTarg,
+    #                           resid_ts=NULL,
+    #                           simOut=out)
+    
+#     if (optimArgs$optimizer=='RGN') {
+# 
+#       outTmp <- RGN::rgn(simFunc=targetFinderFixPars,
+#                          fixedPars=fixedPars,
+#                             par = x0[fixedPars$fitParLoc],
+#                             upper = xHi[fixedPars$fitParLoc],
+#                             lower = xLo[fixedPars$fitParLoc],
+#                             simTarget = rep(0.,length(target)),
+#                             control=optimArgs$RGN.control,
+# #                            lambda.mult=lambda.mult,
+#                             modelInfo=modelInfo,
+# #                         modelTag=modelTag,
+#                             target=target,
+#                             returnThis='resid',
+# #                            simSeed=simSeed,
+# #                            obs=obs,
+#                          ...)
+# 
+#       fSingle = sqrt(2*outTmp$value)
+#       parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+#       convergedSingle = (outTmp$convergence)
+# 
+#      } else if (optimArgs$optimizer=='CMAES') {
+# 
+#        set.seed(r)
+#         outTmp <- cmaes::cma_es(fn=targetFinderFixPars,
+#                               par = x0[fixedPars$fitParLoc],
+#                               fixedPars=fixedPars,
+#                               modelInfo=modelInfo,
+#                               modelTag=modelTag,
+#                               target=target,
+#                               lambda.mult=lambda.mult,
+#                               obj.func=optimArgs$obj.func,
+#                               simSeed=simSeed,
+#                               obs=obs,
+#                          ...,
+#                          lower = xLo[fixedPars$fitParLoc],
+#                          upper = xHi[fixedPars$fitParLoc],
+#                          control=optimArgs$CMAES.control)
+# 
+#         fSingle = -outTmp$value
+#         if (is.null(outTmp$par)){
+#           fSingle=9e9
+#           parSingle = NULL
+#         } else {
+#           parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+#         }
+# 
+#         convergedSingle = (outTmp$convergence==0)
+#         convergenceCodeSingle = outTmp$convergence
+# 
+#       } else if (optimArgs$optimizer=='GA') {
+# 
+#       outTmp = GA::ga(type = "real-valued",
+#                   fitness=targetFinderFixPars,
+#                   lower = xLo[fixedPars$fitParLoc],
+#                   upper = xHi[fixedPars$fitParLoc],
+#                   pcrossover= optimArgs$GA$pcrossover,
+#                   pmutation=optimArgs$GA.args$pmutation,
+#                   maxiter=optimArgs$GA.args$maxiter,
+#                   popSize = optimArgs$GA.args$popSize,
+#                   maxFitness = optimArgs$GA.args$maxFitness,
+#                   run=optimArgs$GA.args$run,
+#                   seed = seed,
+#                   parallel = optimArgs$GA.args$parallel,
+#                   keepBest=optimArgs$GA.args$keepBest,
+#                   suggestions = parSuggest,
+#                   monitor = FALSE,             #switchback
+#                   fixedPars=fixedPars,
+#                   target=target,
+#                   lambda.mult=lambda.mult,
+#                   obj.func=optimArgs$obj.func,
+#                   modelInfo=modelInfo,
+#                   modelTag=modelTag,
+#                   simSeed=simSeed,
+#                   obs=obs,
+#                   ...)
+# 
+#       fSingle = -outTmp@fitnessValue
+#       parsSingle = calcParFixedPars(outTmp@solution[1,],fixedPars)
+# 
+#       convergedSingle = NA
+# 
+#       } else if (optimArgs$optimizer=='SCE') {
+# 
+#       outTmp = SoilHyP::SCEoptim(
+#         FUN=targetFinderFixPars,
+#         par=x0[fixedPars$fitParLoc],
+#         lower = xLo[fixedPars$fitParLoc],
+#         upper = xHi[fixedPars$fitParLoc],
+#         control=optimArgs$SCE.control,
+#         fixedPars=fixedPars,
+#         target=target,
+#         lambda.mult=lambda.mult,
+#         obj.func=optimArgs$obj.func,
+#         modelInfo=modelInfo,
+#         modelTag=modelTag,
+#         simSeed=simSeed,
+#         obs=obs,
+#         ...)
+# 
+#       fSingle = outTmp$value
+#       parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+# 
+#       convergedSingle = (outTmp$convergence==0)
+# 
+#     } else if (optimArgs$optimizer=='optim.LBFGSB') {
+# 
+#       outTmp<- stats::optim(par=x0[fixedPars$fitParLoc],
+#                      fn=targetFinderFixPars,
+#                      method='L-BFGS-B',
+#                      lower=xLo[fixedPars$fitParLoc]-1e-6,
+#                      upper=xHi[fixedPars$fitParLoc]+1e-6,
+#                      fixedPars=fixedPars,
+#                      target=target,
+#                      control=list(fnscale=-1),
+#                      lambda.mult=lambda.mult,
+#                      obj.func=optimArgs$obj.func,
+#                      modelInfo=modelInfo,
+#                      modelTag=modelTag,
+#                      simSeed=simSeed,
+#                      obs=obs,
+#                      ...)
+# 
+#       fSingle = -outTmp$value
+#       parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+# 
+#       convergedSingle = (outTmp$convergence==0)
+#       messageSingle = outTmp$message
+#       convergenceCodeSingle = outTmp$convergence
+# 
+# 
+#     } else if (optimArgs$optimizer=='NM') {
+# 
+#       outTmp<- dfoptim::nmkb(par=x0[fixedPars$fitParLoc],
+#                      fn=targetFinderFixPars,
+#                      lower=xLo[fixedPars$fitParLoc],
+#                      upper=xHi[fixedPars$fitParLoc],
+#                      fixedPars=fixedPars,
+#                      target=target,
+#                      control=optimArgs$NM.control,
+#                      lambda.mult=lambda.mult,
+#                      obj.func=optimArgs$obj.func,
+#                      modelInfo=modelInfo,
+#                      modelTag=modelTag,
+#                      simSeed=simSeed,
+#                      obs=obs,
+#                      ...)
+# 
+#       fSingle = -outTmp$value
+#       parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+# 
+#       convergedSingle = (outTmp$convergence==0)
+#       messageSingle = outTmp$message
+#       convergenceCodeSingle = outTmp$convergence
+# 
+#     }
 
     time2 = Sys.time()
     timeSingle=time2-time1    #optimisation runtime
 
-    onBoundsSingle = (abs(parsSingle-xLo)<1e-6) | (abs(parsSingle-xHi)<1e-6)
+    onBoundsSingle = (abs(optOutput$parsSingle-xLo)<1e-6) | (abs(optOutput$parsSingle-xHi)<1e-6)
 
     # calculate best OF value after each function call
     fTrace = foreSIGHT_optimizationDiagnosticsEnv$fTrace
-    nTrace = length(fTrace)
-    fTraceTmp = c()
-    fTraceBest = -999
-    callsTraceTmp = 1:nTrace
-    for (i in 1:nTrace){
-      if ( !is.na(fTrace[i]) & (fTrace[i]>fTraceBest) ){
-        fTraceBest = fTrace[i]
+    if (!is.null(fTrace)){
+      nTrace = length(fTrace)
+      fTraceTmp = c()
+      fTraceBest = -999
+      callsTraceTmp = 1:nTrace
+      for (i in 1:nTrace){
+        if ( !is.na(fTrace[i]) & (fTrace[i]>fTraceBest) ){
+          fTraceBest = fTrace[i]
+        }
+        fTraceTmp[i] = fTraceBest
       }
-      fTraceTmp[i] = fTraceBest
-    }
-    # remove best OF values when they are repeated
-    fTraceTrim = c(fTraceTmp[1])
-    callsTraceTrim = c(callsTraceTmp[1])
-    for (i in 2:(nTrace-1)){
-      if ((fTraceTmp[i]!=fTraceTmp[i-1])|(fTraceTmp[i]!=fTraceTmp[i+1])){
-        fTraceTrim = c(fTraceTrim,fTraceTmp[i])
-        callsTraceTrim = c(callsTraceTrim,callsTraceTmp[i])
+      # remove best OF values when they are repeated
+      fTraceTrim = c(fTraceTmp[1])
+      callsTraceTrim = c(callsTraceTmp[1])
+      for (i in 2:(nTrace-1)){
+        if ((fTraceTmp[i]!=fTraceTmp[i-1])|(fTraceTmp[i]!=fTraceTmp[i+1])){
+          fTraceTrim = c(fTraceTrim,fTraceTmp[i])
+          callsTraceTrim = c(callsTraceTrim,callsTraceTmp[i])
+        }
       }
+    } else {
+      fTraceTrim = callsTraceTrim = NULL
     }
-
-    fMulti[r] = fSingle
-    parsMulti[r,] = parsSingle
+    
+    fMulti[r] = optOutput$fSingle
+    parsMulti[r,] = optOutput$parsSingle
     timeMulti[r] = timeSingle
     callsMulti[r] = foreSIGHT_optimizationDiagnosticsEnv$WG_calls
     onBoundsMulti[r,] = onBoundsSingle
-    convergedMulti[r] = convergedSingle
-    convergenceCodeMulti[r] = convergenceCodeSingle
-    messageMulti[r] = messageSingle
-    if (fSingle<fBest){
-      fBest = fSingle
-      parsBest = parsSingle
-      optOut=outTmp
+    convergedMulti[r] = optOutput$convergedSingle
+    convergenceCodeMulti[r] = optOutput$convergenceCodeSingle
+    messageMulti[r] = optOutput$messageSingle
+    if (optOutput$fSingle<fBest){
+      fBest = optOutput$fSingle
+      parsBest = optOutput$parsSingle
+      optFunctionOutput=optOutput$outTmp
     }
     fTraceMulti[[r]] = fTraceTrim
     callsTraceMulti[[r]] = callsTraceTrim
@@ -343,13 +372,17 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
   timeFin=Sys.time()
   timeRun=timeFin-timeStart    #optimisation runtime
 
-  onBounds = ((abs(as.vector(parsBest)-xLo)<1e-6) 
-  | (abs(as.vector(parsBest)-xHi)<1e-6)) & (xLo!=xHi) 
+  noBoundsTol = 1e-4
+  onBounds = ((abs(as.vector(parsBest)-xLo)<noBoundsTol) 
+  | (abs(as.vector(parsBest)-xHi)<noBoundsTol)) & (xLo!=xHi) 
     
-  out=list(par=as.vector(parsBest),
+  par = as.vector(parsBest)
+  names(par) = modelInfo$parNam
+  
+  out=list(par=par,
            fitness=as.numeric(fBest),
-           seed=simSeed,
-           opt=optOut,
+           seed1=seed1,
+           opt=optFunctionOutput,
            runtime=timeRun,
            onBounds = onBounds,
            fMulti=fMulti,
@@ -363,10 +396,202 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
            fTraceMulti=fTraceMulti,
            callsTraceMulti=callsTraceMulti)
 
+  # browser()
+  
   return(out)
 
 }
 
+#-----------------------------------------------
+
+singleOptim = function(optInput,...){
+
+  optInputAll = c(optInput,list(...))
+
+#  foreSIGHT_optimizationInputOutputEnv
+  
+  # assign("fTrace",c(foreSIGHT_optimizationInputOutputEnv$fTrace,
+  #                   target),
+  #        envir = foreSIGHT_optimizationInputOutputEnv)
+  
+  IOlist = foreSIGHT_optimizationInputOutputEnv$IOlist
+
+  n = length(IOlist)
+  if (n>0){
+    for (i in 1:n){
+      if (identical(optInputAll,IOlist[[i]]$optInputAll)){
+        print('re-using output from identical optimization')
+        return(IOlist[[i]]$optOutput)
+      }      
+    }
+  }
+
+  IOlist[[n+1]] = list(optInputAll = optInputAll)
+  
+  fixedPars = optInput$fixedPars
+  par = optInput$par
+  seed = optInput$seed
+  upper = optInput$upper
+  lower = optInput$lower
+  optimArgs = optInput$optimArgs
+  modelInfo = optInput$modelInfo
+  target = optInput$target
+  suggestions = optInput$suggestions
+
+  convergenceCodeSingle = messageSingle = NA
+  
+  if (optimArgs$optimizer=='RGN') {
+
+    outTmp <- RGN::rgn(simFunc=targetFinderFixPars,
+                       fixedPars=fixedPars,
+                       par = par,
+                       upper = upper,
+                       lower = lower,
+                       simTarget = rep(0.,length(target)),
+                       control=optimArgs$RGN.control,
+#                       lambda.mult=optimArgs$lambda.mult,
+                       modelInfo=modelInfo,
+                       target=target,
+                       returnThis='resid',
+                       ...)
+
+    fSingle = sqrt(2*outTmp$value)
+    parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+    convergedSingle = (outTmp$convergence)
+
+  } else if (optimArgs$optimizer=='CMAES') {
+
+    set.seed(seed)
+    outTmp <- cmaes::cma_es(fn=targetFinderFixPars,
+                            par = par,
+                            fixedPars=fixedPars,
+                            modelInfo=modelInfo,
+                            target=target,
+                            # lambda.mult=optimArgs$lambda.mult,
+                            obj.func=optimArgs$obj.func,
+                            ...,
+                            lower = lower,
+                            upper = upper,
+                            control=optimArgs$CMAES.control)
+
+    fSingle = -outTmp$value
+    if (is.null(outTmp$par)){
+      fSingle=9e9
+      parSingle = NULL
+    } else {
+      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+    }
+
+    convergedSingle = (outTmp$convergence==0)
+    convergenceCodeSingle = outTmp$convergence
+
+  } else if (optimArgs$optimizer=='GA') {
+
+    outTmp = GA::ga(type = "real-valued",
+                    fitness=targetFinderFixPars,
+                    lower = lower,
+                    upper = upper,
+                    pcrossover= optimArgs$GA$pcrossover,
+                    pmutation=optimArgs$GA.args$pmutation,
+                    maxiter=optimArgs$GA.args$maxiter,
+                    popSize = optimArgs$GA.args$popSize,
+                    maxFitness = optimArgs$GA.args$maxFitness,
+                    run=optimArgs$GA.args$run,
+                    seed = seed,
+                    parallel = optimArgs$GA.args$parallel,
+                    keepBest=optimArgs$GA.args$keepBest,
+                    suggestions = suggestions,
+                    monitor = FALSE,             #switchback
+                    fixedPars=fixedPars,
+                    target=target,
+                    # lambda.mult=optimArgs$lambda.mult,
+                    obj.func=optimArgs$obj.func,
+                    modelInfo=modelInfo,
+                    ...)
+
+    fSingle = -outTmp@fitnessValue
+    parsSingle = calcParFixedPars(outTmp@solution[1,],fixedPars)
+
+    convergedSingle = NA
+
+  } else if (optimArgs$optimizer=='SCE') {
+
+    outTmp = SoilHyP::SCEoptim(
+      FUN=targetFinderFixPars,
+      par=par,
+      lower = lower,
+      upper = upper,
+      control=optimArgs$SCE.control,
+      fixedPars=fixedPars,
+      target=target,
+      # lambda.mult=optimArgs$lambda.mult,
+      obj.func=optimArgs$obj.func,
+      modelInfo=modelInfo,
+      ...)
+
+    fSingle = outTmp$value
+    parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+    convergedSingle = (outTmp$convergence==0)
+
+  } else if (optimArgs$optimizer=='optim.LBFGSB') {
+
+    outTmp<- stats::optim(par=par,
+                          fn=targetFinderFixPars,
+                          method='L-BFGS-B',
+                          lower=lower-1e-6,
+                          upper=upper+1e-6,
+                          fixedPars=fixedPars,
+                          target=target,
+                          control=list(fnscale=-1),
+                          # lambda.mult=optimArgs$lambda.mult,
+                          obj.func=optimArgs$obj.func,
+                          modelInfo=modelInfo,
+                          ...)
+
+    fSingle = -outTmp$value
+    parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+    convergedSingle = (outTmp$convergence==0)
+    messageSingle = outTmp$message
+    convergenceCodeSingle = outTmp$convergence
+
+
+  } else if (optimArgs$optimizer=='NM') {
+
+    outTmp<- dfoptim::nmkb(par=par,
+                           fn=targetFinderFixPars,
+                           lower=lower,
+                           upper=upper,
+                           fixedPars=fixedPars,
+                           target=target,
+                           control=optimArgs$NM.control,
+                           # lambda.mult=optimArgs$lambda.mult,
+                           obj.func=optimArgs$obj.func,
+                           modelInfo=modelInfo,
+                           ...)
+
+    fSingle = -outTmp$value
+    parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+    convergedSingle = (outTmp$convergence==0)
+    messageSingle = outTmp$message
+    convergenceCodeSingle = outTmp$convergence
+
+  }
+ 
+  optOutput = list(fSingle=fSingle,
+              parsSingle=parsSingle,
+              convergedSingle=convergedSingle,
+              messageSingle=messageSingle,
+              convergenceCodeSingle=convergenceCodeSingle)
+  
+  IOlist[[n+1]]$optOutput = optOutput
+  
+  assign("IOlist",IOlist,
+         envir = foreSIGHT_optimizationInputOutputEnv)
+  
+  return(optOutput)
+   
+}
+  
 #-----------------------------------------------
 #FUNCTION TO SCREEN SUGGESTED POPULATIONS (screen outside, screen once)
 screenSuggest<-function(modelInfo=NULL,
