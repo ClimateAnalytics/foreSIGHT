@@ -47,7 +47,7 @@
 #' @examples
 #' # Example 1: Simple scaling
 #' #-----------------------------------------------------------------------
-#' attPerturb<-c("P_ann_tot_m","Temp_ann_avg_m")
+#' attPerturb<-c("P_day_all_tot","Temp_day_all_avg")
 #' attPerturbType = "regGrid"
 #' attPerturbSamp = c(2, 2)
 #' attPerturbMin = c(0.8, -1)
@@ -64,7 +64,7 @@
 #'
 #' # Example 2: Seasonal scaling
 #' #-----------------------------------------------------------------------
-#' attPerturb<-c("P_ann_tot_m","P_ann_seasRatio")
+#' attPerturb<-c("P_day_all_tot","P_day_all_seasRatio")
 #' attPerturbType = "regGrid"
 #' attPerturbSamp = c(2, 2)
 #' attPerturbMin = c(0.8, 0.9)
@@ -163,17 +163,133 @@
 #'                          controlFile = paste0(tempdir(), "controlFile.json"),seed=1)}
 #' @export
 
+# generateScenarios <- function(reference,                # data frame of observed data with column names compulsary [$year, $month, $day, $P,] additional [$Temp, $RH, $PET, $uz, $Rs] (or a subset of these)
+#                               expSpace,           # the space contains multiple targets
+#                               simLengthNyrs = NULL,      # desired length of simulation in years
+#                               numReplicates = 1,  # reps
+#                               seedID = NULL,      # seed - user may set this to reproduce a previous simulation
+#                               controlFile = NULL,   # NULL = default stochastic model options, "scaling" = simple scaling, json file = stochastic model options
+#                               tol=0.05) {
+# 
+#   # Number of targets
+#   nTarget <- dim(expSpace$targetMat)[1]
+# 
+#   # Replicates and seed don't go with scaling
+#   if (!is.null(controlFile)) {
+#     if (controlFile == "scaling") {
+#       if (numReplicates > 1) stop("Simple scaling cannot generate replicates. Please set numReplicates to 1.")
+#       if (!is.null(seedID)) stop("Simple scaling cannot use a seed. Please set seedID to NULL.")
+#     }
+#   }
+# 
+#   # Create random seedID
+#   if (is.null(seedID)) {
+#     seedID <- round(stats::runif(1)*10000)
+#   }
+# 
+#   # Create seedID vector for all replicates
+#   if (numReplicates>0 & numReplicates%%1==0) {
+#     seedIDs <- seedID + seq(0, numReplicates-1)
+#     nRep <- length(seedIDs)
+#   } else {
+#     stop("numReplicates should be a positive integer")
+#   }
+# 
+#   # assign("optim_num",0,envir = foreSIGHT_optimizationSeedTrackerEnv)
+#   assign("IOlist",list(),envir = foreSIGHT_optimizationInputOutputEnv)
+#   
+#   allSim <- replicate(nRep, vector("list", nTarget), simplify = FALSE)
+# 
+#   iRepTarg = 0
+#   
+#   for (iRep in 1:nRep) {
+# 
+#     cat(paste0("Generating replicate number ", iRep,  " out of ", nRep, " replicates...\n"))
+#     pb <- progress::progress_bar$new(
+#       #format = " [:bar] :elapsedfull",
+#       total = nTarget, clear = FALSE, width= 60)
+#     pb$tick(0)
+# 
+# 
+#     for (iTarg in 1:nTarget) {
+# 
+#       iRepTarg = iRepTarg + 1
+#       
+#       # Get the target location in the exposure space
+#       expTarg <- expSpace
+#       expTarg$targetMat <- expSpace$targetMat[iTarg, ]
+#       if(!is.null(expSpace$attRot)) {
+#         expTarg$attRot <- expSpace$attRot[iTarg]
+#       }
+# 
+# 
+#       #(    working on Target No. ", iTarg, " of ", nTarget, "\n"))
+#                  #"\n=============================================================\n"))
+#       pb$tick()
+#       # Call generateScenario for the target
+#       allSim[[iRep]][[iTarg]] <- generateScenario(reference = reference,
+#                                                   expTarg = expTarg,
+#                                                   simLengthNyrs = simLengthNyrs,
+#                                                   seedID = seedIDs[iRep],
+#                                                   controlFile = controlFile,
+#                                                   iRepTarg = iRepTarg,
+#                                                   allSim = allSim)
+# 
+#       # Get & remove simDates and nml from the target simulation, will be added back later
+#       nmlOut <- allSim[[iRep]][[iTarg]][["nml"]]
+#       simDates <- allSim[[iRep]][[iTarg]][["simDates"]]
+#       allSim[[iRep]][[iTarg]][["nml"]] <- NULL
+#       allSim[[iRep]][[iTarg]][["simDates"]] <- NULL
+# 
+#       if (!is.null(allSim[[iRep]][[iTarg]]$attSim)){ # check if stochastic simulation performed
+#           
+#         varNames = names(allSim[[iRep]][[iTarg]])
+#         varNames = varNames[!varNames%in%c('attSim','targetSim')]
+#         
+#         for (var in varNames){
+#           
+#           if (any(allSim[[iRep]][[iTarg]][[var]]$onBounds)){
+#             warning(paste0('parameters for ', var,' stoch rep, ', iRep, ' for target ',iTarg, ' on bounds\n'))
+#           }
+#           
+#           targDiff = abs(allSim[[iRep]][[iTarg]]$targetSim - expTarg$targetMat) 
+#           if (any(targDiff > tol)){
+#             warning(paste0('error in target atts for ', var,' stoch rep ', iRep, ' for target ',iTarg, ' greater than tol\n'))
+#           }
+#           
+#         }
+#         
+#       }
+#       
+#     }
+#     names(allSim[[iRep]]) <- paste0("Target", 1:nTarget)
+#   }
+#   cat("Simulation completed")
+#   names(allSim) <- paste0("Rep", 1:nRep)
+#   allSim[["simDates"]] <- simDates
+#   allSim[["expSpace"]] <- expSpace
+#   allSim[["controlFile"]] <- nmlOut
+# 
+#   if (!is.null(controlFile)) {
+#     if (controlFile == "scaling") allSim[["controlFile"]] <- controlFile
+#   }
+# 
+#   return(allSim)
+# 
+# }
+
 generateScenarios <- function(reference,                # data frame of observed data with column names compulsary [$year, $month, $day, $P,] additional [$Temp, $RH, $PET, $uz, $Rs] (or a subset of these)
                               expSpace,           # the space contains multiple targets
                               simLengthNyrs = NULL,      # desired length of simulation in years
                               numReplicates = 1,  # reps
                               seedID = NULL,      # seed - user may set this to reproduce a previous simulation
                               controlFile = NULL,   # NULL = default stochastic model options, "scaling" = simple scaling, json file = stochastic model options
-                              tol=0.05) {
-
+                              tol=0.05,
+                              cores=1) {
+  
   # Number of targets
   nTarget <- dim(expSpace$targetMat)[1]
-
+  
   # Replicates and seed don't go with scaling
   if (!is.null(controlFile)) {
     if (controlFile == "scaling") {
@@ -181,12 +297,12 @@ generateScenarios <- function(reference,                # data frame of observed
       if (!is.null(seedID)) stop("Simple scaling cannot use a seed. Please set seedID to NULL.")
     }
   }
-
+  
   # Create random seedID
   if (is.null(seedID)) {
     seedID <- round(stats::runif(1)*10000)
   }
-
+  
   # Create seedID vector for all replicates
   if (numReplicates>0 & numReplicates%%1==0) {
     seedIDs <- seedID + seq(0, numReplicates-1)
@@ -194,56 +310,155 @@ generateScenarios <- function(reference,                # data frame of observed
   } else {
     stop("numReplicates should be a positive integer")
   }
-
+  
   # assign("optim_num",0,envir = foreSIGHT_optimizationSeedTrackerEnv)
+  assign("IOlist",list(),envir = foreSIGHT_optimizationInputOutputEnv)
   
   allSim <- replicate(nRep, vector("list", nTarget), simplify = FALSE)
+  
+  if (cores==1){
+    for (iRep in 1:nRep) {
+      cat(paste0("Generating replicate number ", iRep,  " out of ", nRep, " replicates...\n"))
+      pb <- progress::progress_bar$new(
+        #format = " [:bar] :elapsedfull",
+        total = nTarget, clear = FALSE, width= 60)
+      pb$tick(0)
+      for (iTarg in 1:nTarget) {
+        iRepTarg = (iRep-1)*nTarget+iTarg
+        
+        # Get the target location in the exposure space
+        expTarg <- expSpace
+        expTarg$targetMat <- expSpace$targetMat[iTarg, ]
+        if(!is.null(expSpace$attRot)) {
+          expTarg$attRot <- expSpace$attRot[iTarg]
+        }
+        to.allSim <- generateScenario(reference = reference,
+                                      expTarg = expTarg,
+                                      simLengthNyrs = simLengthNyrs,
+                                      seedID = seedIDs[iRep],
+                                      controlFile = controlFile,
+                                      iRepTarg = iRepTarg)
+        allSim[[iRep]][[iTarg]] = to.allSim
+      }
+    } 
+  } else if (is.integer(cores)&(core>1)){
+    fname = paste0(tempfile())
+    print(fname)
+    c1 <- parallel::makeCluster(cores,outfile=fname)
+    doParallel::registerDoParallel(c1)
+    global_funs <- ls(envir = .GlobalEnv)
+    global_funs <- global_funs[sapply(global_funs, function(f) is.function(get(f, envir = .GlobalEnv)))]
+    # Export them to the cluster
+    parallel::clusterExport(c1, varlist = global_funs, envir = .GlobalEnv)
 
-  iRepTarg = 0
+    allSim <- foreach (iRep=1:nRep,.packages = "foreSIGHT",.export = ls(globalenv())) %:%
+      foreach (iTarg=1:nTarget,.packages = "foreSIGHT",.export = ls(globalenv())) %dopar% {
+    
+        iRepTarg = (iRep-1)*nTarget+iTarg
+    
+    # Get the target location in the exposure space
+        expTarg <- expSpace
+        expTarg$targetMat <- expSpace$targetMat[iTarg, ]
+        if(!is.null(expSpace$attRot)) {
+          expTarg$attRot <- expSpace$attRot[iTarg]
+        }
+    to.allSim <- generateScenario(reference = reference,
+                                  expTarg = expTarg,
+                                  simLengthNyrs = simLengthNyrs,
+                                  seedID = seedIDs[iRep],
+                                  controlFile = controlFile,
+                                  iRepTarg = iRepTarg)
+      }
+  } else {
+    stop('cores must be integer > 0')
+  }
+
+
+#   # iRepTarg = 0
+# 
+#   ###### PARALLEL
+#  # c1 <- parallel::makeCluster(cores)
+#  # fname = paste0(tempfile())
+#  # print(fname)
+#  # c1 <- parallel::makeCluster(cores,outfile=fname)
+#  # doParallel::registerDoParallel(c1)
+#   
+#   ###### NOT PARALLEL
+#   for (iRep in 1:nRep) {
+#     cat(paste0("Generating replicate number ", iRep,  " out of ", nRep, " replicates...\n"))
+#     pb <- progress::progress_bar$new(
+#       #format = " [:bar] :elapsedfull",
+#       total = nTarget, clear = FALSE, width= 60)
+#     pb$tick(0)
+#     for (iTarg in 1:nTarget) {
+#       
+#   # global_funs <- ls(envir = .GlobalEnv)
+#   # global_funs <- global_funs[sapply(global_funs, function(f) is.function(get(f, envir = .GlobalEnv)))]
+#   # 
+#   # # Export them to the cluster
+#   # parallel::clusterExport(c1, varlist = global_funs, envir = .GlobalEnv)
+#   # 
+#   #   ###### PARALLEL
+#   # allSim <- foreach (iRep=1:nRep,.packages = "foreSIGHT",.export = ls(globalenv())) %:%
+#   # #foreach (iTarg=1:nTarget,.packages = "foreSIGHT",.export=functions_in_global) %dopar% {
+#   # # foreach (iTarg=1:nTarget,.packages = "foreSIGHT",.export='func_xP90') %dopar% {
+#   # #foreach (iTarg=1:nTarget,.packages = "foreSIGHT") %dopar% {
+#   # foreach (iTarg=1:nTarget,.packages = "foreSIGHT",.export = ls(globalenv())) %dopar% {
+#       
+#      iRepTarg = (iRep-1)*nTarget+iTarg
+# 
+#       # Get the target location in the exposure space
+#       expTarg <- expSpace
+#       expTarg$targetMat <- expSpace$targetMat[iTarg, ]
+#       if(!is.null(expSpace$attRot)) {
+#         expTarg$attRot <- expSpace$attRot[iTarg]
+#       }
+#       
+#       
+#       #cat(paste0((    working on Target No. ", iTarg, " of ", nTarget, "\n"))
+#       #"\n=============================================================\n"))
+#       #pb$tick()
+#       # Call generateScenario for the target
+#       to.allSim <- generateScenario(reference = reference,
+#                                                   expTarg = expTarg,
+#                                                   simLengthNyrs = simLengthNyrs,
+#                                                   seedID = seedIDs[iRep],
+#                                                   controlFile = controlFile,
+#                                                   iRepTarg = iRepTarg)
+#      
+#       ###### NOT PARALLEL
+#     allSim[[iRep]][[iTarg]] = to.allSim
+#     }
+#     
+#   }
+#   
+# ###### PARALLEL
+#  # parallel::stopCluster(c1)
+
+  names(allSim) <- paste0("Rep", 1:nRep)
+  allSim[["simDates"]] <- allSim[[1]][[1]][["simDates"]]
+  allSim[["expSpace"]] <- expSpace
+  allSim[["controlFile"]] <- allSim[[1]][[1]][["nml"]]
   
   for (iRep in 1:nRep) {
-
-    cat(paste0("Generating replicate number ", iRep,  " out of ", nRep, " replicates...\n"))
-    pb <- progress::progress_bar$new(
-      #format = " [:bar] :elapsedfull",
-      total = nTarget, clear = FALSE, width= 60)
-    pb$tick(0)
-
-
+    names(allSim[[iRep]]) <- paste0("Target", 1:nTarget)
+    
     for (iTarg in 1:nTarget) {
-
-      iRepTarg = iRepTarg + 1
       
-      # Get the target location in the exposure space
       expTarg <- expSpace
       expTarg$targetMat <- expSpace$targetMat[iTarg, ]
       if(!is.null(expSpace$attRot)) {
         expTarg$attRot <- expSpace$attRot[iTarg]
       }
-
-
-      #(    working on Target No. ", iTarg, " of ", nTarget, "\n"))
-                 #"\n=============================================================\n"))
-      pb$tick()
-      # Call generateScenario for the target
-      allSim[[iRep]][[iTarg]] <- generateScenario(reference = reference,
-                                                  expTarg = expTarg,
-                                                  simLengthNyrs = simLengthNyrs,
-                                                  seedID = seedIDs[iRep],
-                                                  controlFile = controlFile,
-                                                  iRepTarg = iRepTarg
-                                                  )
-
+      
       # Get & remove simDates and nml from the target simulation, will be added back later
-      nmlOut <- allSim[[iRep]][[iTarg]][["nml"]]
-      simDates <- allSim[[iRep]][[iTarg]][["simDates"]]
       allSim[[iRep]][[iTarg]][["nml"]] <- NULL
       allSim[[iRep]][[iTarg]][["simDates"]] <- NULL
-
+      
       if (!is.null(allSim[[iRep]][[iTarg]]$attSim)){ # check if stochastic simulation performed
-          
+        
         varNames = names(allSim[[iRep]][[iTarg]])
-        varNames = varNames[!varNames%in%c('attSim','targetSim')]
+        varNames = varNames[!varNames%in%c('attSim','targetSim','parS','score')]
         
         for (var in varNames){
           
@@ -251,34 +466,26 @@ generateScenarios <- function(reference,                # data frame of observed
             warning(paste0('parameters for ', var,' stoch rep, ', iRep, ' for target ',iTarg, ' on bounds\n'))
           }
           
-          targDiff = abs(allSim[[iRep]][[iTarg]][[var]]$targetSim - expTarg$targetMat) 
+          targDiff = abs(allSim[[iRep]][[iTarg]]$targetSim - expTarg$targetMat) 
           if (any(targDiff > tol)){
             warning(paste0('error in target atts for ', var,' stoch rep ', iRep, ' for target ',iTarg, ' greater than tol\n'))
           }
           
         }
         
-
-        
       }
       
     }
-    names(allSim[[iRep]]) <- paste0("Target", 1:nTarget)
   }
   cat("Simulation completed")
-  names(allSim) <- paste0("Rep", 1:nRep)
-  allSim[["simDates"]] <- simDates
-  allSim[["expSpace"]] <- expSpace
-  allSim[["controlFile"]] <- nmlOut
-
+  
   if (!is.null(controlFile)) {
     if (controlFile == "scaling") allSim[["controlFile"]] <- controlFile
   }
-
+  
   return(allSim)
-
+  
 }
-
 
 checkObsVars <- function(obs, file, fSVars) {
   obsVars <- names(obs)[-which(names(obs) %in% c("times", "timeStep"))]
@@ -305,13 +512,14 @@ getUserModelChoices <- function(controlFile, obs, attSel, file = NULL) {
   if (!is.null(controlFile)){
     if(controlFile!="scaling") {
       checkObsVars(obs, file, fSVars)
-  
+      vars = list()
       for (i in 1:length(attSel)) {
-          if(!(attVars[i] %in% obsVars)){
-            logfile(paste0("Observations do not contain the variable ", attVars[i], " to compute the selected attribute attSel [",i,"]"), file)
-            logfile("Program terminated",file)
-            stop(paste0("Observations do not contain the variable ", attVars[i], " to compute the selected attribute attSel [",i,"]"))
-          }
+        vars[[i]] = unlist(strsplit(attVars[i],'/'))
+        if(!all(vars[[i]] %in% obsVars)){
+           logfile(paste0("Observations do not contain the variable ", attVars[i], " to compute the selected attribute attSel [",i,"]"), file)
+           logfile("Program terminated",file)
+           stop(paste0("Observations do not contain the variable ", attVars[i], " to compute the selected attribute attSel [",i,"]"))
+        }
       }
     }
   }
@@ -351,7 +559,7 @@ getUserModelChoices <- function(controlFile, obs, attSel, file = NULL) {
       nml <- controlFile
     }
     nmlVars <- names(nml[["modelType"]])
-    allVars <- union(unique(attVars), nmlVars)
+    allVars <- union(unique(unlist(vars)), nmlVars)
 
     spatialArgs = ppArgs = list()
     modelTag <- NULL
@@ -400,7 +608,7 @@ add_scaling_info = function(obs,attSel,modelInfo){
         stop("Scaling only works with 2 attributes (total/avg and seasRatio) for ",v)
       }
     } else {
-      stop("Require attribute with name '",v,"_ann_tot_m' or ",v,"_ann_avg_m' for scaling")
+      stop("Require attribute ending with '_all_tot' or 'all_tot_m' or '_all_avg' or 'all_avg_m' for simple scaling")
     }
   }
 
@@ -448,8 +656,8 @@ generateScenario <- function(reference,       # list observed data with column n
   #------------------------------------------------------
   attPerturb <- expTarg$attPerturb
   attHold <- expTarg$attHold
-  attSel <- c(attPerturb,attHold)
-
+  attSel = names(expTarg$targetMat)
+  
   # Process Namelist
   #------------------------------------------------------
   userModelChoices <- getUserModelChoices(controlFile, obs, attSel, file)
@@ -528,7 +736,7 @@ generateScenario <- function(reference,       # list observed data with column n
     }
 
     # add post-processing info to model. include parameters. 
-    # this can be movedf ot separate function
+    # this can be moved to separate function
     v = modelInfo[[modelTag[mod]]]$simVar
     if (modelTag[mod]!='Simple-ann'){
       ppTypes = ppArgs[[v]]$types
@@ -537,20 +745,20 @@ generateScenario <- function(reference,       # list observed data with column n
         for (type in ppTypes){
           if (!is.null(ppInfoList[[type]])){
             modelInfo[[modelTag[mod]]]$npars = modelInfo[[modelTag[mod]]]$npars + ppInfoList[[type]]$npars
-            modelInfo[[modelTag[mod]]]$parNames = c(modelInfo[[modelTag[mod]]]$parNames,ppInfoList[[type]]$parNames)
+            modelInfo[[modelTag[mod]]]$parNam = c(modelInfo[[modelTag[mod]]]$parNam,ppInfoList[[type]]$parNam)
             modelInfo[[modelTag[mod]]]$minBound = c(modelInfo[[modelTag[mod]]]$minBound,ppInfoList[[type]]$minBound)
             modelInfo[[modelTag[mod]]]$maxBound = c(modelInfo[[modelTag[mod]]]$maxBound,ppInfoList[[type]]$maxBound)
           }
         }
       } 
     }
-
+    
   }
   
   modelTag=update.simPriority(modelInfo=modelInfo)
   simVar=sapply(X=modelInfo[modelTag],FUN=return.simVar,USE.NAMES=TRUE)       #?CREATE MODEL MASTER INFO - HIGHER LEVEL?
 
-  attInfo=attribute.info.check(attSel=attSel,attPrim=attPrim, lambda.mult = optimArgs$lambda.mult)
+  attInfo=attribute.info.check(attSel=attSel,attPrim=attPrim, lambda.mult = optimArgs$lambda.mult, targetType = expTarg$targetType)
   simAgg = unique(attInfo$aggType)
   nagg = length(simAgg)
   
@@ -647,13 +855,11 @@ generateScenario <- function(reference,       # list observed data with column n
       banner("OBSERVED BASELINE ATTRIBUTE CALCULATION",file)
       progress("Calculating attributes...",file)
 
-      attObs = aggregate_calculate_attributes(varList=simVar,
-                                              aggList=simAgg,
-                                              data=obs,
+      attObs = aggregate_calculate_attributes(data=obs,
                                               attSel=attSel,
                                               datInd=datInd$obs,
                                               attInfo=attInfo)
-      
+
       progress(paste("Attributes of observed series - ",paste(attSel,": ",signif(attObs,digits=5),collapse = ", ",sep=""),sep=""),file)
       progress("Attributes calculated OK",file)   #NEED SOME ACTUAL CHECKING HERE BEFORE PRONOUNCING OK
 
@@ -665,8 +871,8 @@ generateScenario <- function(reference,       # list observed data with column n
       progress("Starting cluster...",file)
 
       #DETERMINE WHICH PARS ATTACH TO WHICH MODEL (make this a function in stochParManager.R)
-      parLoc=whichPars(simVar=simVar,modelInfo=modelInfo)
-
+      parLoc=whichPars(modelInfo=modelInfo)
+      
       #SCREEN INAPPROPRIATE SUGGESTIONS IF ANY
       if(!is.null(optimArgs$suggestions)){
         optimArgs$suggestions=screenSuggest(suggest=optimArgs$suggestions,modelInfo=modelInfo,modelTag=modelTag,parLoc=parLoc)
@@ -720,7 +926,7 @@ generateScenario <- function(reference,       # list observed data with column n
       progress("Starting cluster...",file)
 
       #DETERMINE WHICH PARS ATTACH TO WHICH MODEL (make this a function in stochParManager.R)
-      parLoc=whichPars(simVar=simVar,modelInfo=modelInfo)
+      parLoc=whichPars(modelInfo=modelInfo)
 
       #SCREEN INAPPROPRIATE SUGGESTIONS IF ANY
       if(!is.null(optimArgs$suggestions)){
@@ -988,19 +1194,18 @@ simulateTargetCor = function(optimArgs=NULL,
         
         MVTsampleMat = mvtnorm::rmvnorm(n=nTimes,sigma=corMat_PD)
 
-        sim1 = simClim(parS=simIn$sites[[site1]][[simVar]]$parS,              #RAIN SELECTED
+        # note currently not setup to include auxInfo (i.e. obs, wdStatus)
+        sim1 = simClim(parS=simIn$sites[[site1]][[simVar]]$parS,              
                           modelTag = modelTag,
-                          ppTypes=modelInfo$ppTypes,
+                          modelInfo=modelInfo,
                           datInd=datInd[[modelTag]],
-                          randomTerm = list(randomUnitNormalVector = MVTsampleMat[,1]),
-                          obs=obs[[simVar]])
+                          randomTerm = list(randomUnitNormalVector = MVTsampleMat[,1]))
         
-        sim2 = simClim(parS=simIn$sites[[site2]][[simVar]]$parS,              #RAIN SELECTED
+        sim2 = simClim(parS=simIn$sites[[site2]][[simVar]]$parS,              
                        modelTag = modelTag,
-                       ppTypes=modelInfo$ppTypes,
+                       modelInfo=modelInfo,
                        datInd=datInd[[modelTag]],
-                       randomTerm = list(randomUnitNormalVector = MVTsampleMat[,2]),
-                       obs=obs[[simVar]])
+                       randomTerm = list(randomUnitNormalVector = MVTsampleMat[,2]))
 
         cor_sim_list[i] = stats::cor(sim1,sim2)
 
@@ -1021,12 +1226,12 @@ simulateTargetCor = function(optimArgs=NULL,
 
   for (s in 1:nsite){
     site = sites[s]
-    sim$sites[[site]] = simClim(parS=simIn$sites[[site]][[simVar]]$parS,              #RAIN SELECTED
+    # note currently not setup to include auxInfo (i.e. obs, wdStatus)
+    sim$sites[[site]] = simClim(parS=simIn$sites[[site]][[simVar]]$parS,              
                    modelTag = modelTag,
-                   ppTypes=modelInfo$ppTypes,
+                   modelInfo=modelInfo,
                    datInd=datInd[[modelTag]],
-                   randomTerm = list(randomUnitNormalVector = MVTsampleMat[,s]),
-                   obs=obs[[simVar]])
+                   randomTerm = list(randomUnitNormalVector = MVTsampleMat[,s]))
     
     sim$P$sim = cbind(sim$P$sim,sim$sites[[site]])
     
@@ -1379,7 +1584,8 @@ runSystemModel <- function(sim,                  # output from scenario generato
   nTar <- length(tarNames)
   
   varNames = unlist(lapply(colnames(sim$expSpace$targetMat),get.attribute.varType))
-  
+  varNames = unique(unlist(strsplit(varNames,'/')))
+
   performance <- vector("list", length = length(metrics))
   for (i in 1:length(metrics)) performance[[i]] <- matrix(NA, nrow = nTar, ncol = nRep)
 
