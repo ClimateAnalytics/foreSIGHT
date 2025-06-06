@@ -12,7 +12,7 @@ modelInfoList[["P-ann-distScaling"]] = list(simVar="P",
 
 # #################################
 
-parManager.distScaling = function(parS, SWGparameterization, datInd){
+parManager.distScaling = function(parS, SWGparameterization, datInd, auxInfo=NULL){
 
   if (SWGparameterization=='ann'){
     scale <- parS['scale']
@@ -30,9 +30,9 @@ parManager.distScaling = function(parS, SWGparameterization, datInd){
 SWGsim.distScaling = function(SWGpar,
                             nTimes=NULL,
                             randomTerm=NULL,
-                            obs){
+                            auxInfo){
 
-  P = obs$P
+  P = auxInfo$obs$P
 
   i.ww = which(P>0)
   dat = P[i.ww]

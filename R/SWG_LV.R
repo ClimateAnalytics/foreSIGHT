@@ -2,17 +2,17 @@
 
 #' @include default_parameters.R
 
-modelInfoList[["P-ann-LV"]] = list(simVar="P",
+modelInfoList[["P-ann-latent"]] = list(simVar="P",
                                    timeStep = "1 day",
                                    simPriority=1,
                                    npars=4,
                                    parNam=c("alpha", "sigma", "mu", "lambda"),
-                                   minBound=c(0, 0.001, -15, 1),
-                                   maxBound=c(0.999, 10, 0, 2))
-                                   # minBound=c(0, 0.001, -15, 0.5),
-                                   # maxBound=c(0.999, 10, 5, 4))
+                                   # minBound=c(0, 0.001, -15, 1),
+                                   # maxBound=c(0.999, 10, 0, 2))
+                                   minBound=c(0, 0.001, -15, 0.5),
+                                   maxBound=c(0.999, 10, 5, 4))
 
-modelInfoList[["P-seas-LV"]] = list(simVar="P",
+modelInfoList[["P-seas-latent"]] = list(simVar="P",
                                     timeStep = "1 day",
                                     simPriority=1,
                                     npars=16,
@@ -26,11 +26,20 @@ modelInfoList[["P-seas-LV"]] = list(simVar="P",
                                                1,1,1,1),
                                     maxBound=c(0.999,0.999,0.999,0.999,
                                                10,10,10,10,
-                                               0,0,0,0,
-                                               4,4,4,4))
+                                               1,1,1,1,
+                                               4,4,4,4)
+                                    # minBound=c(0.6163941,0.5425285,0.6688433,0.4894607,
+                                    #            1.2325042,2.7688963,1.2594613,1.3526237,
+                                    #            -0.4207489,-3.1392248,-0.4972794,0.1615448,
+                                    #            2.1730938,1.5695353,2.7009647,1.8873747),
+                                    # maxBound=c(0.6163941,0.5425285,0.6688433,0.4894607,
+                                    #            1.2325042,2.7688963,1.2594613,1.3526237,
+                                    #            -0.4207489,-3.1392248,-0.4972794,0.1615448,
+                                    #            2.1730938,1.5695353,2.7009647,1.8873747)
+                                    )
 
 
-modelInfoList[['P-har-LV']] = list(simVar='P',
+modelInfoList[['P-har-latent']] = list(simVar='P',
                                    timeStep = '1 day',
                                    simPriority=1,
                                    npars=12,
@@ -38,18 +47,26 @@ modelInfoList[['P-har-LV']] = list(simVar='P',
                                                 'sigma.m','sigma.amp','sigma.ang',
                                                 'mu.m','mu.amp','mu.ang',
                                                 'lambda.m','lambda.amp','lambda.ang'),
+                                   # minBound=c(0, 0, 0,
+                                   #            0.001, 0, 0,
+                                   #            -15, 0, 0,
+                                   #            1, 0, 0),
+                                   # maxBound=c(0.999, 0, 0,
+                                   #            10, 5, 6.28,
+                                   #            0, 8, 6.28,
+                                   #            2, 0, 0))
                                    minBound=c(0, 0, 0,
                                               0.001, 0, 0,
                                               -15, 0, 0,
                                               1, 0, 0),
                                    maxBound=c(0.999, 0, 0,
-                                              10, 5, 6.28,
-                                              0, 8, 6.28,
+                                              10, 5, 15,
+                                              0, 8, 15,
                                               2, 0, 0))
 
 # #################################
 
-parManager.LV = function(parS, SWGparameterization, datInd){
+parManager.latent = function(parS, SWGparameterization, datInd, auxInfo=NULL){
   
   if (SWGparameterization=='ann'){
     alpha <- rep(parS['alpha'],datInd$nTimes)
@@ -76,10 +93,10 @@ parManager.LV = function(parS, SWGparameterization, datInd){
 
 #################################
 
-SWGsim.LV = function(SWGpar,
+SWGsim.latent = function(SWGpar,
                         nTimes,
                         randomTerm,
-                        obs=NULL){
+                        auxInfo=NULL){
   
   if (length(SWGpar[['alpha']])!=nTimes){
     stop('length alpha != nTimes')

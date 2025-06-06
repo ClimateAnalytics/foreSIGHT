@@ -7,13 +7,14 @@ modelInfoList[["P-ann-BLRPM"]] = list(simVar="P",
                                       simPriority=1,
                                       npars=5,
                                       parNam=c("lambda","gamma","beta","eta","mux"),
-                                      minBound=c(0.01,0.05,0.2,1.,3),
-                                      maxBound=c(0.03,0.15,0.4,3.,5))
+                                      # minBound=c(0.01,0.05,0.2,1.,3),
+                                      # maxBound=c(0.03,0.15,0.4,3.,5))
+                                      minBound=c(0.001,0.01,0.05,0.1,0.1),
+                                      maxBound=c(0.1,0.5,1,10,10))
 
+#################################
 
-# #################################
-
-parManager.BLRPM = function(parS, SWGparameterization, datInd){
+parManager.BLRPM = function(parS, SWGparameterization, datInd,auxInfo=NULL){
   
   if (SWGparameterization=='ann'){
     lambda <- parS['lambda']
@@ -40,7 +41,7 @@ parManager.BLRPM = function(parS, SWGparameterization, datInd){
 SWGsim.BLRPM = function(SWGpar,
                         nTimes,
                         randomTerm,
-                        obs=NULL){
+                        auxInfo=NULL){
   
   set.seed(randomTerm$seed)
   

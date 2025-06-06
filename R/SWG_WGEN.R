@@ -7,17 +7,19 @@ modelInfoList[['P-ann-wgen']] = list(simVar='P',
                                         simPriority=1,
                                         npars=4,
                                         parNam = c('pdd','pwd','alpha','beta'),
-                                       minBound=c(0.427, 0.088, 0.313, 0.043), 
-                                       maxBound=c(0.998, 0.824, 0.998, 25.46))
+                                     minBound=c(0.427, 0.088, 0.313, 0.043), 
+                                     maxBound=c(0.95, 0.824, 0.998, 25.46))
 
-modelInfoList[['P-annDelta-wgen']] = list(simVar='P',
-                                            timeStep = '1 day',
-                                            simPriority=1,
-                                            npars=4,
-                                            parNam = c('delta.pdd','delta.pwd','delta.alpha','delta.beta'),
-                                            minBound=c(-1, -1, -1, -10),
-                                            maxBound=c(1, 1, 1, 10.))
+                                       # minBound=c(0.427, 0.088, 0.313, 0.043), 
+                                       # maxBound=c(0.998, 0.824, 0.998, 25.46))
 
+# modelInfoList[['P-annDelta-wgen']] = list(simVar='P',
+#                                             timeStep = '1 day',
+#                                             simPriority=1,
+#                                             npars=4,
+#                                             parNam = c('delta.pdd','delta.pwd','delta.alpha','delta.beta'),
+#                                             minBound=c(-1, -1, -1, -10),
+#                                             maxBound=c(1, 1, 1, 10.))
 
 modelInfoList[['P-seas-wgen']] = list(simVar='P',
                                         timeStep = '1 day',
@@ -42,7 +44,7 @@ modelInfoList[['P-har-wgen']] = list(simVar='P',
                                         timeStep = '1 day',
                                         simPriority=1,
                                         npars=12,
-                                        parNames = c('pdd.m','pdd.amp','pdd.ang',
+                                        parNam = c('pdd.m','pdd.amp','pdd.ang',
                                                      'pwd.m','pwd.amp','pwd.ang',
                                                      'alpha.m','alpha.amp','alpha.ang',
                                                      'beta.m','beta.amp','beta.ang'),
@@ -57,51 +59,56 @@ modelInfoList[['P-har-wgen']] = list(simVar='P',
 
 
 
-# #################################
+#################################
  
-parManager.wgen = function(parS, SWGparameterization, datInd){
+parManager.wgen = function(parS, SWGparameterization, datInd, auxInfo=NULL){
   
-  basePar = c(0.8004759,0.3494826,0.4233287,7.6178369)
-  names(basePar) = c('pdd','pwd','alpha','beta')
+  parTS = list()
+  
+  nTimes = datInd$nTimes
+  
+  # basePar = c(0.8004759,0.3494826,0.4233287,7.6178369)
+  # names(basePar) = c('pdd','pwd','alpha','beta')
   if (SWGparameterization=='ann'){
-    pdd <- rep(parS['pdd'],datInd$nTimes)
-    pwd <- rep(parS['pwd'],datInd$nTimes)
-    alpha <- rep(parS['alpha'],datInd$nTimes)
-    beta <- rep(parS['beta'],datInd$nTimes)
-  } else if (SWGparameterization=='annDelta'){
-    pdd = basePar['pdd']+parS['delta.pdd']; pdd = max(min(pdd,1),0)
-    pwd = basePar['pwd']+parS['delta.pwd']; pwd = max(min(pwd,1),0)
-    alpha = basePar['alpha']+parS['delta.alpha']; alpha = max(alpha,0)
-    beta = basePar['beta']+parS['delta.beta']; beta = max(beta,0)
-    pdd <- rep(pdd,datInd$nTimes)
-    pwd <- rep(pwd,datInd$nTimes)
-    alpha <- rep(alpha,datInd$nTimes)
-    beta <- rep(beta,datInd$nTimes)
+    for (par in names(parTS)){
+      parTS[[par]] = rep(parS[par],nTimes)
+    }
+#    parTS$pdd <- rep(parS['pdd'],datInd$nTimes)
+#    parTS$pwd <- rep(parS['pwd'],datInd$nTimes)
+#    parTS$alpha <- rep(parS['alpha'],datInd$nTimes)
+#    parTS$beta <- rep(parS['beta'],datInd$nTimes)
+  # } else if (SWGparameterization=='annDelta'){
+  #   pdd = basePar['pdd']+parS['delta.pdd']#; pdd = max(min(pdd,1),0)
+  #   pwd = basePar['pwd']+parS['delta.pwd']#; pwd = max(min(pwd,1),0)
+  #   alpha = basePar['alpha']+parS['delta.alpha']#; alpha = max(alpha,0)
+  #   beta = basePar['beta']+parS['delta.beta']#; beta = max(beta,0)
+  #   parTS$pdd <- rep(pdd,nTimes)
+  #   parTS$pwd <- rep(pwd,nTimes)
+  #   parTS$alpha <- rep(alpha,nTimes)
+  #   parTS$beta <- rep(beta,nTimes)
   } else if (SWGparameterization=='seas'){
-    pdd <- assignSeasPars(parS['pdd.SON'], parS['pdd.DJF'], parS['pdd.MAM'], parS['pdd.JJA'], datInd[["i.ss"]])
-    pwd <- assignSeasPars(parS['pwd.SON'], parS['pwd.DJF'], parS['pwd.MAM'], parS['pwd.JJA'], datInd[["i.ss"]])
-    alpha <- assignSeasPars(parS['alpha.SON'], parS['alpha.DJF'], parS['alpha.MAM'], parS['alpha.JJA'], datInd[["i.ss"]])
-    beta <- assignSeasPars(parS['beta.SON'], parS['beta.DJF'], parS['beta.MAM'], parS['beta.JJA'], datInd[["i.ss"]])
+    parTS$pdd <- assignSeasPars(parS['pdd.SON'], parS['pdd.DJF'], parS['pdd.MAM'], parS['pdd.JJA'], datInd[["i.ss"]])
+    parTS$pwd <- assignSeasPars(parS['pwd.SON'], parS['pwd.DJF'], parS['pwd.MAM'], parS['pwd.JJA'], datInd[["i.ss"]])
+    parTS$alpha <- assignSeasPars(parS['alpha.SON'], parS['alpha.DJF'], parS['alpha.MAM'], parS['alpha.JJA'], datInd[["i.ss"]])
+    parTS$beta <- assignSeasPars(parS['beta.SON'], parS['beta.DJF'], parS['beta.MAM'], parS['beta.JJA'], datInd[["i.ss"]])
   } else if (SWGparameterization=='har'){
-    #Culley 2019 these parameter generators ignore leap years, so for long time series will become out of sync.
-    pdd = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['pdd.m'],amp=parS['pdd.amp'],phase.ang = parS['pdd.ang'],k=1,nperiod=365)
-    pwd = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['pwd.m'],amp=parS['pwd.amp'],phase.ang = parS['pwd.ang'],k=1,nperiod=365)
-    alpha = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['alpha.m'],amp=parS['alpha.amp'],phase.ang = parS['alpha.ang'],k=1,nperiod=365)
-    beta = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['beta.m'],amp=parS['beta.amp'],phase.ang = parS['beta.ang'],k=1,nperiod=365)
+    #Culley 2019 these parameter generators ignore leap years, so for long time series will become out of sync - DM comment: should create new function for applying harmonic to year, dealing with leap years
+    parTS$pdd = harmonicFunc(x=seq(1:nTimes),mean=parS['pdd.m'],amp=parS['pdd.amp'],phase.ang = parS['pdd.ang'],k=1,nperiod=365)
+    parTS$pwd = harmonicFunc(x=seq(1:nTimes),mean=parS['pwd.m'],amp=parS['pwd.amp'],phase.ang = parS['pwd.ang'],k=1,nperiod=365)
+    parTS$alpha = harmonicFunc(x=seq(1:nTimes),mean=parS['alpha.m'],amp=parS['alpha.amp'],phase.ang = parS['alpha.ang'],k=1,nperiod=365)
+    parTS$beta = harmonicFunc(x=seq(1:nTimes),mean=parS['beta.m'],amp=parS['beta.amp'],phase.ang = parS['beta.ang'],k=1,nperiod=365)
   }
   
   #Culley 2019 setting 0-1 limits for pdd,pwd.
-  pdd[pdd>1] = 1.
-  pdd[pdd<0] = 0.
+  parTS$pdd[parTS$pdd>1] = 1.
+  parTS$pdd[parTS$pdd<0] = 0.
   
-  pwd[pwd>1] = 1.
-  pwd[pwd<0] = 0.
+  parTS$pwd[parTS$pwd>1] = 1.
+  parTS$pwd[parTS$pwd<0] = 0.
   
   #Culley 2019 non negative limits for alpha,beta
-  alpha[alpha<.Machine$double.xmin] = .Machine$double.xmin
-  beta[beta<.Machine$double.xmin] = .Machine$double.xmin
-  
-  parTS = list(pdd=pdd,pwd=pwd,alpha=alpha,beta=beta)
+  parTS$alpha[parTS$alpha<.Machine$double.xmin] = .Machine$double.xmin
+  parTS$beta[parTS$beta<.Machine$double.xmin] = .Machine$double.xmin
   
   return(parTS)
   
@@ -112,7 +119,7 @@ parManager.wgen = function(parS, SWGparameterization, datInd){
 SWGsim.wgen = function(SWGpar,
                           nTimes,
                           randomTerm,
-                          obs=NULL){
+                          auxInfo=NULL){
 
   # sim occurrence
   simS=Pstatus_WGEN(parPwd=SWGpar$pwd,    # vector of pars for pwd (length = ndays)
