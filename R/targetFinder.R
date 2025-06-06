@@ -6,21 +6,22 @@
 #targetFinder() -
 #------------------------------------------------------------------------------------------------
 targetFinder<- function(x,               # vector of pars (will change in optim)
-                        modelInfo=NULL,
-                        modelTag=NULL,
+                        modelInfo,
+                        modelTag,
                         # modelEnv=NULL,      # tag to link/identify model
-                        attSel=NULL,        # attributes selected (vector of strings)
-                        attPrim=NULL,       # primary attribute label
-                        attInfo=NULL,     # added info regarding attributes (maybe add in attPrim here)!!!!!!!!!!!!!
-                        datInd=NULL,
+                        attSel,        # attributes selected (vector of strings)
+                        attPrim,       # primary attribute label
+                        attInfo,     # added info regarding attributes (maybe add in attPrim here)!!!!!!!!!!!!!
+                        datInd,
+                        obs=NULL,
                         randomVector = NULL,
                         randomUnitNormalVector = NULL,
-                        target=NULL,        # target locations: desired changes in climate to be simulated, in % relative or abs diff to baseline levels (vector)
-                        attObs=NULL,        # observed series attribute values
-                        obs=NULL,
-                        lambda.mult=NULL,   # lambda multiplier for penalty function
+                        target,        # target locations: desired changes in climate to be simulated, in % relative or abs diff to baseline levels (vector)
+                        attObs,        # observed series attribute values
+                        lambda.mult,   # lambda multiplier for penalty function
                         simSeed=NULL,
-                        wdSeries=NULL,
+                        auxInfo = NULL,
+                        simOut=NULL,
                         resid_ts=NULL,
                         returnThis = 'objFunc',
                         obj.func = 'SS_absPenalty',
@@ -37,12 +38,12 @@ targetFinder<- function(x,               # vector of pars (will change in optim)
   #SIMULATE SELECTED VARIABLE USING CHOSEN STOCHASTIC MODEL
   sim=simClim(parS=parS,              
               modelTag = modelTag,
-              ppTypes=modelInfo$ppTypes,
+              modelInfo=modelInfo,
               datInd=datInd,
               randomTerm = list(randomVector = randomVector,
                                 randomUnitNormalVector = randomUnitNormalVector,
                                 seed=simSeed),
-              obs=obs)
+              auxInfo = auxInfo)
   
   if(length(which(is.na(sim))) > 0){
     score=-150  #default here
@@ -50,24 +51,37 @@ targetFinder<- function(x,               # vector of pars (will change in optim)
     
     timeStep = obs$timeStep
     
-    aggList = vapply(attSel,FUN = get.attribute.aggType,FUN.VALUE=character(1),USE.NAMES = FALSE)
-    aggList = unique(aggList)
+    aggList = unique(attInfo$aggType)
     nagg = length(aggList)
+
+    
+    varList = unique(attInfo$varType)
+    
+    varAll = c()
+    for (var in varList){
+      tmp = strsplit(x=var,split='[/]')[[1]]
+      varAll = c(varAll,tmp)
+    }
+    varAll = unique(varAll)
     
     simVar = modelInfo$simVar
     data = list(times=datInd[[aggNameShort[[timeStep]]]]$times,
                 timeStep=timeStep)
     data[[simVar]] = sim
     
-    sim.att = aggregate_calculate_attributes(varList=modelInfo$simVar,
-                                             aggList=aggList,
-                                             data=data,
+    addVar = varAll[which(varAll!=simVar)]
+    
+    for (v in addVar){
+      data[[v]] = simOut[[v]]$sim
+    }
+    
+    sim.att = aggregate_calculate_attributes(data=data,
                                              attSel=attSel,
                                              datInd=datInd,
                                              attInfo=attInfo)
-    
+
     simPt=unlist(Map(function(type, val,baseVal) simPt.converter.func(type,val,baseVal), attInfo$targetType, sim.att,attObs),use.names = FALSE)
-    
+
     if (length(simPt)!=length(unlist(target))){browser()}
     
     if(returnThis=='sim'){
