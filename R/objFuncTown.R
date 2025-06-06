@@ -93,6 +93,7 @@ switch(type,
        "frac" = {simPt=(val/baseVal)},
        "pc" = {simPt=(val-baseVal)/baseVal*100},
        "diff" = {simPt=(val-baseVal)},
+       "val" = {simPt=val}
        -999
        )
 
