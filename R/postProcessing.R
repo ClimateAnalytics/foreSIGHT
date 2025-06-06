@@ -1,16 +1,34 @@
 ppInfoList = list()
 
 ppInfoList[['annVar']] = list(npars=1,
-                              parNames=c('annVarFac'),
+                              parNam=c('annVarFac'),
                               minBound=c(0.1),
-                              maxBound=c(5))
+                             maxBound=c(5))
 
 ppInfoList[['scaleExtremes']] = list(scaleExtremesProb=0.99)
 
 ppInfoList[['annCor']] = list(npars=1,
-                              parNames=c('annAR1coeff'),
+                              parNam=c('annAR1coeff'),
                               minBound=c(-0.5),
                               maxBound=c(0.99))
+
+#################################
+
+runPP = function(sim,obs,PPname,parS,datInd,randomTerm=NULL){
+  
+  if (PPname == 'annVar'){
+    sim = pp.annVar(sim=sim,annVarFac=parS['annVarFac'],datInd=datInd)
+  } else if (PPname == 'scaleExtremes'){
+    sim = pp.scaleExtremes(sim=sim,obs=obs,prob=ppInfoList[[PPname]]$scaleExtremesProb)
+  } else if (PPname == 'annCor'){
+    sim = pp.annShuffle(P=sim,datInd=datInd,
+                        annAR1coeff=parS['annAR1coeff'],
+                        seed=randomTerm$seed)
+  }
+  
+  return(sim)
+  
+}
 
 #################################
 
@@ -22,9 +40,9 @@ pp.annVar = function(sim,annVarFac,datInd){
     ind=datInd$i.yy[[iy]]
     Pann[iy] = sum(Pdaily[ind])
   } 
-  
+
   meanPann = mean(Pann)
-  Pann_new = meanPann + parS['annVarFac']*(Pann-meanPann)
+  Pann_new = meanPann + annVarFac*(Pann-meanPann)
   Pann_fac = Pann_new/Pann
   
   multSim=rep(NA,datInd$nTimes)
@@ -52,25 +70,7 @@ pp.scaleExtremes = function(sim,obs,prob){
   sortObs = sort(obs,decreasing = T)[1:nTop]
   
   sim[i] = fac*sortObs
-  
-  return(sim)
-  
-}
 
-#################################
-
-runPP = function(sim,obs,PPname,parS,datInd,randomTerm=NULL){
-  
-  if (PPname == 'annVar'){
-    sim = pp.annVar(sim=sim,annVarFac=parS['annVarFac'],datInd=datInd)
-  } else if (PPname == 'scaleExtremes'){
-    sim = pp.scaleExtremes(sim=sim,obs=obs,prob=ppInfoList[[PPname]]$scaleExtremesProb)
-  } else if (PPname == 'annCor'){
-    sim = pp.annShuffle(P=sim,datInd=datInd,
-                        annAR1coeff=ppInfoList[[PPname]]$annAR1coeff,
-                        seed=randomTerm$seed)
-  }
-  
   return(sim)
   
 }
@@ -85,85 +85,88 @@ calcAC = function(x){
 
 ###################
 
-shuffle = function(ar1coeff,sort.P.ann,index.P.ann,seed=1){
-  
+shuffle = function(annAR1coeff,sort.P.ann,index.P.ann,seed=1){
+
   set.seed(seed)
-  ar1 = as.numeric(arima.sim(n=length(sort.P.ann),list(ar=ar1coeff)))
-  
+  ar1 = as.numeric(arima.sim(n=length(sort.P.ann),list(ar=annAR1coeff)))
+
   rankAR1 = rank(ar1)
-  
+
   P.ann.new = sort.P.ann[rankAR1]
-  year.new=index.P.ann.long[rankAR1]
-  
-  P.ann.cor = calcAC(P.new) 
-  
-  out = list(P.ann.cor=P.ann.cor,P.new=P.new,year.new=year.new)
+  year.new=index.P.ann[rankAR1]
+
+  P.ann.cor = calcAC(P.ann.new)
+
+  out = list(P.ann.cor=P.ann.cor,
+             P.new=P.ann.new,
+             year.new=year.new)
 
   return(out)
-  
+
 }
 
 ###################
 
-shuffle_P = function(P,years,annAR1coeff,seed=1){
+pp.annShuffle = function(P,datInd,annAR1coeff,seed=1,iyy=NULL){
+
+  # print(annAR1coeff)
   
-  browser()
+  years.all = as.integer(format(datInd$times,'%Y'))
+  years = unique(years.all)
   
   P.ann = c()
   for (y in 1:length(years)){
     year = years[y]
-    keep = which(sim$simDates$year==year)
+    keep = which(years.all==year)
     P.ann[y] = sum(P[keep])
   }
-  
-  #  Nyears_long = length(years.long)
-  Nyears_long = length(P.ann.long)
   
   s = sort(P.ann,index.return=T)
   sort.P.ann = s$x
   index.P.ann = s$ix
-  
-  o = shuffle(x=corVal,
+
+  o = shuffle(annAR1coeff=annAR1coeff,
               sort.P.ann=sort.P.ann,
-              index.P.ann=index.P.ann.long,seed=seed,return.all = T)
-  
+              index.P.ann=index.P.ann,
+              seed=seed)
+
   P.ann.cor=o$P.ann.cor
   P.new=o$P.new
   year.new=o$year.new
-  
+
   # ar1 = as.numeric(arima.sim(n=Nyears_long,list(ar=corVal)))
-  # 
+  #
   # rankAR1 = rank(ar1)
-  # 
+  #
   # P.new = sort.P.ann.long[rankAR1]
   # year.new=index.P.ann.long[rankAR1]
-  # 
+  #
   # out[[label]]$P.ann.cor = calcAC(P.new)
-  
-  out[[label]]$P.ann.cor = o$P.ann.cor
-  
+
+  # out[[label]]$P.ann.cor = o$P.ann.cor
+
   #################################
-  
+
   P.new.daily = c()
   keepList = c()
-  for (y in 1:Nyears_long){
-    if (y%%1000==0){print(y)}
-    year = years.long[1] + (year.new[y]-1)
+  for (y in 1:length(years)){
+    year = years[1] + (year.new[y]-1)
     if (is.null(iyy)){
-      keep = which(years.long==year)
+      keep = which(years.all==year)
     } else {
       keep = iyy[[year+1]]
     }
     keepList = c(keepList,keep)
   }
-  
-  P.new.daily = P.long[keepList]
-  
-  #      P.daily.changeCor[[label]] = P.new.daily
-  
-  out[[label]]$P.daily.changeCor = P.new.daily
 
-  return(out)
+  P.new.daily = P[keepList]
+
+  #      P.daily.changeCor[[label]] = P.new.daily
+
+  # climSim = list(times=datInd$times,P=P.new.daily)
+  # print(calculateAttributes(climSim,'P_day_all_tot_cor'))
+  
+  return(P.new.daily)
 
 }
 #################################
