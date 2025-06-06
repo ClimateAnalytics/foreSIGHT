@@ -164,6 +164,38 @@ outersect=function(x,y){
   sort(c(setdiff(x,y),setdiff(y,x)))
 }
 
+#################
+
+insert_NAs_breaks = function(data,indx){
+  data.new = data[indx$val]
+  if (length(indx$breaks)>1){
+    for(i in 0:(length(indx$breaks)-1)) {
+      data.new <- append(data.new, NA, after=(indx$breaks[i+1]+i))
+    }
+  }  
+  return(data.new)
+}
+
+################
+
+insert_NAs_breaks_V2 = function(data,indx){
+  data = data[indx$val]
+  if (length(indx$breaks)>1){
+    # N.new = length(data)+length(indx$breaks)
+    # isNA = indx$breaks + seq(1,length(indx$breaks))
+    # a = 1:N.new
+    # notNA = a[!a%in%isNA]
+    # data.new = rep(NA,N.new)
+    # data.new[notNA] = data
+    data.new = rep(NA,indx$N)
+    data.new[indx$notNA] = data
+    # browser()
+  } else {
+    data.new = data
+  }
+  return(data.new)
+}
+
 ###########################################################################################################################
 #CONTROLLER FUNCT - MATCHES LISTED ATT'S WITH CALCULATOR
 
@@ -172,28 +204,59 @@ outersect=function(x,y){
 #GENERIC EXTRACTOR FUNCTION
 extractor=function(func=NULL,data=NULL,indx=NULL,attArgs=NULL,...){ # returns a number
   
-  if(is.null(func)){browser()}
-
   if (is.list(data)){
     data.1 = data[[1]]
     data.2 = data[[2]]
     data = NULL
+    # data.1.new = insert_NAs_breaks(data.1,indx)
+    data.1.new = insert_NAs_breaks_V2(data.1,indx)
+    # if(!(all((data.1.new == data.1.new.tmp | is.na(data.1.new)&is.na(data.1.new.tmp))))){browser()}
+    # data.2.new = insert_NAs_breaks(data.2,indx)
+    data.2.new = insert_NAs_breaks_V2(data.2,indx)
+    # if(!(all((data.2.new == data.2.new.tmp | is.na(data.2.new)&is.na(data.2.new.tmp))))){browser()}
   } else if (is.vector(data)){
     data.1 = data.2 = NULL
+    # data.new = insert_NAs_breaks(data,indx)
+    data.new = insert_NAs_breaks_V2(data,indx)
+    # if(!(all((data.new == data.new.tmp | is.na(data.new)&is.na(data.new.tmp))))){browser()}
   }
 
-  # insert NAs at discontinuities
-  data.new = data[indx$val]
-  data.1.new = data.1[indx$val]
-  data.2.new = data.2[indx$val]
-  if (length(indx$i_breaks)>1){
-    for(i in 0:(length(i_breaks)-1)) {
-      data.new <- append(data.new, NA, after=(indx$i_breaks[i+1]+i))
-      data.1.new <- append(data.1.new, NA, after=(indx$i_breaks[i+1]+i))
-      data.2.new <- append(data.2.new, NA, after=(indx$i_breaks[i+1]+i))
-    }
-  }
-
+  # if(any(is.na(data))){browser()}
+  
+  # browser()
+  
+  # # insert NAs at discontinuities
+  # data.new = data[indx$val]
+  # data.1.new = data.1[indx$val]
+  # data.2.new = data.2[indx$val]
+  # if (length(indx$breaks)>1){
+  #   for(i in 0:(length(indx$breaks)-1)) {
+  #     data.new <- append(data.new, NA, after=(indx$breaks[i+1]+i))
+  #     data.1.new <- append(data.1.new, NA, after=(indx$breaks[i+1]+i))
+  #     data.2.new <- append(data.2.new, NA, after=(indx$breaks[i+1]+i))
+  #   }
+  # }
+  # 
+  # if (length(indx$breaks)>1){
+  #   
+  #   browser()
+  #   
+  #   
+  #   data.new.A = data[indx$val]
+  # 
+  #   N.new = length(data.new.A)+length(indx$breaks)
+  #   
+  #   isNA = indx$breaks + seq(1,length(indx$breaks))
+  #   a = 1:N.new
+  #   notNA = a[!a%in%isNA]
+  #   
+  #   data.new.B = rep(NA,N.new)
+  #   data.new.B[notNA] = data.new.A
+  #   
+  #   browser()
+  # 
+  # }
+  
   if (!is.null(data)){
     if (is.null(attArgs)){
       extractor.out=func(data=data.new,...)
@@ -541,10 +604,12 @@ cumul_zeros <- function(x)  {
   x*cumsum(z)
 }
 
+# note this function doesn't properly deal with missing data - ideally any spells with missing data should be omitted
 get.spell.lengths<-function(data=NULL,  # vector of rain
                             thresh=NULL,  # wetness threshold, all values below or equal to deemed dry
                             type="wet"    # get wet or dry spell length
 ){
+  data = data[!is.na(data)]
   above=rep(0,length(data))
   ind=which(data>thresh)
   above[ind]=1 # record entries above threshold as 1
