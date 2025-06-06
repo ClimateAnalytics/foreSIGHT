@@ -21,6 +21,7 @@ calc_timeStep = function(times){
 
 ##################
 
+#' @export
 convert_climYMD_POSIXct = function(clim){
 
   clim = as.list(clim)
