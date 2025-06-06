@@ -1,6 +1,8 @@
 rm(list=ls())
 
 devtools::load_all()
+#devtools::load_all('C:/Users/a1065639/Work/foreSIGHT1.2/foreSIGHT')
+#library(foreSIGHT)
 
 # # Example 1: Simple scaling
 # #-----------------------------------------------------------------------
@@ -66,40 +68,40 @@ devtools::load_all()
 # Example 3: Stochastic simulation using foreSIGHT default settings
 #----------------------------------------------------------------------
 # create an exposure space
-# attPerturb <- c("P_ann_tot_m", "P_ann_nWet_m", "P_ann_R10_m")
-# attHold <- c("P_Feb_tot_m", "P_SON_dyWet_m", "P_JJA_avgWSD_m", "P_MAM_tot_m",
-#             "P_DJF_avgDSD_m", "Temp_ann_rng_m", "Temp_ann_avg_m")
-# # attPerturb <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m")
-# # attHold <- c("P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m",
-# #              "P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m")
+attPerturb <- c("P_ann_tot_m", "P_ann_nWet_m", "P_ann_R10_m")
+attHold <- c("P_Feb_tot_m", "P_SON_dyWet_m", "P_JJA_avgWSD_m", "P_MAM_tot_m",
+            "P_DJF_avgDSD_m", "Temp_ann_rng_m", "Temp_ann_avg_m")
+# attPerturb <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m")
+# attHold <- c("P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m",
+#              "P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m")
+attPerturbType = "regGrid"
+attPerturbSamp = c(2, 1, 1)
+attPerturbMin = c(0.8, 1, 1)
+attPerturbMax = c(1.1, 1, 1)
+
+# attPerturb <- c("Temp_day_all_rng_m")
+# attHold <- c("Temp_day_all_avg_m")
 # attPerturbType = "regGrid"
-# attPerturbSamp = c(2, 1, 1)
-# attPerturbMin = c(0.8, 1, 1)
-# attPerturbMax = c(1.1, 1, 1)
-# 
-# # attPerturb <- c("Temp_day_all_rng_m")
-# # attHold <- c("Temp_day_all_avg_m")
-# # attPerturbType = "regGrid"
-# # attPerturbSamp = c(2)
-# # attPerturbMin = c(0.8)
-# # attPerturbMax = c(1.1)
-# 
-# expSpace <- createExpSpace(attPerturb = attPerturb,
-#                            attPerturbSamp = attPerturbSamp,
-#                            attPerturbMin = attPerturbMin,
-#                            attPerturbMax = attPerturbMax,
-#                            attPerturbType = attPerturbType,
-#                            attHold = attHold)
-# # load example data available in foreSIGHT
-# data(tankDat)
-# # perform stochastic simulation
-# simStochastic <- generateScenarios(reference = tank_obs,
-#                                    expSpace = expSpace,
-#                                    simLengthNyrs = 30,seedID=1)
-# 
-# plotScenarios(simStochastic)
-# 
-# pause
+# attPerturbSamp = c(2)
+# attPerturbMin = c(0.8)
+# attPerturbMax = c(1.1)
+
+expSpace <- createExpSpace(attPerturb = attPerturb,
+                           attPerturbSamp = attPerturbSamp,
+                           attPerturbMin = attPerturbMin,
+                           attPerturbMax = attPerturbMax,
+                           attPerturbType = attPerturbType,
+                           attHold = attHold)
+# load example data available in foreSIGHT
+data(tankDat)
+# perform stochastic simulation
+simStochastic <- generateScenarios(reference = tank_obs,
+                                   expSpace = expSpace,
+                                   simLengthNyrs = 30,seedID=1)
+
+plotScenarios(simStochastic)
+
+pause
 
 # ## End(Not run)
 

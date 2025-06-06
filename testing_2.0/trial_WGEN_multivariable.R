@@ -7,27 +7,27 @@ clim = convert_climYMD_POSIXct(tank_obs)
 ######################################################################
 
 # # Selected attributes
-# attPerturb <- c("P_day_all_tot_m", "Temp_day_all_avg_m")
-# attHold <- c("P_day_all_R10_m", "P_day_DJF_tot_m","Temp_day_all_rng_m", "Temp_day_DJF_avg_m")
-# 
-# # Sampling bounds and strategy
-# attPerturbType = "regGrid"
-# attPerturbSamp = c(2, 2)
-# attPerturbMin = c(0.8,-0.5)
-# attPerturbMax = c(1.2,0.5)
-
-attPerturb <- c("Temp_day_all_avg_m")
-#attHold <- c("Temp_day_all_rng_m", "Temp_day_DJF_avg_m")
-attHold <- c("Temp_day_all_rng_m", "Temp_day_all_cor")
-
-attAll = c(attPerturb,attHold)
-calculateAttributes(clim,attAll)
+attPerturb <- c("P_day_all_tot_m", "Temp_day_all_avg_m")
+attHold <- c("P_day_all_R10_m", "P_day_DJF_tot_m","Temp_day_all_rng_m", "Temp_day_DJF_avg_m")
 
 # Sampling bounds and strategy
 attPerturbType = "regGrid"
-attPerturbSamp = c(2)
-attPerturbMin = c(0.8)
-attPerturbMax = c(1.2)
+attPerturbSamp = c(2, 2)
+attPerturbMin = c(0.8,-0.5)
+attPerturbMax = c(1.2,0.5)
+
+# attPerturb <- c("Temp_day_all_avg_m")
+# #attHold <- c("Temp_day_all_rng_m", "Temp_day_DJF_avg_m")
+# attHold <- c("Temp_day_all_rng_m", "Temp_day_all_cor")
+# 
+# attAll = c(attPerturb,attHold)
+# calculateAttributes(clim,attAll)
+# 
+# # Sampling bounds and strategy
+# attPerturbType = "regGrid"
+# attPerturbSamp = c(2)
+# attPerturbMin = c(0.8)
+# attPerturbMax = c(1.2)
 
 # Creating the exposure space
 expSpace <- createExpSpace(attPerturb = attPerturb, 
@@ -39,7 +39,7 @@ expSpace <- createExpSpace(attPerturb = attPerturb,
 
 modelSelection = list()
 modelSelection$modelType = list()
-modelSelection$modelType$Temp = "wgenDMtemp"
+modelSelection$modelType$Temp = "wgenLM"
 modelSelection$modelParameterVariation = list()
 modelSelection$modelParameterVariation$Temp = "ann"
 modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)

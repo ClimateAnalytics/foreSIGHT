@@ -2,6 +2,8 @@ rm(list=ls())
 
 devtools::load_all()
 
+devtools::load_all('../RGN/')
+
 clim = convert_climYMD_POSIXct(tank_obs)
 
 
@@ -9,8 +11,8 @@ clim = convert_climYMD_POSIXct(tank_obs)
 
 modelSelection = list()
 modelSelection$modelType = list()
-modelSelection$modelType$P = "LV"
-#modelSelection$modelType$P = "latent"
+#modelSelection$modelType$P = "LV"
+modelSelection$modelType$P = "latent"
 modelSelection$modelParameterVariation = list()
 modelSelection$modelParameterVariation$P = "ann"
 modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)

@@ -65,18 +65,18 @@ plotScenarios(sim_seas)
 ####################
 # setup harmonic monAR1 model
 
-modelSelection = list()
-modelSelection$modelType = list()
-modelSelection$modelType$P = "monAR1"
-modelSelection$modelParameterVariation$P = "har"
-modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
-controlFile = paste0(tempdir(), "\\eg_controlFile.json")
-write(modelSelectionJSON, file = controlFile)
-
-sim_har = generateScenarios(reference = clim_mon,
-                             expSpace = expSpace,
-                             controlFile = controlFile,
-                             seedID=1)
-
-plotScenarios(sim_har)
+# modelSelection = list()
+# modelSelection$modelType = list()
+# modelSelection$modelType$P = "monAR1"
+# modelSelection$modelParameterVariation$P = "har"
+# modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
+# controlFile = paste0(tempdir(), "\\eg_controlFile.json")
+# write(modelSelectionJSON, file = controlFile)
+# 
+# sim_har = generateScenarios(reference = clim_mon,
+#                              expSpace = expSpace,
+#                              controlFile = controlFile,
+#                              seedID=1)
+# 
+# plotScenarios(sim_har)
 

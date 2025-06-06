@@ -9,7 +9,7 @@ clim = convert_climYMD_POSIXct(tank_obs)
 
 modelSelection = list()
 modelSelection$modelType = list()
-modelSelection$modelType$P = "wgenDM"
+modelSelection$modelType$P = "wgen"
 #modelSelection$modelType$P = "latent"
 modelSelection$modelParameterVariation = list()
 #modelSelection$modelParameterVariation$P = "annual"
@@ -88,12 +88,14 @@ expSpace = createExpSpace(attPerturb = attPerturb,
 
 ####################
 
-# sim_seas = generateScenarios(reference = clim,
-#                                    expSpace = expSpace,
-#                                    controlFile = controlFile,
-#                                    seedID = 1)
-# 
-# plotScenarios(sim_seas)
+sim_seas = generateScenarios(reference = clim,
+                                   expSpace = expSpace,
+                                   controlFile = controlFile,
+                                   seedID = 1)
+
+plotScenarios(sim_seas)
+
+pause
 
 ####################
 
