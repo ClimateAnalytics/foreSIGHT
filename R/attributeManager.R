@@ -39,7 +39,7 @@ func_seasRatio = function(data,attArgs){
 }
 
 func_fracTot = function(data,attArgs){
-  Pseas = func_tot(data,na.rm=T) 
+  Pseas = func_tot(data) 
   fracTot = Pseas/attArgs$tot
   return(fracTot)
 }
@@ -64,7 +64,7 @@ func_fracWDcor = function(data,attArgs){
 
 
 func_fracP99 = function(data,attArgs){
-  P99Seas = quantile(data,probs = 0.99) 
+  P99Seas = quantile(data,probs = 0.99,na.rm=T,names=F) 
   fracP99 = P99Seas/attArgs$P99Tot
   return(fracP99)
 }
@@ -72,38 +72,39 @@ func_fracP99 = function(data,attArgs){
 func_fracxP99overPave = function(data,attArgs){
   xP99overPaveSeas = func_xP99overPave(data)
   fracxP99overPave = xP99overPaveSeas/attArgs$xP99overPave
+  if(is.na(fracxP99overPave)){browser()}
   return(fracxP99overPave)
 }
 
 #  function for calulcating ratio of P99 to average rainfall
 func_xP99overPave = function(data){
-  m = mean(data)
+  m = mean(data,na.rm=T)
   if (m==0){
     xP99overPave = 1e3
   } else {
-    xP99overPave = quantile(data,0.99)/mean(data)
+    xP99overPave = quantile(data,0.99,names=F,na.rm=T)/mean(data,na.rm=T)
   }
   return(xP99overPave)
 }
 
 #  function for calulcating ratio of P90 to average rainfall
 func_xP90overPave = function(data){
-  m = mean(data)
+  m = mean(data,na.rm=T)
   if (m==0){
     xP90overPave = 1e3
   } else {
-    xP90overPave = quantile(data,0.9)/mean(data)
+    xP90overPave = quantile(data,0.9,na.rm=T,names=F)/mean(data,na.rm=T)
   }
   return(xP90overPave)
 }
 
 #  function for calulcating ratio of P99.9 to average rainfall
 func_xP99.9overPave = function(data){
-  m = mean(data)
+  m = mean(data,na.rm=T)
   if (m==0){
     xP99.9overPave = 1e3
   } else {
-    xP99.9overPave = quantile(data,0.999)/mean(data)
+    xP99.9overPave = quantile(data,0.999,na.rm=T,names=F)/mean(data,na.rm=T)
   }
   return(xP99.9overPave)
 }
@@ -192,6 +193,7 @@ func_wettest6monPeakDay = function(data,attArgs=NULL){
   i = stats::median(which(seas==max(seas)))
 }
 
+#' @export
 func_WDcor = function(data){
   N = length(data)
   data[data==0] = NA
@@ -205,12 +207,13 @@ func_WDcor = function(data){
   return(WDcor)
 }
 
+#' @export
 func_cor = function(data){
   N = length(data)
-  if (sum(data[1:(N-1)])==0|sum(data[2:N])==0){
+  if (sum(data[1:(N-1)],na.rm=T)==0|sum(data[2:N],na.rm=T)==0){
     cor = 1e3
   } else {
-    cor = cor(data[1:(N-1)],data[2:N])
+    cor = suppressWarnings(cor(data[1:(N-1)],data[2:N],use = 'pairwise.complete.obs'))
   }
   if (is.na(cor)){cor=1e3}
   return(cor)
@@ -233,7 +236,7 @@ func_wettest6monSeasRatio = function(data,attArgs=NULL){
 
 func_ma3P99 = function(data){
   ma3 = movingAverage(data,n=3,centered = T)
-  ma3P99 = quantile(ma3,0.99)
+  ma3P99 = quantile(ma3,0.99,na.rm=T,names=F)
   return(ma3P99)
 }
 
@@ -341,7 +344,7 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
   
   fracP99List = attSel[grepl('fracP99',attSel)]
   if (length(fracP99List)>0){
-    P99Tot = quantile(data,probs=0.99)
+    P99Tot = quantile(data,probs=0.99,na.rm=T,names=F)
     P99Tot = max(P99Tot,0.001)
     for (att in fracP99List){
       attCalcInfo[[att]]$attArgs$P99Tot = P99Tot
@@ -543,8 +546,8 @@ invalidOperationStop = function(opName){
   stop(errMess)
 }
 
-invalidFuncStop = function(func,type){
-  errMess = paste0("Error: invalid attribute name (function '",type,func,"' does not exist)")
+invalidFuncStop = function(func){
+  errMess = paste0("Error: invalid attribute name (function '",func,"' does not exist)")
   cat(errMess)
   #  logfile(errMess,file)
   #  logfile("Program terminated",file)
@@ -554,7 +557,7 @@ invalidFuncStop = function(func,type){
 ####################################
 
 calc_att_components = function(att){
-  
+
   # split up attribute name
   chopped=strsplit(x = att,split="_")[[1]]
   
@@ -724,16 +727,18 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
   }
 
   if (type=='single'){
-    if (!(funcName%in%attributeFuncs()$single)){invalidFuncStop(func=funcName,type='func_')}
-    func = get(paste0('func_',funcName))  
+    func_str = paste0('func_',funcName)
   } else if (type=='multivariable'){
-    if (!(funcName%in%attributeFuncs()$multivariable)){invalidFuncStop(func=funcName,type='mvFunc_')}
-    func = get(paste0('mvFunc_',funcName))  
+    func_str = paste0('mvFunc_',funcName)
   } else if (type=='multisite'){
-    if (!(funcName%in%attributeFuncs()$multisite)){invalidFuncStop(func=funcName,type='msFunc_')}
-    func = get(paste0('msFunc_',funcName))  
+    func_str = paste0('msFunc_',funcName)
   }
-
+  if(!exists(func_str,mode='function')){
+    print(func_str)
+    invalidFuncStop(func=func_str)
+  }
+  func = get(func_str)
+  
   return(list(func=func,attArgs=attArgs,funcName=funcName,suffix=suffix))
 
 }
@@ -768,7 +773,7 @@ calcStratIndex = function(indexName,opName,datInd){
   }
 
   if (is.null(opName)){
-    indx = list(val = stratIndx,breaks = which(diff(stratIndx)>1))
+    indx = calc_indx_list(stratIndx)
   } else { # here we calculate stratification for each year (later used to calculate mean/max values over all years)
     yrIndx = list()
     if (opName%in%c('m','sd','cor','dwellTime','range90','corSOI','cv')){
@@ -803,7 +808,7 @@ calcStratIndex = function(indexName,opName,datInd){
     }
     indx = list()
     for (y in 1:length(yrIndx)){
-      indx[[y]] = list(val=yrIndx[[y]],breaks=which(diff(yrIndx[[y]])>1))
+      indx[[y]] = calc_indx_list(yrIndx[[y]])
     }
   }
 
@@ -811,11 +816,28 @@ calcStratIndex = function(indexName,opName,datInd){
 
 }
 
+###################
+
+calc_indx_list = function(val){
+
+  breaks=which(diff(val)>1)
+  
+  N.new = length(val)+length(breaks)
+  isNA = breaks + seq(1,length(breaks))
+  a = 1:N.new
+  notNA = a[!a%in%isNA]
+
+  indx_list = list(val=val,breaks=breaks,N=N.new,notNA=notNA)
+  
+  return(indx_list)
+}
+
 ####################################
 #ATTRIBUTE AUX INFO (determine attribute type and if approved combo with model used)
 attribute.info.check<-function(attSel=NULL,  # vector of selected attributes (strings)
                                attPrim=NULL,
-                               lambda.mult=NULL
+                               lambda.mult=NULL,
+                               targetType=NULL
                               #simVar=NULL    # vector of variables simulated using models e.g. c("P","Temp")
                               # modelTag=NULL # model selected
 ){
@@ -828,8 +850,8 @@ attribute.info.check<-function(attSel=NULL,  # vector of selected attributes (st
   attInfo$aggType=vapply(attSel,FUN = get.attribute.aggType,FUN.VALUE=character(1),USE.NAMES = FALSE) #drop use of names as comes ordered anyway
   
   #ASSIGN TARGET TYPE (IF P USE "FRAC", IF T USE "DIFF")
-  attInfo$targetType=vapply(attInfo$varType,FUN=get.target.type,FUN.VALUE=character(1),USE.NAMES=FALSE)
-
+  attInfo$targetType=targetType
+  
   #FIND WHICH ARE PRIMARY
   if(is.null(attPrim)){
     attInfo$primType=rep(FALSE,nAtt)
@@ -860,10 +882,14 @@ attribute.info.check<-function(attSel=NULL,  # vector of selected attributes (st
 
 get.att.ind.withAggs <-function(attInfo=NULL,
                       simVar=NULL,
-                      simAgg=NULL
+                      simAgg=NULL,
+                      multVar=F
 ){
   
   simVar = unique(attInfo$varType)
+  if (multVar){
+    simVar=unique(unlist(strsplit(simVar,'[/]')))
+  }
   simAgg = unique(attInfo$aggType)
   #DETERMINE WHICH ATTRIBUTE RELATES TO WHICH SIMULATOR
   attInd=list()
@@ -871,8 +897,14 @@ get.att.ind.withAggs <-function(attInfo=NULL,
     for(i in 1:length(simVar)){
       attInd[[simVar[i]]] = list()
       for (j in 1:length(simAgg)){
-        attInd[[simVar[i]]][[simAgg[j]]]= which((attInfo$varType==simVar[i])
-                                                &(attInfo$aggType==simAgg[j]))
+        if (!multVar){
+          attInd[[simVar[i]]][[simAgg[j]]]= which((attInfo$varType==simVar[i])
+                                                  &(attInfo$aggType==simAgg[j]))
+        } else {
+          attInd[[simVar[i]]][[simAgg[j]]]= which(((attInfo$varType==simVar[i])|
+                                       startsWith(attInfo$varType,paste0(simVar[i],'/')))
+                                     &(attInfo$aggType==simAgg[j]))
+        }
       }
     }
   }
@@ -886,7 +918,8 @@ get.att.ind<-function(attInfo=NULL,
   attInd=list()
   if(simVar[1] != "All"){                    # ONLY DO IF STOCHASTIC GENERATION IS SELECTED (not simple scaling)
     for(i in 1:length(simVar)){
-      attInd[[simVar[i]]]= which(attInfo$varType==simVar[i])
+      attInd[[simVar[i]]]= which((attInfo$varType==simVar[i])|
+                                   startsWith(attInfo$varType,paste0(simVar[i],'/')))
     }
   }
   return(attInd)
@@ -966,6 +999,8 @@ tagBlender<-function(attLab=NULL
     vtype="PET"
   }else if(varName=="Radn"){
     vtype="Radiation"
+  } else {
+    vtype=varName
   }
 
   #stratification type
