@@ -315,7 +315,7 @@ generateScenarios <- function(reference,                # data frame of observed
   assign("IOlist",list(),envir = foreSIGHT_optimizationInputOutputEnv)
   
   allSim <- replicate(nRep, vector("list", nTarget), simplify = FALSE)
-  
+ 
   if (cores==1){
     for (iRep in 1:nRep) {
       cat(paste0("Generating replicate number ", iRep,  " out of ", nRep, " replicates...\n"))
@@ -341,7 +341,7 @@ generateScenarios <- function(reference,                # data frame of observed
         allSim[[iRep]][[iTarg]] = to.allSim
       }
     } 
-  } else if (is.integer(cores)&(core>1)){
+  } else if ((cores=round(cores))&(cores>1)){
     fname = paste0(tempfile())
     print(fname)
     c1 <- parallel::makeCluster(cores,outfile=fname)
