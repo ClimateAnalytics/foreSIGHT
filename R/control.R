@@ -959,7 +959,6 @@ generateScenario <- function(reference,       # list observed data with column n
                               parSim=NULL,
                               setSeed=seedID,
                               file=file,
-                              nMod=nMod,
                               obs=obs,
                               spatialArgs=spatialArgs)
 
@@ -978,7 +977,6 @@ generateScenario <- function(reference,       # list observed data with column n
                                parLoc=parLoc,
                                setSeed=seedID,
                                file=file,
-                               nMod=nMod,
                                obs=obs,
                                spatialArgs=spatialArgs)
 
@@ -1000,7 +998,6 @@ generateScenario <- function(reference,       # list observed data with column n
                               parSim=NULL,
                               setSeed=seedID,
                               file=file,
-                              nMod=nMod,
                               obs=obs,
                               spatialArgs=spatialArgs3)
 
@@ -1043,7 +1040,6 @@ simulateTargetMarg = function(optimArgs=NULL,
                               parSim=NULL,
                               setSeed=NULL,
                               file=NULL,
-                              nMod=NULL,
                               obs=NULL,
                               spatialArgs=NULL){
 
@@ -1053,71 +1049,73 @@ simulateTargetMarg = function(optimArgs=NULL,
   ### DM NOTE: CODE CURRENTLY NOT PROPERLY SETUP TO WORK WITH MULTIPLE MODELS - PROB NEED TO ADD MODEL TO SIM LIST
   sim = list(sites=NULL)
 
-  for(i in 1:nMod){
-    nsite = dim(obs[[simVar[i]]])[2]
-    sites = colnames(obs[[simVar[i]]])
-    if (is.null(sites)){sites=paste0('site',seq(1,nsite))}
-    if ((nsite>1)&(nMod>1)){
-      stop('cannot have (nsite>1)&(nMod>1)')
-    }
+  nMod = length(modelTag)
 
-    set.seed(setSeed)
-    if (nsite==1){
-      spatCorMatIn = NULL
-      MVTsampleMat = matrix(stats::rnorm(n=nTimes,mean=0.,sd=1.),ncol=1)
+  if (nMod>1){
+    stop('cannot have (nsite>1)&(nMod>1)')
+  }
+    
+  mod = modelTag[1]
+  nsite = dim(obs[[simVar[mod]]])[2]
+  sites = colnames(obs[[simVar[mod]]])
+  if (is.null(sites)){sites=paste0('site',seq(1,nsite))}
+
+  set.seed(setSeed)
+  if (nsite==1){
+    spatCorMatIn = NULL
+    MVTsampleMat = matrix(stats::rnorm(n=nTimes,mean=0.,sd=1.),ncol=1)
+  } else {
+    if (!is.null(spatialArgs$spatCorMatIn)){
+      spatCorMatIn = spatialArgs$spatCorMatIn
     } else {
-      if (!is.null(spatialArgs$spatCorMatIn)){
-        spatCorMatIn = spatialArgs$spatCorMatIn
-      } else {
-        spatCorMatIn = diag(nsite)
-      }
+      spatCorMatIn = diag(nsite)
+    }
     spatCorMatIn_PD = as.matrix(Matrix::nearPD(spatCorMatIn,keepDiag = T)$mat)
     
     MVTsampleMat = mvtnorm::rmvnorm(n=nTimes,sigma=spatCorMatIn_PD)
+    
+    colnames(MVTsampleMat) = sites
+  }
 
-      colnames(MVTsampleMat) = sites
-    }
+  simMultiSite = list(sites=NULL,P=NULL)  ### NEED TO FIX THIS UP FOR VARIABLES OTHER THAN P
+  for (s in 1:nsite){
+    site = sites[s]
+    cat(site,'\n')
+    #GET ATTRIBUTES OF OBSERVED DATA (testing attribute calc function)
+    banner("OBSERVED BASELINE ATTRIBUTE CALCULATION",file)
+    progress("Calculating attributes...",file)
 
-    simMultiSite = list(sites=NULL,P=NULL)  ### NEED TO FIX THIS UP FOR VARIABLES OTHER THAN P
-    for (s in 1:nsite){
-      site = sites[s]
-      cat(site,'\n')
-      #GET ATTRIBUTES OF OBSERVED DATA (testing attribute calc function)
-      banner("OBSERVED BASELINE ATTRIBUTE CALCULATION",file)
-      progress("Calculating attributes...",file)
-      
-      attObs=attribute.calculator(attSel=attSel[unlist(attInd[[i]])],
-                                     data=obs[[simVar[i]]][,s],
-                                     datInd=datInd[["obs"]][[timeStep]])
+    attObs=attribute.calculator(attSel=attSel[unlist(attInd[[simVar[mod]]])],
+                                data=obs[[simVar[mod]]][,s],
+                                datInd=datInd[["obs"]][[timeStep]])
+    
+    attObs=unlist(attObs); attObs=attObs[attSel]   #unlist attObs and make sure order is correct
 
-      attObs=unlist(attObs); attObs=attObs[attSel]   #unlist attObs and make sure order is correct
+    progress(paste("Attributes of observed series - ",paste(attSel,": ",signif(attObs,digits=5),collapse = ", ",sep=""),sep=""),file)
+    progress("Attributes calculated OK",file)   #NEED SOME ACTUAL CHECKING HERE BEFORE PRONOUNCING OK
+    
+    simMultiSite$sites[[site]] = simulateTarget(optimArgs=optimArgs,
+                                                simVar=simVar,
+                                                modelTag=modelTag,
+                                                modelInfo=modelInfo,
+                                                attSel=attSel,
+                                                attPrim=attPrim,
+                                                attInfo=attInfo,
+                                                attInd=attInd,
+                                                datInd=datInd,
+                                                initCalibPars=initCalibPars,
+                                                targetLoc=targetLoc,
+                                                attObs=attObs,
+                                                parLoc=parLoc,
+                                                parSim=parSim,
+                                                setSeed=setSeed,
+                                                iRepTarg=iRepTarg,
+                                                obs=obs,
+                                                file=file,
+                                                randomUnitNormalVector=MVTsampleMat[,s])
 
-      progress(paste("Attributes of observed series - ",paste(attSel,": ",signif(attObs,digits=5),collapse = ", ",sep=""),sep=""),file)
-      progress("Attributes calculated OK",file)   #NEED SOME ACTUAL CHECKING HERE BEFORE PRONOUNCING OK
-
-      simMultiSite$sites[[site]] = simulateTarget(optimArgs=optimArgs,
-                                         simVar=simVar,
-                                         modelTag=modelTag,
-                                         modelInfo=modelInfo,
-                                         attSel=attSel,
-                                         attPrim=attPrim,
-                                         attInfo=attInfo,
-                                         attInd=attInd,
-                                         datInd=datInd,
-                                         initCalibPars=initCalibPars,
-                                         targetLoc=targetLoc,
-                                         attObs=attObs,
-                                         parLoc=parLoc,
-                                         parSim=parSim,
-                                         setSeed=setSeed,
-                                         iRepTarg=iRepTarg,
-                                         obs=obs,
-                                         file=file,
-                                         randomUnitNormalVector=MVTsampleMat[,s])
-
-      if (nsite>1){simMultiSite$P$sim = cbind(simMultiSite$P$sim,simMultiSite$sites[[site]]$P$sim)}
-
-    }
+    if (nsite>1){simMultiSite$P$sim = cbind(simMultiSite$P$sim,simMultiSite$sites[[site]]$P$sim)}
+    
   }
 
   if (nsite>1){
@@ -1126,6 +1124,7 @@ simulateTargetMarg = function(optimArgs=NULL,
   } else {
     sim = simMultiSite$sites[[1]]
   }
+  
   return(sim)
 
 }
@@ -1148,14 +1147,14 @@ simulateTargetCor = function(optimArgs=NULL,
                              setSeed=NULL,
                              file=NULL,
                              randomUnitNormalVector=NULL,  ### remove this
-                             nMod=NULL,
                              obs=NULL,
                              spatialArgs=NULL){
 
+  nMod = length(modelTag)
   if (nMod>1){
     stop('cannot have nMod>1')
   } else {
-    mod = 1
+    mod = modelTag[[1]]
   }
   sites = names(simIn$sites)
   nsite=length(sites)
@@ -1195,16 +1194,16 @@ simulateTargetCor = function(optimArgs=NULL,
         MVTsampleMat = mvtnorm::rmvnorm(n=nTimes,sigma=corMat_PD)
 
         # note currently not setup to include auxInfo (i.e. obs, wdStatus)
-        sim1 = simClim(parS=simIn$sites[[site1]][[simVar]]$parS,              
+        sim1 = simClim(parS=simIn$sites[[site1]][[simVar[1]]]$par,              
                           modelTag = modelTag,
-                          modelInfo=modelInfo,
-                          datInd=datInd[[modelTag]],
+                          modelInfo=modelInfo[[mod]],
+                          datInd=datInd[[mod]],
                           randomTerm = list(randomUnitNormalVector = MVTsampleMat[,1]))
         
-        sim2 = simClim(parS=simIn$sites[[site2]][[simVar]]$parS,              
+        sim2 = simClim(parS=simIn$sites[[site2]][[simVar[1]]]$par,              
                        modelTag = modelTag,
-                       modelInfo=modelInfo,
-                       datInd=datInd[[modelTag]],
+                       modelInfo=modelInfo[[mod]],
+                       datInd=datInd[[mod]],
                        randomTerm = list(randomUnitNormalVector = MVTsampleMat[,2]))
 
         cor_sim_list[i] = stats::cor(sim1,sim2)
@@ -1226,11 +1225,12 @@ simulateTargetCor = function(optimArgs=NULL,
 
   for (s in 1:nsite){
     site = sites[s]
+    
     # note currently not setup to include auxInfo (i.e. obs, wdStatus)
-    sim$sites[[site]] = simClim(parS=simIn$sites[[site]][[simVar]]$parS,              
+    sim$sites[[site]] = simClim(parS=simIn$sites[[site]][[simVar[1]]]$par,              
                    modelTag = modelTag,
-                   modelInfo=modelInfo,
-                   datInd=datInd[[modelTag]],
+                   modelInfo=modelInfo[[mod]],
+                   datInd=datInd[[mod]],
                    randomTerm = list(randomUnitNormalVector = MVTsampleMat[,s]))
     
     sim$P$sim = cbind(sim$P$sim,sim$sites[[site]])
