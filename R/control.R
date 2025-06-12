@@ -1592,37 +1592,38 @@ runSystemModel <- function(sim,                  # output from scenario generato
   for(r in 1:nRep) {
     for (t in 1:nTar) {
       # initialising scenarioData
-      scenarioData = as.data.frame(sim[["simDates"]],nm = 'times')
+      #scenarioData = as.data.frame(sim[["simDates"]],nm = 'times')
+      scenarioData = list(times=sim[["simDates"]])
       varTemp <- list()
       for (v in varNames) {
         if ((is.character(sim[["controlFile"]]))) {
           if (sim[["controlFile"]] == "scaling") {
             # using data.frame for single site & list for multi-site
-            max_nSites <- max(sapply(sim[[repNames[r]]][[tarNames[t]]], ncol))
-            if (max_nSites==1) {
-              varTemp <- as.data.frame(sim[[repNames[r]]][[tarNames[t]]][[v]])
-            } else{
+#            max_nSites <- max(sapply(sim[[repNames[r]]][[tarNames[t]]], ncol))
+#            if (max_nSites==1) {
+#              varTemp <- as.data.frame(sim[[repNames[r]]][[tarNames[t]]][[v]])
+#            } else{
               varTemp[[v]] <- sim[[repNames[r]]][[tarNames[t]]][[v]]
-            }
+#            }
           } else {
             stop(paste0("sim$controlFile unrecognized."))
           }
         } else {
           # using data.frame for single site & list for multi-site
-#          max_nSites <- max(sapply(sim[[repNames[r]]][[tarNames[t]]][[v]], function(x){ncol(x[["sim"]])}))
-#          if (max_nSites==1) {
-            varTemp <- as.data.frame(sim[[repNames[r]]][[tarNames[t]]][[v]][["sim"]])
-#          } else {
-#            varTemp[[v]] <- sim[[repNames[r]]][[tarNames[t]]][[v]][["sim"]]
-#          }
+#         max_nSites <- ncol(sim[[repNames[r]]][[tarNames[t]]][[v]][["sim"]])
+#         if (max_nSites==1) {
+#            varTemp <- as.data.frame(sim[[repNames[r]]][[tarNames[t]]][[v]][["sim"]])
+#         } else {
+           varTemp <- sim[[repNames[r]]][[tarNames[t]]][[v]][["sim"]]
+#         }
         }
-        if (is.data.frame(varTemp)) {
-          names(varTemp) <- v
-          scenarioData <- cbind(scenarioData, varTemp)
-          rm(varTemp)
-        } else{
-          scenarioData <- varTemp
-        }
+#        if (is.data.frame(varTemp)) {
+#          names(varTemp) <- v
+#          scenarioData <- cbind(scenarioData, varTemp)
+#          rm(varTemp)
+#        } else{
+          scenarioData[[v]] <- varTemp
+#        }
       }
       
 
