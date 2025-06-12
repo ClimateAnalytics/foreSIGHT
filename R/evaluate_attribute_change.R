@@ -4,6 +4,14 @@ systemModel_calcAtts <- function(data,          # data.frame with columns: year,
                                  systemArgs,    # list containing the arguments of simulateSystem
                                  metrics) {     # names of performance metrics (with units of the metrics)
   
+  if (!is.null(systemArgs$vSel)){
+    if (systemArgs$cSel=='mean'){
+      data[[systemArgs$vSel]] = apply(data[[systemArgs$vSel]],1,mean)
+    } else {
+      data[[systemArgs$vSel]] = data[[systemArgs$vSel]][,systemArgs$cSel]
+    }
+  }
+  
   systemPerformanceSim = calculateAttributes(climateData=data,attSel=metrics)
   
   systemPerformance = (systemPerformanceSim/systemArgs$attBase-1)*100
@@ -14,13 +22,23 @@ systemModel_calcAtts <- function(data,          # data.frame with columns: year,
 #################################################################
 
 #' @export
-calcPerformanceAttributes = function(clim,sim,attSel){
-  
+calcPerformanceAttributes = function(clim,sim,attSel,vSel=NULL,cSel=1){
+
+  if (!is.null(vSel)){
+    if (cSel=='mean'){
+      clim[[vSel]] = apply(clim[[vSel]],1,mean)
+    } else {
+      clim[[vSel]] = clim[[vSel]][,cSel]
+    }
+  }
+
   attBase = calculateAttributes(clim,attSel)
   
   systemPerf <- runSystemModel(sim = sim,                     # simulation; the perturbed time series
                                systemModel = systemModel_calcAtts,      # the system model function
-                               systemArgs = list(attBase=attBase),        # argument to the system model function
+                               systemArgs = list(attBase=attBase,
+                                                 vSel=vSel,
+                                                 cSel=cSel),        # argument to the system model function
                                metrics = attSel)              # selected performance metrics
   
   return(systemPerf)
