@@ -49,8 +49,6 @@ simulateTarget<-function(
     parSugg=NULL
   }
   
-  #set.seed(setSeed)
-  
   attSim=list()          #Make list to store simulated attributes
   targetSim=list()       #Make list to store simulated attributes(target space converted)
   for(mod in modelTag){
@@ -58,6 +56,8 @@ simulateTarget<-function(
     print(mod)
     
     out[[simVar[mod]]] = list()
+  
+    set.seed(setSeed)
     
     if (is.null(randomUnitNormalVector)){
       randomVector <- stats::runif(n=datInd[[mod]][[aggNameShort[[obs$timeStep]]]]$nTimes) # Random vector to be passed into weather generator to reduce runtime
@@ -184,7 +184,7 @@ simulateTarget<-function(
                                      datInd=datInd[[mod]],
                                      randomTerm = list(randomVector = randomVector,
                                                        randomUnitNormalVector = randomUnitNormalVector,
-                                                       seed=optTest$seed),
+                                                       seed=setSeed),
                                      auxInfo = auxInfo)
       parV=c(parV,optTest$par)
       
