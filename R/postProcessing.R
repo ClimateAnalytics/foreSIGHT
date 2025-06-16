@@ -5,7 +5,9 @@ ppInfoList[['annVar']] = list(npars=1,
                               minBound=c(0.1),
                              maxBound=c(5))
 
-ppInfoList[['scaleExtremes']] = list(scaleExtremesProb=0.99)
+ppInfoList[['scaleExtremesAll']] = list(scaleExtremesProb=0.99)
+
+ppInfoList[['scaleExtremesSeas']] = list(scaleExtremesProb=0.99)
 
 ppInfoList[['annCor']] = list(npars=1,
                               parNam=c('annAR1coeff'),
@@ -18,8 +20,10 @@ runPP = function(sim,obs,PPname,parS,datInd,randomTerm=NULL){
   
   if (PPname == 'annVar'){
     sim = pp.annVar(sim=sim,annVarFac=parS['annVarFac'],datInd=datInd)
-  } else if (PPname == 'scaleExtremes'){
-    sim = pp.scaleExtremes(sim=sim,obs=obs,prob=ppInfoList[[PPname]]$scaleExtremesProb)
+  } else if (PPname == 'scaleExtremesAll'){
+    sim = pp.scaleExtremes(sim=sim,obs=obs,prob=ppInfoList[[PPname]]$scaleExtremesProb,strat='all',datInd=datInd)
+  } else if (PPname == 'scaleExtremesSeas'){
+    sim = pp.scaleExtremes(sim=sim,obs=obs,prob=ppInfoList[[PPname]]$scaleExtremesProb,strat='seas',datInd=datInd)
   } else if (PPname == 'annCor'){
     sim = pp.annShuffle(P=sim,datInd=datInd,
                         annAR1coeff=parS['annAR1coeff'],
@@ -59,22 +63,51 @@ pp.annVar = function(sim,annVarFac,datInd){
 
 #################################
 
-pp.scaleExtremes = function(sim,obs,prob){
+pp.scaleExtremes = function(sim,obs,prob,strat,datInd){
   
   if (length(sim)!=length(obs)){browser()}
   
-  fac = quantile(sim,prob) / quantile(obs,prob)
-  nTop = floor(length(sim)*(1-prob))
-  sortSim = sort(sim,decreasing = T,index.return=T)
-  i = sortSim$ix[1:nTop]
-  sortObs = sort(obs,decreasing = T)[1:nTop]
-  
-  sim[i] = fac*sortObs
+  # fac = quantile(sim,prob) / quantile(obs,prob)
+  # nTop = floor(length(sim)*(1-prob))
+  # sortSim = sort(sim,decreasing = T,index.return=T)
+  # i = sortSim$ix[1:nTop]
+  # sortObs = sort(obs,decreasing = T)[1:nTop]
+  # sim[i] = fac*sortObs
 
+  if (strat=='all'){
+    N = 1
+  } else if (strat=='seas'){
+    N = 4
+  }
+  
+  for (s in 1:N){
+    if (strat=='all'){
+      keep = 1:datInd$nTimes
+    } else if (strat=='seas'){
+      keep = datInd$i.ss[[s]]
+    }
+    fac = quantile(sim[keep],prob) / quantile(obs[keep],prob)
+    nTop = floor(length(sim[keep])*(1-prob))
+    sortSim = sort(sim[keep],decreasing = T,index.return=T)
+    i = keep[sortSim$ix[1:nTop]]
+    sortObs = sort(obs[keep],decreasing = T)[1:nTop]
+    sim[i] = fac*sortObs
+  }
+  
   return(sim)
   
 }
 
+
+#   # for (s in 1:4){
+#   #   keep = modelEnv$P_modelEnv$datInd$i.ss[[s]]
+#   #   fac = quantile(sim$sim[keep],0.99) / quantile(obs$P[keep],0.99)
+#   #   nTop = floor(length(sim$sim[keep])/100)
+#   #   tmp.sortSim = sort(sim$sim[keep],decreasing = T,index.return=T)
+#   #   i = keep[tmp.sortSim$ix[1:nTop]]
+#   #   sortObs = sort(obs$P[keep],decreasing = T)[1:nTop]
+#   #   sim$sim[i] = fac*sortObs
+#   # }
 ###################
 
 calcAC = function(x){
