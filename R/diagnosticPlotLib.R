@@ -269,7 +269,10 @@ measure.diff<- function(type=NULL,
          "diff" = {diff.att=absDiff.calc(sim=simPt,target=targetPt)
                   class.lim=diff.lim
                   },
-                 {diff.att=pc.calc(sim=simPt,target=targetPt)
+         "val" = {diff.att=absDiff.calc(sim=simPt,target=targetPt)
+                  class.lim=diff.lim
+         },
+         {diff.att=pc.calc(sim=simPt,target=targetPt)
                  class.lim=pc.lim}
   )
   out=list(class.lim=class.lim, diff.att=diff.att)
@@ -405,9 +408,10 @@ getSimTraffic <- function(sim) {          # simulations generated using generate
   
   # Variable and target type
   varType <- vapply(attSel, FUN = get.attribute.varType, FUN.VALUE = character(1), USE.NAMES = FALSE)
-  targetType <- vapply(varType, FUN = get.target.type, FUN.VALUE = character(1), USE.NAMES = FALSE)
-  print('fix targetType')
-
+  # targetType <- vapply(varType, FUN = get.target.type, FUN.VALUE = character(1), USE.NAMES = FALSE)
+  # print('fix targetType')
+  targetType = sim$expSpace$targetType
+  
   # modelTag and variables
   simVar <- names(nml[["modelType"]])
   modelTag <- NULL
