@@ -34,7 +34,11 @@ func_seasRatio = function(data,attArgs){
   Pseas = sum(data=data[attArgs$indexSeas])
   Pseas = max(Pseas,0.001)
   Pall = sum(data=data)
-  seasRatio = Pseas/Pall
+  if (Pall==0.){
+    seasRatio=100.
+  } else {
+    seasRatio = Pseas/Pall
+  }
   return(seasRatio)
 }
 
