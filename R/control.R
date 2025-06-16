@@ -1603,8 +1603,8 @@ runSystemModel <- function(sim,                  # output from scenario generato
 #            if (max_nSites==1) {
 #              varTemp <- as.data.frame(sim[[repNames[r]]][[tarNames[t]]][[v]])
 #            } else{
-              varTemp[[v]] <- sim[[repNames[r]]][[tarNames[t]]][[v]]
-#            }
+              varTemp <- sim[[repNames[r]]][[tarNames[t]]][[v]]
+              #            }
           } else {
             stop(paste0("sim$controlFile unrecognized."))
           }
