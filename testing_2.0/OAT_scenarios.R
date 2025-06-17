@@ -2,10 +2,15 @@ rm(list=ls())
 
 ########################
 
-foreSIGHTDir = 'C:/Users/a1065639/Work/foreSIGHT/'
-droughRiskDir = 'C:/Users/a1065639/Work/DroughtRisk/'
-dataDir.Loxton = 'C:/Users/a1065639/Box/2025_DEW_foreSIGHT/Data/'
-dataDir.Barossa = 'C:/Users/a1065639/Box/2021 CRAFT Barossa project/External datasets/Hydroclimate (instrumental)/'
+#foreSIGHTDir = 'C:/Users/a1065639/Work/foreSIGHT/'
+#droughRiskDir = 'C:/Users/a1065639/Work/DroughtRisk/'
+#dataDir.Loxton = 'C:/Users/a1065639/Box/2025_DEW_foreSIGHT/Data/'
+#dataDir.Barossa = 'C:/Users/a1065639/Box/2021 CRAFT Barossa project/External datasets/Hydroclimate (instrumental)/'
+
+foreSIGHTDir = '../'
+droughRiskDir = '/hpcfs/users/a1065639/git/DroughtRisk_Feb_2024_paper_shared/DroughtRisk/'
+dataDir.Loxton = '../../Data/'
+dataDir.Barossa = '../../Data/'
 
 devtools::load_all(foreSIGHTDir)
 devtools::load_all(droughRiskDir)
@@ -31,7 +36,7 @@ runDirname = paste0(foreSIGHTDir,'testing_2.0/')
 # catchment = 'A5130501' # Rocky River upstream Gorge Falls 
 # catchment = '606001' # Deep River at Teds Pool 
 
-catchment = 'Barossa.1'; site_keep = 1:1
+catchment = 'Barossa.1'
 
 # period
 startYr = 1976
@@ -72,6 +77,8 @@ if (catchment=='Loxton'){
   PET = PET[keep]
   Qobs = NULL
 } else if (catchment=='Barossa.1'){
+
+	site_keep = 1:1
   evapFile <- "evap_1900to2020.Rdata"
   rainFile <- "rain_data_1900to2020_heggiesInfilled.Rdata"
   load(paste0(dataDir.Barossa, evapFile))
