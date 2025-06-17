@@ -1,0 +1,11 @@
+#!/bin/bash
+#SBATCH -p icelake,a100cpu
+#SBATCH -J smm_clim
+#SBATCH -o smm_clim.%j.out
+#SBATCH -N 1              	                                # number of nodes 
+#SBATCH -n 25             	                                # number of cores 
+#SBATCH --time=0:10:00    	                                # time allocation
+#SBATCH --mem=64GB         	                                # memory pool for all cores 
+date
+Rscript OAT_scenarios.R catchment attPerturb startYr endYr numReplicates cores 
+date
