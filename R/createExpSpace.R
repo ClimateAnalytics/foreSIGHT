@@ -222,7 +222,7 @@ addExpArgs_attHold <- function(attPerturb = attPerturb, attHold = attHold, exSpA
 }
 
 #' @export
-tieAttributes = function(expSpace,attTied){
+tieAttributes = function(expSpace,attTied,exclude.seas=NULL){
   
   for (tieType in names(attTied)){
     
@@ -264,16 +264,18 @@ tieAttributes = function(expSpace,attTied){
         i=which(colnames(expSpace$targetMat)==att)
         for (seas in c('DJF','MAM','JJA','SON')){
           att.seas = gsub('all',seas,att)
-          if (att.seas%in%expSpace$attTied){
-            if (expSpace$targetType[i]=='frac'){
-              expSpace$targetMat[att.seas] = expSpace$targetMat[att.seas]*expSpace$targetMat[att]
-            } else if (expSpace$targetType[i]=='diff'){
-              expSpace$targetMat[att.seas] = expSpace$targetMat[att.seas]+expSpace$targetMat[att]
-            } 
-          } else {
-            expSpace$targetMat[att.seas] = expSpace$targetMat[att]
-            expSpace$attTied = c(expSpace$attTied,att.seas)
-            expSpace$targetType = c(expSpace$targetType,expSpace$targetType[i])
+          if (!att.seas%in%exclude.seas){
+            if (att.seas%in%expSpace$attTied){
+              if (expSpace$targetType[i]=='frac'){
+                expSpace$targetMat[att.seas] = expSpace$targetMat[att.seas]*expSpace$targetMat[att]
+              } else if (expSpace$targetType[i]=='diff'){
+                expSpace$targetMat[att.seas] = expSpace$targetMat[att.seas]+expSpace$targetMat[att]
+              } 
+            } else {
+              expSpace$targetMat[att.seas] = expSpace$targetMat[att]
+              expSpace$attTied = c(expSpace$attTied,att.seas)
+              expSpace$targetType = c(expSpace$targetType,expSpace$targetType[i])
+            }           
           }
         }
       }
