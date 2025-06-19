@@ -916,7 +916,7 @@ generateScenario <- function(reference,       # list observed data with column n
       sim[["simDates"]] <- dateExtnd
       progress("Stochastic model parameters and time series obtained at target location ", file)
 
-    } else {
+    } else { # multi-site simulation
 
       #OPTIMISING TO DETERMINE PARS
       #LOOP OVER EXPOSURE SPACE POINTS TO DETERMINE PARS
@@ -1043,18 +1043,18 @@ simulateTargetMarg = function(optimArgs=NULL,
                               obs=NULL,
                               spatialArgs=NULL){
 
+  nMod = length(modelTag)
+  
+  if (nMod>1){
+    stop('cannot have (nsite>1)&(nMod>1)')
+  }
+  
   timeStep =   aggNameShort[[modelInfoList[[modelTag]]$timeStep]]
   nTimes = datInd[[modelTag]][[timeStep]]$nTimes
 
   ### DM NOTE: CODE CURRENTLY NOT PROPERLY SETUP TO WORK WITH MULTIPLE MODELS - PROB NEED TO ADD MODEL TO SIM LIST
   sim = list(sites=NULL)
 
-  nMod = length(modelTag)
-
-  if (nMod>1){
-    stop('cannot have (nsite>1)&(nMod>1)')
-  }
-    
   mod = modelTag[1]
   nsite = dim(obs[[simVar[mod]]])[2]
   sites = colnames(obs[[simVar[mod]]])
@@ -1158,7 +1158,7 @@ simulateTargetCor = function(optimArgs=NULL,
   }
   sites = names(simIn$sites)
   nsite=length(sites)
-  timeStep =   aggNameShort[[modelInfoList[[modelTag]]$timeStep]]
+  timeStep = aggNameShort[[modelInfoList[[modelTag]]$timeStep]]
   nTimes = datInd[[modelTag]][[timeStep]]$nTimes
   
   modelInfoSites = list()
