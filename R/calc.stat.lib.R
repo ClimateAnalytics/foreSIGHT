@@ -345,6 +345,21 @@ extractor.summaryCor<-function(func=NULL,
   return(m.series)
 }
 
+extractor.summaryDwellTime<-function(func=NULL,
+                                     data=NULL,
+                                     indx=NULL,...){
+  nperiod=length(indx)
+  sim.series=rep(NA,nperiod)
+  for(p in 1:nperiod){
+    sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
+  }
+  spell.lengths = get.spell.lengths(data=sim.series, 
+                                    thresh=median(sim.series),  
+                                    type="dry")
+  m.series=mean(spell.lengths)
+  return(m.series)
+}
+
 extractor.summaryRange90<-function(func=NULL,
                                      data=NULL,
                                      indx=NULL,...){
