@@ -121,7 +121,7 @@ calcAC = function(x){
 shuffle = function(annAR1coeff,sort.P.ann,index.P.ann,seed=1){
 
   set.seed(seed)
-  ar1 = as.numeric(arima.sim(n=length(sort.P.ann),list(ar=annAR1coeff)))
+  ar1 = suppressWarnings(as.numeric(arima.sim(n=length(sort.P.ann),list(ar=annAR1coeff))))
 
   rankAR1 = rank(ar1)
 
@@ -140,11 +140,11 @@ shuffle = function(annAR1coeff,sort.P.ann,index.P.ann,seed=1){
 
 ###################
 
-pp.annShuffle = function(P,datInd,annAR1coeff,seed=1,iyy=NULL){
+pp.annShuffle = function(P,times,annAR1coeff,seed=1,iyy=NULL,return.indices=F){
 
   # print(annAR1coeff)
   
-  years.all = as.integer(format(datInd$times,'%Y'))
+  years.all = as.integer(format(times,'%Y'))
   years = unique(years.all)
   
   P.ann = c()
@@ -199,7 +199,12 @@ pp.annShuffle = function(P,datInd,annAR1coeff,seed=1,iyy=NULL){
   # climSim = list(times=datInd$times,P=P.new.daily)
   # print(calculateAttributes(climSim,'P_day_all_tot_cor'))
   
-  return(P.new.daily)
+  if (!return.indices){
+    return(P.new.daily)
+  } else {
+    return(list(P.new=P.new.daily,
+                indices=keepList))
+  }
 
 }
 #################################
