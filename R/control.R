@@ -328,7 +328,7 @@ generateScenarios <- function(reference,                # data frame of observed
         
         # Get the target location in the exposure space
         expTarg <- expSpace
-        expTarg$targetMat <- expSpace$targetMat[iTarg, ]
+        expTarg$targetMat <- expSpace$targetMat[iTarg, ,drop=F]
         if(!is.null(expSpace$attRot)) {
           expTarg$attRot <- expSpace$attRot[iTarg]
         }
@@ -630,7 +630,7 @@ add_scaling_info = function(obs,attSel,modelInfo){
 generateScenario <- function(reference,       # list observed data with column names compulsary [$times, $P,] additional [$Temp, $RH, $PET, $uz, $Rs] (or a subset of these)
                              expTarg,
                              simLengthNyrs = NULL,
-                             seedID = NULL,
+                             seedID = 1,
                              controlFile = NULL,
                              iRepTarg = NULL
 ){
@@ -638,10 +638,10 @@ generateScenario <- function(reference,       # list observed data with column n
   # renamed obs to reference (rename everywhere sometime)
   obs <- reference
 
-  # Create random seedID
-  if (is.null(seedID)) {
-    seedID <- round(stats::runif(1)*10000)
-  }
+  # # Create random seedID
+  # if (is.null(seedID)) {
+  #   seedID <- round(stats::runif(1)*10000)
+  # }
   set.seed(seedID)
 
   file <- paste0(tempdir(), "/generateScenario_log.txt")
