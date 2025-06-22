@@ -22,14 +22,20 @@ systemModel_calcAtts <- function(data,          # data.frame with columns: year,
 #################################################################
 
 #' @export
-calcPerformanceAttributes = function(clim,sim,attSel,vSel=NULL,cSel=1){
+calcPerformanceAttributes = function(clim,sim,attSel,vSel=NULL,cSel=NULL){
 
-  if (!is.null(vSel)){
-    if (cSel=='mean'){
-      clim[[vSel]] = apply(clim[[vSel]],1,mean)
+  if (!is.null(cSel)){
+    if (!is.null(vSel)){
+      if (cSel=='mean'){
+        clim[[vSel]] = apply(clim[[vSel]],1,mean)
+      } else {
+        clim[[vSel]] = clim[[vSel]][,cSel]
+      }      
     } else {
-      clim[[vSel]] = clim[[vSel]][,cSel]
+      print('must enter vSel')
+      return()
     }
+
   }
 
   attBase = calculateAttributes(clim,attSel)
