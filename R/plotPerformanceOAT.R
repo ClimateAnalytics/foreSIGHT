@@ -48,7 +48,8 @@ plotPerformanceOAT <- function(performance,                   # system model per
                                plotType='ggplot',
                                baseSettings=list(),
                                plim=c(0.05,0.95),              # probability limits
-                               attSel=NULL) {
+                               attSel=NULL,
+                               cex.main=0.8,cex.xaxis=0.5,cex.yaxis=0.5) {
   
   # assuming that performance is a list with a name
   # it may also be a matrix without a name; will be named "performance"
@@ -120,7 +121,11 @@ plotPerformanceOAT <- function(performance,                   # system model per
   # doing this here instead of using attPerturbSamp directly since the targetMat may be subsetted
 #  if (is.null(attPerturb)){attPerturb <- getAttPerturb(targetMat)}
 #  if (is.null(attPerturb)){attPerturb <- sim$expSpace$attPerturb}
-  attPerturb <- sim$expSpace$attPerturb
+  if (is.null(attSel)){
+    attPerturb <- sim$expSpace$attPerturb
+  } else {
+    attPerturb = attSel
+  }
   if (is.null(attPerturb)) stop("The simulation does not contain OAT perturbed attributes to plot.")
   
   # identify x and y columns
@@ -253,13 +258,16 @@ plotPerformanceOAT <- function(performance,                   # system model per
       title_str = metric
       if (bias_base_hi){title_str=paste0(title_str,' B')}
       if (inflated_response){title_str=paste0(title_str,' I')}
-      title(title_str,cex.main=0.8)
-      
+      title(title_str,cex.main=cex.main)
+
       #attribute = unique(plotData[[m]][,'attribute'])
       #mtext(side=1,text=attribute,line = 2,cex = 0.7)
       
-      mtext(side=1,text=paste0('D ',attPerturb,' (%)'),line = 2,cex = 0.7)
-      mtext(side=2,text=paste0('D ',metric,' (%)'),line = 2,cex = 0.7)
+      # mtext(side=1,text=paste0('D ',attPerturb,' (%)'),line = 2,cex = cex.xaxis)
+      # mtext(side=2,text=paste0('D ',metric,' (%)'),line = 2,cex = cex.yaxis)
+
+      mtext(side=1,text='Change pert att (%)',line = 2,cex = cex.xaxis)
+      mtext(side=2,text='Change att (%)',line = 2,cex = cex.yaxis)
       
     } else if (plotType=='ggplot') {
       
