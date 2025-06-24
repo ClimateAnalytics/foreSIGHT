@@ -754,7 +754,7 @@ generateScenario <- function(reference,       # list observed data with column n
     }
     
   }
-  
+
   modelTag=update.simPriority(modelInfo=modelInfo)
   simVar=sapply(X=modelInfo[modelTag],FUN=return.simVar,USE.NAMES=TRUE)       #?CREATE MODEL MASTER INFO - HIGHER LEVEL?
 
@@ -1573,7 +1573,8 @@ simulateTargetCor = function(optimArgs=NULL,
 runSystemModel <- function(sim,                  # output from scenario generator
                            systemModel,          # system model function with arguments
                            systemArgs,           # arguments of the system model
-                           metrics               # names of performance metrics returned
+                           metrics,
+                           varNames=NULL# names of performance metrics returned
 ){
 
   # unpacking sim
@@ -1583,8 +1584,10 @@ runSystemModel <- function(sim,                  # output from scenario generato
   nRep <- length(repNames)
   nTar <- length(tarNames)
   
-  varNames = unlist(lapply(colnames(sim$expSpace$targetMat),get.attribute.varType))
-  varNames = unique(unlist(strsplit(varNames,'/')))
+  if (is.null(varNames)){
+    varNames = unlist(lapply(colnames(sim$expSpace$targetMat),get.attribute.varType))
+    varNames = unique(unlist(strsplit(varNames,'/')))
+  }
 
   performance <- vector("list", length = length(metrics))
   for (i in 1:length(metrics)) performance[[i]] <- matrix(NA, nrow = nTar, ncol = nRep)
@@ -1649,7 +1652,7 @@ runSystemModel <- function(sim,                  # output from scenario generato
                            tarAttVals=v,
                            strLong=strLong,
                            strShort=strShort)
-      
+
       # run the systemModel
       if ('targetRepInfo' %in% formalArgs(systemModel)){
         perfTemp <- systemModel(data = scenarioData, systemArgs = systemArgs, metrics = metrics, targetRepInfo=targetRepInfo)
@@ -1658,7 +1661,9 @@ runSystemModel <- function(sim,                  # output from scenario generato
       }
 
       # store performance metrics
-      for (i in 1:length(metrics)) performance[[i]][t, r] <- perfTemp[[i]]
+      for (i in 1:length(metrics)){
+        performance[[i]][t, r] <- perfTemp[[i]]
+      }
       rm(scenarioData)
     }
   }
