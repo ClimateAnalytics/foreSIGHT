@@ -1094,6 +1094,8 @@ simulateTargetMarg = function(optimArgs=NULL,
     progress(paste("Attributes of observed series - ",paste(attSel,": ",signif(attObs,digits=5),collapse = ", ",sep=""),sep=""),file)
     progress("Attributes calculated OK",file)   #NEED SOME ACTUAL CHECKING HERE BEFORE PRONOUNCING OK
     
+    obsTmp = obs; obsTmp[[simVar[mod]]] = obs[[simVar[mod]]][,s]
+    
     simMultiSite$sites[[site]] = simulateTarget(optimArgs=optimArgs,
                                                 simVar=simVar,
                                                 modelTag=modelTag,
@@ -1110,7 +1112,7 @@ simulateTargetMarg = function(optimArgs=NULL,
                                                 parSim=parSim,
                                                 setSeed=setSeed,
                                                 iRepTarg=iRepTarg,
-                                                obs=obs,
+                                                obs=obsTmp,
                                                 file=file,
                                                 randomUnitNormalVector=MVTsampleMat[,s])
 
@@ -1193,18 +1195,23 @@ simulateTargetCor = function(optimArgs=NULL,
         
         MVTsampleMat = mvtnorm::rmvnorm(n=nTimes,sigma=corMat_PD)
 
-        # note currently not setup to include auxInfo (i.e. obs, wdStatus)
+        obsTmp1 = obs; obsTmp1[[simVar[mod]]] = obs[[simVar[mod]]][,s1]
+        
         sim1 = simClim(parS=simIn$sites[[site1]][[simVar[1]]]$par,              
                           modelTag = modelTag,
                           modelInfo=modelInfo[[mod]],
                           datInd=datInd[[mod]],
-                          randomTerm = list(randomUnitNormalVector = MVTsampleMat[,1]))
+                          randomTerm = list(randomUnitNormalVector = MVTsampleMat[,1]),
+                          auxInfo = list(obs=obsTmp1))
+        
+        obsTmp2 = obs; obsTmp2[[simVar[mod]]] = obs[[simVar[mod]]][,s2]
         
         sim2 = simClim(parS=simIn$sites[[site2]][[simVar[1]]]$par,              
                        modelTag = modelTag,
                        modelInfo=modelInfo[[mod]],
                        datInd=datInd[[mod]],
-                       randomTerm = list(randomUnitNormalVector = MVTsampleMat[,2]))
+                       randomTerm = list(randomUnitNormalVector = MVTsampleMat[,2]),
+                       auxInfo = list(obs=obsTmp2))
 
         cor_sim_list[i] = stats::cor(sim1,sim2)
 
@@ -1226,12 +1233,15 @@ simulateTargetCor = function(optimArgs=NULL,
   for (s in 1:nsite){
     site = sites[s]
     
+    obsTmp = obs; obsTmp[[simVar[mod]]] = obs[[simVar[mod]]][,s]
+    
     # note currently not setup to include auxInfo (i.e. obs, wdStatus)
     sim$sites[[site]] = simClim(parS=simIn$sites[[site]][[simVar[1]]]$par,              
                    modelTag = modelTag,
                    modelInfo=modelInfo[[mod]],
                    datInd=datInd[[mod]],
-                   randomTerm = list(randomUnitNormalVector = MVTsampleMat[,s]))
+                   randomTerm = list(randomUnitNormalVector = MVTsampleMat[,s]),
+                   auxInfo = list(obs=obsTmp))
     
     sim$P$sim = cbind(sim$P$sim,sim$sites[[site]])
     
