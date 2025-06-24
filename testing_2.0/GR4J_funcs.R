@@ -61,7 +61,7 @@ setup_cal_GR4J = function(dates,P,PET,Qobs){
                                 RunOptions = RunOptions, Param = Param)
   
   ## results preview
-  plot(OutputsModel, Qobs = data$Qobs[Ind_Run])
+  plot(OutputsModel, Qobs = Qobs[Ind_Run])
   
   return(Param)
   
@@ -73,6 +73,17 @@ setup_cal_GR4J = function(dates,P,PET,Qobs){
 GR4J_wrapper = function(data,
                         systemArgs,
                         metrics){
+  
+  if (is.null(data$P)){
+    print('require P in data')
+    stop()
+  } else if (is.null(data$PET)){
+    print('require PET in data')
+    stop()
+  }  else if (is.null(systemArgs$dates)){
+    print('require dates in systemArgs')
+    stop()
+  }
   
   o = add_dummy_year(systemArgs$dates,data$P,data$PET)
   dates.new = o$dates; P.new = o$P; PET.new = o$PET
@@ -98,6 +109,28 @@ GR4J_wrapper = function(data,
   metricList['P99'] = quantile(Qsim,p=0.99)
   metricList['P25'] = quantile(Qsim,p=0.25)
   
+  # Sample daily data
+  df <- data.frame(
+    date = systemArgs$dates,Qsim = Qsim)  
+  
+  annual_data <- df %>%
+    dplyr::mutate(year = lubridate::year(date)) %>%
+    dplyr::group_by(year) %>%
+    dplyr::summarise(
+      annual_total = sum(Qsim, na.rm = TRUE))
+  
+  #Qsim.ann = annual_data$annual_total
+  
+  annual_data$rolling_3yr <- zoo::rollapply(
+    annual_data$annual_total,
+    width = 3,
+    FUN = sum,
+    align = "left",
+    fill = NA
+  )
+  
+  metricList['min3yr'] = min(annual_data$rolling_3yr,na.rm=T)
+
   return(metricList)
   
 }
