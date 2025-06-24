@@ -136,8 +136,6 @@ shuffle_sim = function(sim,clim,attPerturb='P_day_all_tot_dwellTime',
                        annAR1coeffList = seq(-0.2,0.9,0.01),
                        cSel='mean'){
   
-  # browser()
-  
   perturb.varname = get.attribute.varType(attPerturb)
   
   varNames = unlist(lapply(colnames(sim$expSpace$targetMat),get.attribute.varType))
@@ -177,15 +175,15 @@ shuffle_sim = function(sim,clim,attPerturb='P_day_all_tot_dwellTime',
   expSpace.new$targetMat = targetMat
   
   nReps = length(which(grepl('Rep',names(sim))))
-  
-  d=dim(clim_ref[[perturb.varname]])
+ 
+  d=dim(clim[[perturb.varname]])
   multisite = FALSE
   if (!is.null(d)){
-    if (d>1){
+    if (d[2]>1){
       multisite = TRUE
     }
   }
-  
+
   if (multisite){
     if (!is.null(cSel)){
       if (cSel=='mean'){
@@ -195,10 +193,8 @@ shuffle_sim = function(sim,clim,attPerturb='P_day_all_tot_dwellTime',
       }      
     }
   }
-    
-  att.clim = calculateAttributes(clim_ref,attPerturb)
   
-  # browser()
+  att.clim = calculateAttributes(clim_ref,attPerturb)
   
   att.sim.multi = list()
   sim.new = list()
