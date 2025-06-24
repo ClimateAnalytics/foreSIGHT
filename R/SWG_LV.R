@@ -26,7 +26,7 @@ modelInfoList[["P-seas-latent"]] = list(simVar="P",
                                                1,1,1,1),
                                     maxBound=c(0.9,0.9,0.9,0.9,
                                                8,8,8,8,
-                                               1,1,1,1,
+                                               2,2,2,2,
                                                5,5,5,5))
 
 modelInfoList[['P-har-latent']] = list(simVar='P',
