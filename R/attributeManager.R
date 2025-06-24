@@ -223,6 +223,15 @@ func_cor = function(data){
   return(cor)
 }
 
+func_cv = function(data){
+  m = mean(data,na.rm=T)
+  if (m==0){
+    cv = 9999.
+  } else {
+    cv = sd(data,na.rm=T)/m
+  }
+  return(cv)
+}
 #' Calculates the ratio of wet season to dry season rainfall, based on wettest6monPeakDay
 #' @param data is a vector, representing a time series
 #' @param attArgs is a list, with attArgs$doy denoting the day of year for each value in the time series
@@ -1011,7 +1020,7 @@ tagBlender<-function(attLab=NULL
   month.str.abb <- c("JFMAMJJASONDJFMAMJJASOND") #2 year month abbreviation to allow for wrap around months
   month_number <- c(1:12,1:12)   #month.str.abb as month numbers
   if(indexName== "all"){
-    atype="All"
+    atype=""
   }else if(indexName== "DJF"){
     atype="DJF"
   }else if(indexName== "MAM"){
@@ -1061,9 +1070,9 @@ tagBlender<-function(attLab=NULL
     if (is.null(o$suffix)){
       mtype='ratio of season to total'
     } else {
-      wetStart = substring(o$suffix,5,7)
-      wetEnd = substring(o$suffix,8,10)
-      mtype=paste0('ratio of wet (',wetStart,'-',wetEnd,') to dry season totals')
+      wetStart = substring(o$suffix,1,3)
+      wetEnd = substring(o$suffix,4,6)
+      mtype=paste0('ratio of ',wetStart,'-',wetEnd,' to total')
     }
     if(indexName=='all'){
       atype = NULL
