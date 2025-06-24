@@ -5,9 +5,11 @@ ppInfoList[['annVar']] = list(npars=1,
                               minBound=c(0.1),
                              maxBound=c(5))
 
-ppInfoList[['scaleExtremesAll']] = list(scaleExtremesProb=0.99)
+ppInfoList[['scaleExtremesAll']] = list(npars=0,
+                                        scaleExtremesProb=0.99)
 
-ppInfoList[['scaleExtremesSeas']] = list(scaleExtremesProb=0.99)
+ppInfoList[['scaleExtremesSeas']] = list(npars=0,
+                                         scaleExtremesProb=0.99)
 
 ppInfoList[['annCor']] = list(npars=1,
                               parNam=c('annAR1coeff'),
