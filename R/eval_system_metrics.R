@@ -1,4 +1,4 @@
-evaluate_system_metrics = function(sim,clim,systemModel,systemArgs,metrics,obs_metrics=NULL){
+evaluate_system_metrics = function(sim,clim,systemModel,systemArgs,metrics,obs_metrics=NULL,varNames=NULL){
   
   expSpace = sim$expSpace
   
@@ -31,10 +31,11 @@ evaluate_system_metrics = function(sim,clim,systemModel,systemArgs,metrics,obs_m
   systemPerf_base <- runSystemModel(sim = simBase,                     # simulation; the perturbed time series
                                     systemModel = systemModel,      # the system model function
                                     systemArgs = systemArgs,        # argument to the system model function
-                                    metrics = metrics)              # selected performance metrics 
+                                    metrics = metrics,
+                                    varNames=varNames)              # selected performance metrics 
   
   # performance using observed climate 
-  systemPerf_obsClim = systemModel(data = tank_obs, systemArgs = systemArgs, metrics = metrics)
+  systemPerf_obsClim = systemModel(data = clim, systemArgs = systemArgs, metrics = metrics)
   
   #############
   
