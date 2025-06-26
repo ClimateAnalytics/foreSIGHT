@@ -82,6 +82,8 @@ targetFinder<- function(x,               # vector of pars (will change in optim)
 
     simPt=unlist(Map(function(type, val,baseVal) simPt.converter.func(type,val,baseVal), attInfo$targetType, sim.att,attObs),use.names = FALSE)
 
+    simPt[is.na(simPt)] = 999.
+
     if (length(simPt)!=length(unlist(target))){browser()}
     
     if(returnThis=='sim'){
