@@ -418,8 +418,17 @@ extractor.cv<-function(func=NULL,
 ){
   nperiod=length(indx)
   tmp=extractor.multPeriod(func=func,data=data,indx=indx,nperiod=nperiod,...)
-  cv=stats::sd(tmp,na.rm=TRUE)/mean(tmp,na.rm=TRUE)
-
+  sdTmp = stats::sd(tmp,na.rm=TRUE)
+  meanTmp = stats::mean(tmp,na.rm=TRUE)
+  if (meanTmp==0){
+    if (sdTmp==0){
+      cv = 0.
+    } else {
+      cv =999.
+    }
+  } else {
+    cv=sdTmp/meanTmp 
+  }
   return(cv)
 }
 
