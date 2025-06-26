@@ -74,18 +74,30 @@ GR4J_wrapper = function(data,
                         systemArgs,
                         metrics){
   
-  if (is.null(data$P)){
+  if (!is.null(data$P)){
+    P = data$P
+  } else {
     print('require P in data')
     stop()
-  } else if (is.null(data$PET)){
-    print('require PET in data')
+  } 
+  
+  if (!is.null(data$PET)){
+    PET = data$PET
+  } else if (!is.null(systemArgs$PET)){
+    PET = systemArgs$PET
+  } else {
+    print('require PET in data or systemArgs')
     stop()
-  }  else if (is.null(systemArgs$dates)){
+  }  
+  
+  if (!is.null(systemArgs$dates)){
+    dates = systemArgs$dates
+  } else {
     print('require dates in systemArgs')
     stop()
   }
   
-  o = add_dummy_year(systemArgs$dates,data$P,data$PET)
+  o = add_dummy_year(dates,P,PET)
   dates.new = o$dates; P.new = o$P; PET.new = o$PET
   
   InputsModel <- CreateInputsModel(FUN_MOD = RunModel_GR4J, DatesR = dates.new,
@@ -112,7 +124,9 @@ GR4J_wrapper = function(data,
   # Sample daily data
   df <- data.frame(
     date = systemArgs$dates,Qsim = Qsim)  
-  
+ 
+library(dplyr)
+
   annual_data <- df %>%
     dplyr::mutate(year = lubridate::year(date)) %>%
     dplyr::group_by(year) %>%
