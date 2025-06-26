@@ -1,3 +1,4 @@
+#' @export
 evaluate_system_metrics = function(sim,clim,systemModel,systemArgs,metrics,obs_metrics=NULL,varNames=NULL){
   
   expSpace = sim$expSpace
