@@ -47,6 +47,8 @@ pp.annVar = function(sim,annVarFac,datInd){
     Pann[iy] = sum(Pdaily[ind])
   } 
 
+Pann[Pann==0] = 0.00001
+
   meanPann = mean(Pann)
   Pann_new = meanPann + annVarFac*(Pann-meanPann)
   Pann_fac = Pann_new/Pann
@@ -58,7 +60,11 @@ pp.annVar = function(sim,annVarFac,datInd){
   }
   multSim<-pmax(multSim,0)
   sim = Pdaily*multSim
-  
+ 
+   if(any(is.na(sim))){
+  browser()
+}
+ 
   return(sim)
   
 }
@@ -88,6 +94,8 @@ pp.scaleExtremes = function(sim,obs,prob,strat,datInd){
     } else if (strat=='seas'){
       keep = datInd$i.ss[[s]]
     }
+  if (any(is.na(sim))){print('sim has na')}
+  if (any(is.na(sim[keep]))){print('sim[keep] has na')}
     fac = quantile(sim[keep],prob) / quantile(obs[keep],prob)
     nTop = floor(length(sim[keep])*(1-prob))
     sortSim = sort(sim[keep],decreasing = T,index.return=T)
