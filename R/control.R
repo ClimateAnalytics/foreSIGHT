@@ -325,7 +325,6 @@ generateScenarios <- function(reference,                # data frame of observed
       pb$tick(0)
       for (iTarg in 1:nTarget) {
         iRepTarg = (iRep-1)*nTarget+iTarg
-        
         # Get the target location in the exposure space
         expTarg <- expSpace
         expTarg$targetMat <- expSpace$targetMat[iTarg, ,drop=F]
@@ -342,7 +341,8 @@ generateScenarios <- function(reference,                # data frame of observed
       }
     } 
   } else if ((cores=round(cores))&(cores>1)){
-    fname = paste0(tempfile())
+#    fname = paste0(tempfile())
+    fname = 'log.txt'
     print(fname)
     c1 <- parallel::makeCluster(cores,outfile=fname)
     doParallel::registerDoParallel(c1)
@@ -353,7 +353,9 @@ generateScenarios <- function(reference,                # data frame of observed
 
     allSim <- foreach (iRep=1:nRep,.packages = "foreSIGHT",.export = ls(globalenv())) %:%
       foreach (iTarg=1:nTarget,.packages = "foreSIGHT",.export = ls(globalenv())) %dopar% {
-    
+   
+cat(paste0('Rep',iRep,' Targ',iTarg,'\n'))
+
         iRepTarg = (iRep-1)*nTarget+iTarg
     
     # Get the target location in the exposure space
@@ -362,17 +364,26 @@ generateScenarios <- function(reference,                # data frame of observed
         if(!is.null(expSpace$attRot)) {
           expTarg$attRot <- expSpace$attRot[iTarg]
         }
+
+cat(paste0('start sim Rep',iRep,' Targ',iTarg,'\n'))
+
     to.allSim <- generateScenario(reference = reference,
                                   expTarg = expTarg,
                                   simLengthNyrs = simLengthNyrs,
                                   seedID = seedIDs[iRep],
                                   controlFile = controlFile,
                                   iRepTarg = iRepTarg)
+#cat(paste0('end sim Rep',iRep,' Targ',iTarg,'\n'))
+#cat(to.allSim$targetSim,'\n')
+#    return(to.allSim)
       }
+      parallel::stopCluster(c1)
+
   } else {
     stop('cores must be integer > 0')
   }
 
+cat('exited rep tar sim loop\n')
 
 #   # iRepTarg = 0
 # 
@@ -435,6 +446,8 @@ generateScenarios <- function(reference,                # data frame of observed
 # ###### PARALLEL
 #  # parallel::stopCluster(c1)
 
+cat('tidying up allSim \n')
+
   names(allSim) <- paste0("Rep", 1:nRep)
   allSim[["simDates"]] <- allSim[[1]][[1]][["simDates"]]
   allSim[["expSpace"]] <- expSpace
@@ -444,7 +457,9 @@ generateScenarios <- function(reference,                # data frame of observed
     names(allSim[[iRep]]) <- paste0("Target", 1:nTarget)
     
     for (iTarg in 1:nTarget) {
-      
+
+cat(paste0('Rep',iRep,' Targ',iTarg,'\n'))
+
       expTarg <- expSpace
       expTarg$targetMat <- expSpace$targetMat[iTarg, ]
       if(!is.null(expSpace$attRot)) {
@@ -462,6 +477,8 @@ generateScenarios <- function(reference,                # data frame of observed
         
         for (var in varNames){
           
+	cat(paste0('checking Rep',iRep,' Targ',iTarg, var,'\n'))
+
           if (any(allSim[[iRep]][[iTarg]][[var]]$onBounds)){
             warning(paste0('parameters for ', var,' stoch rep, ', iRep, ' for target ',iTarg, ' on bounds\n'))
           }
@@ -645,6 +662,7 @@ generateScenario <- function(reference,       # list observed data with column n
   set.seed(seedID)
 
   file <- paste0(tempdir(), "/generateScenario_log.txt")
+#  file <- paste0("./",iRepTarg, "_generateScenario_log.txt")
 
   # Checking
   #-------------------------------------------------------
