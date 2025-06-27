@@ -16,6 +16,11 @@ evaluate_system_metrics = function(sim,clim,systemModel,systemArgs,metrics,obs_m
   targets = expSpace$targetMat
   b = which(apply(targets==baseVal,1,FUN =all))
   
+  if (length(b)==0){
+    print('no baseline scenario')
+    return()
+  }
+  
   #########
   # strip other targets from sim
   simBase = sim
