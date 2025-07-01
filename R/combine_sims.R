@@ -175,7 +175,9 @@ shuffle_sim = function(sim,clim,attPerturb='P_day_all_tot_dwellTime',
   expSpace.new$targetMat = targetMat
   
   nReps = length(which(grepl('Rep',names(sim))))
- 
+  
+  seed_list = seed + 0:(nReps-1)
+  
   d=dim(clim[[perturb.varname]])
   multisite = FALSE
   if (!is.null(d)){
@@ -183,7 +185,7 @@ shuffle_sim = function(sim,clim,attPerturb='P_day_all_tot_dwellTime',
       multisite = TRUE
     }
   }
-
+  
   if (multisite){
     if (!is.null(cSel)){
       if (cSel=='mean'){
@@ -196,6 +198,7 @@ shuffle_sim = function(sim,clim,attPerturb='P_day_all_tot_dwellTime',
   
   att.clim = calculateAttributes(clim_ref,attPerturb)
   
+  times = sim$simDates
   att.sim.multi = list()
   sim.new = list()
   for (r in 1:nReps){
@@ -207,38 +210,38 @@ shuffle_sim = function(sim,clim,attPerturb='P_day_all_tot_dwellTime',
       tarName = paste0('Target',t)
       print(tarName)
       tarName.1 = paste0('Target',tar.index.1[t])
+      var.sim = sim[[repName]][[tarName.1]][[perturb.varname]]$sim
+      if (!is.matrix(var.sim)){var.sim=as.matrix(var.sim,ncol=1)}
       if(is.null(att.sim.multi[[repName]][[tarName.1]])){
         att.sim.multi[[repName]][[tarName.1]] = list()
-        var.sim = sim[[repName]][[tarName.1]][[perturb.varname]]$sim
-        times = sim$simDates
-        clim_sim = list(times=times)
-        clim_sim[[perturb.varname]]=var.sim
         if (multisite){
           if (!is.null(cSel)){
             if (cSel=='mean'){
-              clim_sim[[perturb.varname]] = apply(clim_sim[[perturb.varname]],1,mean)
+              var.sim.single = apply(var.sim,1,mean)
             } else {
-              clim_sim[[perturb.varname]] = clim_sim[[perturb.varname]][,cSel]
+              var.sim.single = var.sim[,cSel]
             }      
           }
         }
         att.sim.multi[[repName]][[tarName.1]] = c()
+        clim_sim_save = var.sim.new.list = list()
         for (i in 1:length(annAR1coeffList)){
           annAR1coeff = annAR1coeffList[i]
-          var.sim.new = pp.annShuffle(var.sim,times,annAR1coeff,seed)
+          var.sim.new = pp.annShuffle(P=var.sim.single,times=times,annAR1coeff=annAR1coeff,
+                                      seed=seed_list[r])
+          var.sim.new.list[[i]] = var.sim.new
           clim_sim = list(times=times); clim_sim[[perturb.varname]]=var.sim.new
+          clim_sim_save[[i]] = clim_sim
           att.sim.multi[[repName]][[tarName.1]][i] = calculateAttributes(clim_sim,attPerturb)
-        }      
+        }  
       } 
       
       # sim.new[[repName]][[tarName]][[perturb.varname]] = sim[[repName]][[tarName.1]][[perturb.varname]]
-
+      
       att.target = targetMat[t,attPerturb]*att.clim
-      print(att.target)
       
       abs_diff = abs(att.sim.multi[[repName]][[tarName.1]] - att.target)
       i = min(which(abs_diff == min(abs_diff)))
-
       #med <- median(i)  # Interpolated median
       # Find the actual value in x closest to it
       #i <- i[which.min(abs(i - med))]
@@ -251,16 +254,15 @@ shuffle_sim = function(sim,clim,attPerturb='P_day_all_tot_dwellTime',
       # abline(h=att.sim,col='red')
       # abline(h=att.target,col='green')
       
-      # browser()
-      
       print(paste0(att.target,' ',att.sim.multi[[repName]][[tarName.1]][i]))
       
       annAR1coeff = annAR1coeffList[i]
-      pp.annShuffle.out = pp.annShuffle(var.sim,times,annAR1coeff,seed,return.indices = T)
-      #var.sim.targ = var.sim[pp.annShuffle.out$indices]
+      pp.annShuffle.out = pp.annShuffle(P=var.sim.single,times=times,annAR1coeff=annAR1coeff,
+                                        seed=seed_list[r],return.indices=T)
+#      print(i)
+#      print(var.sim.new.list[[i]][1:20])
+#      print(pp.annShuffle.out$P.new[1:20])
 
-      var.sim = sim[[repName]][[tarName.1]][[perturb.varname]]$sim
-      if (!is.matrix(var.sim)){var.sim=as.matrix(var.sim,ncol=1)}
       sim.new[[repName]][[tarName]][[perturb.varname]] = list(sim=var.sim[pp.annShuffle.out$indices,])
       for (other.varname in other.varnames){
         other.sim = sim[[repName]][[tarName.1]][[other.varname]]$sim
@@ -269,61 +271,29 @@ shuffle_sim = function(sim,clim,attPerturb='P_day_all_tot_dwellTime',
         sim.new[[repName]][[tarName]][[other.varname]] = list(sim=other.sim.targ)  
       }
       
-      # clim_sim_shuffle = list(times=times)
-      # clim_sim_shuffle[[perturb.varname]]=sim.new[[repName]][[tarName]][[perturb.varname]]$sim
-      # print(calculateAttributes(clim_sim_shuffle,attPerturb))
+      clim_sim_shuffle = list(times=times)
+      if (multisite){
+        if (!is.null(cSel)){
+          if (cSel=='mean'){
+            clim_sim_shuffle[[perturb.varname]] = apply(sim.new[[repName]][[tarName]][[perturb.varname]]$sim,1,mean)
+          } else {
+            clim_sim_shuffle[[perturb.varname]] = sim.new[[repName]][[tarName]][[perturb.varname]]$sim[,cSel]
+          }
+        }
+      }
+      print(calculateAttributes(clim_sim_shuffle,attPerturb))
       
-      # PET.targ = PET.sim[o$indices]
-      # 
-      # PET.sim = sim[[repName]][[tarName.1]][['PET']]$sim
+      if (att.sim.multi[[repName]][[tarName.1]][i]!=calculateAttributes(clim_sim_shuffle,attPerturb)){
+        browser()
+      }
       
-#      sim.new[[repName]][[tarName]][[var.2]] = sim.2[[repName.2]][[tarName.2]][[var.2]]
     }
   }
-
+  
   sim.new$expSpace = expSpace.new
   sim.new$simDates = sim$simDates
   
   return(sim.new)
-  
-  # target_dwellTime_shuffle = function(times,
-  #                                     P.sim,
-  #                                     target.dwellTime,
-  #                                     seed=1,
-  #                                     annAR1coeffList = seq(-0.2,0.9,0.01)){
-  #   
-  #   clim_sim = list(times=times,P=P.sim)
-  #   dwellTime.sim = calculateAttributes(clim_sim,'P_day_all_tot_dwellTime')
-  #   
-  #   dwellTime.sim.multi = c()
-  #   for (i in 1:length(annAR1coeffList)){
-  #     annAR1coeff = annAR1coeffList[i]
-  #     P.new = pp.annShuffle(P.sim,times,annAR1coeff,seed)
-  #     clim_sim = list(times=times,P=P.new)
-  #     dwellTime.sim.multi[i] = calculateAttributes(clim_sim,'P_day_all_tot_dwellTime')
-  #   }
-  #   
-  #   abs_diff = abs(dwellTime.sim.multi - dwellTime.target)
-  #   i = floor(median(which(abs_diff == min(abs_diff))))
-  #   
-  #   annAR1coeff = annAR1coeffList[i]
-  #   P.targ = pp.annShuffle(P,times,annAR1coeff,seed)
-  #   clim_sim_targ = list(times=times,P=P.targ)
-  #   
-  #   browser()
-  #   
-  #   return(P.targ)
-  #   
-  # }
-  # 
-  # dwellTime.clim = calculateAttributes(clim_ref,'P_day_all_tot_dwellTime')
-  # dwellTime.target = dwellTime.clim*1.5
-  # 
-  # P.targ = target_dwellTime_shuffle(times=sim_stoch$simDates,
-  #                                   P.sim=sim_stoch$Rep1$Target1$P$sim,
-  #                                   target.dwellTime=dwellTime.target)
-  # 
-  
   
 }
 
