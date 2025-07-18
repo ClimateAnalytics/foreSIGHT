@@ -18,7 +18,8 @@ simple.scaling<-function(target=NULL,          #extracted from matrix output of 
   for (var in varType){
     dimVar = dim(data[[var]])
     nLoc[[var]] = dimVar[2]
-    temp[[var]] = matrix(NA,nrow=dimVar[1],ncol=dimVar[2])
+    temp[[var]] = list()
+    temp[[var]]$sim = matrix(NA,nrow=dimVar[1],ncol=dimVar[2])
     colnames(temp[[var]])=colnames(data[[var]])
   }
 
@@ -28,8 +29,8 @@ simple.scaling<-function(target=NULL,          #extracted from matrix output of 
     for (j in 1:length(varType)) {              #loop for each variable, to check its scale type.
       var = varType[j]
       switch(targetType[j],
-             "frac" = {temp[[var]][i.pp[[p]],1:nLoc[[var]]]=as.matrix(data[[var]][i.pp[[p]],1:nLoc[[var]]])*target[j]},
-             "diff" = {temp[[var]][i.pp[[p]],1:nLoc[[var]]]=as.matrix(data[[var]][i.pp[[p]],1:nLoc[[var]]])+target[j]},
+             "frac" = {temp[[var]]$sim[i.pp[[p]],1:nLoc[[var]]]=as.matrix(data[[var]][i.pp[[p]],1:nLoc[[var]]])*target[j]},
+             "diff" = {temp[[var]]$sim[i.pp[[p]],1:nLoc[[var]]]=as.matrix(data[[var]][i.pp[[p]],1:nLoc[[var]]])+target[j]},
              -99.00)
     }
   }
@@ -152,7 +153,7 @@ seasonal.scaling<-function(target_total_fac=NULL, # change for tot/ave
     }
   }
   
-  return(data.new)
+  return(list(sim=data.new))
    
 }
 
