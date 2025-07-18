@@ -252,7 +252,7 @@ plotThreshContour <- function(plotData, nx, ny){
   #        #fill=c(makeTransparent(asc.col[1], alpha=40),makeTransparent(asc.col[nlevel], alpha=100),makeTransparent(asc.col[nlevel], alpha=200)))
   #mtext(side=1,text="No. of thresholds exceeded",adj=1.0, line=4,at=1.04)
   
-  graphics::mtext(tag_text, side=1, line=0, adj=1.0, cex=0.8, col=tag_textCol, outer=TRUE)
+  #graphics::mtext(tag_text, side=1, line=0, adj=1.0, cex=0.8, col=tag_textCol, outer=TRUE)
   
 }
 
@@ -395,7 +395,8 @@ addClimData <- function(p1,                  # ggplot object to add the plot to
       ncolLeg <- length(unique(climData$Name))
     }
     
-    if (sum(colnames(climData) %in% xyAtts) == 2) {
+#    if (sum(colnames(climData) %in% xyAtts) == 2) {
+    if (sum(xyAtts %in% colnames(climData)) == 2) {
       if (climPoints == 0) {
         warning("climData is not plotted since the perturbations in the data are outside the ranges of the perturbations in sim.")
       } else {
@@ -429,7 +430,8 @@ addClimData <- function(p1,                  # ggplot object to add the plot to
         }
       }
     } else {
-      warning(paste0("climData is not plotted since it does not contain ", paste(xyAtts[(colnames(climData) %in% xyAtts)], sep = ","), "."))
+#      warning(paste0("climData is not plotted since it does not contain ", paste(xyAtts[(colnames(climData) %in% xyAtts)], sep = ","), "."))
+      warning(paste0("climData is not plotted since it does not contain ", xyAtts[!xyAtts %in% colnames(climData)],".\n"))
     }
   }
   return(list(p1,

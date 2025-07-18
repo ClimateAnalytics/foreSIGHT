@@ -612,7 +612,7 @@ heatPlot <- function(plotData,
 
     # not able to add bins here - fix later
     p1 <- p1 + geom_contour(data = plotDataMean, aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], z = .data[[perfName]]), colour = "black", breaks = contourBreaks)  + #,breaks=seq(0.6,0.8,0.01),alpha=0.5
-               directlabels::geom_dl(data = plotDataMean, aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], z = .data[[perfName]], label = stat(level)), #edited 20/06/2018
+               directlabels::geom_dl(data = plotDataMean, aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], z = .data[[perfName]], label = after_stat(level)), #edited 20/06/2018
                              method = list("first.points", "calc.boxes", "enlarge.box", box.color = NA, fill = "transparent", vjust=-0.5,hjust=-0.5, "draw.rects"),
                              stat="contour", breaks = contourBreaks)  #,breaks=seq(0.6,0.8,0.01)
   }
@@ -645,7 +645,7 @@ heatPlot <- function(plotData,
   #                                 guide = guide_colorbar(title = perfName, title.position = "right", order = 1, barwidth = 12, barheight = 0.6)) + labs(tag = tag_text)
 
   p2 <- p2 + scale_fill_gradientn(colours = coloursIn, limits = colLimIn,
-                                  guide = guide_colorbar(title = perfName, title.position = "right", order = 1, barwidth = 12, barheight = 0.6)) + labs(tag = tag_text)
+                                  guide = guide_colorbar(title = perfName, title.position = "right", order = 1, barwidth = 12, barheight = 0.6)) #+ labs(tag = tag_text)
 
   #print(p2)
   return(p2)
@@ -846,7 +846,7 @@ filledContourPlot <- function(plotData,
 
     # not able to add bins here - fix later
     p1 <- p1 + geom_contour(data = plotDataMean, aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], z = .data[[perfName]]), colour = "black", breaks = contourBreaks)  +
-      directlabels::geom_dl(data = plotDataMean, aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], z = .data[[perfName]], label = stat(level)),
+      directlabels::geom_dl(data = plotDataMean, aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], z = .data[[perfName]], label = after_stat(level)),
                             method = list("first.points", "calc.boxes", "enlarge.box", box.color = NA, fill = "transparent", vjust=-0.5,hjust=-0.5, "draw.rects"),
                             stat="contour", breaks = contourBreaks)
   }
@@ -861,8 +861,8 @@ filledContourPlot <- function(plotData,
 
   #LEGEND OPTION PLOTS ON RIGHT FOR NOW
   # p2 <- p2 + scale_fill_manual(values=coloursIn,drop=FALSE) #test edit
-  p2 <- p1 +
-     labs(tag = tag_text)+ #add foreSIGHT TAG
+  p2 <- p1 #+
+     #labs(tag = tag_text)+ #add foreSIGHT TAG
 
   #print(p2)
   return(p2)
@@ -1022,7 +1022,7 @@ plotPerfQuiltPlot <- function(plotData, nx, ny, colLim = NULL, colBar = TRUE, pe
     fields::image.plot(legend.only = TRUE, zlim = colLim, col = foreSIGHT.colmap(perfSpace_nlevel),
                        horizontal = TRUE, smallplot=c(0.2,0.9,0.0001,0.02))
   }
-  graphics::mtext(tag_text, side=1, line=1.5, adj=1.0, cex=0.8, col=tag_textCol, outer=TRUE)
+  #graphics::mtext(tag_text, side=1, line=1.5, adj=1.0, cex=0.8, col=tag_textCol, outer=TRUE)
 
 }
 
