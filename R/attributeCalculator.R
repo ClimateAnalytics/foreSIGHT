@@ -88,8 +88,19 @@ calculateAttributes<-function(climateData,                    # input data in th
   simAgg = unique(attInfo$aggType)
 
   timeStep = obs$timeStep
-  
 
+  i = which(timestep_rank[simAgg]<timestep_rank[aggNameShort[[timeStep]]])  
+  if (length(i)>0){
+    cat('attributes require time step of',aggNameLong[[simAgg[i]]],'but data has time step',timeStep,'\n')
+    stop()
+  }
+
+  i = which(!simVar%in%varNames)  
+  if (length(i)>0){
+    cat('variable',simVar[i],'not in climateData\n')
+    stop()
+  }
+  
   datInd = setup_datInd_agg(simAgg=simAgg,obs$times,timeStep=timeStep)
     
   if (return_attCalcInfo){
@@ -116,6 +127,7 @@ aggNameLong[['hour']]='1 hour'
 aggNameLong[['3hour']]='3 hour'
 aggNameLong[['12hour']]='12 hour'
 aggNameLong[['day']]='1 day'
+aggNameLong[['week']]='1 week'
 aggNameLong[['month']]='1 month'
 aggNameLong[['year']]='1 year'
 
@@ -124,8 +136,12 @@ aggNameShort[['1 hour']]='hour'
 aggNameShort[['3 hour']]='3hour'
 aggNameShort[['12 hour']]='12hour'
 aggNameShort[['1 day']]='day'
+aggNameShort[['1 week']]='week'
 aggNameShort[['1 month']]='month'
 aggNameShort[['1 year']]='year'
+
+timestep_order <- c('hour','3hour','12hour','day', 'week', 'month','year')
+timestep_rank <- setNames(seq_along(timestep_order), timestep_order)
 
 ########################
 # aggregate data to diffreent aggregation periods
@@ -217,12 +233,12 @@ aggregate_calculate_attributes = function(data,attSel,datInd,attInfo=NULL){
   attValues = list()                            #make this into its own function (also inserted into model sequencer)
   for(v in 1:length(varList)){
     var = varList[v]
-#    print(var)
+   # print(var)
     tmp = strsplit(var,split = '/')[[1]]
     attValues[[v]] = list()
     for (a in 1:length(aggList)){
       agg = aggList[a]
-#      print(agg)
+     # print(agg)
       
       if (length(tmp)==1){
         data = agg_data[[var]][[agg]]$data
@@ -248,9 +264,9 @@ aggregate_calculate_attributes = function(data,attSel,datInd,attInfo=NULL){
   # revert original attributes to original order - except when dealing with multisite data
   if (length(attValues)==length(attSel)){
     attValues=attValues[attSel]
-  } else {
-    browser()
-  }
+  } #else {
+#    browser()
+#  }
 
   return(attValues)
   
