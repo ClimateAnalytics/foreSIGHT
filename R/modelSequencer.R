@@ -103,13 +103,21 @@ simulateTarget<-function(
     parMin = modelInfo[[mod]]$minBound
     parMax = modelInfo[[mod]]$maxBound
     
+    iPenalty = which(attPrim%in%attSel[attInd[[simVar[mod]]]])
+    if(length(iPenalty)>0){
+      attPrim.now = attPrim[iPenalty]
+      lambda.mult.now = optimArgs$lambda.mult[iPenalty]
+    } else {
+      attPrim.now = lambda.mult.now = NULL
+    }
+    
     if(length(which(parMin==parMax))==length(parMin)){#
       progress(p("    Working on variable ",simVar[mod]),file)
       progress(p("    Parameters specified by user, no optimisation ..."),file)
       
       out[[simVar[mod]]]$sim = simClim(parS=parMin,              
                                        modelTag = mod,
-                                       modelInfo=modelInfo,
+                                       modelInfo=modelInfo[[mod]],
                                        datInd=datInd[[mod]],
                                        randomTerm = list(randomVector = randomVector,
                                                          randomUnitNormalVector = randomUnitNormalVector,
@@ -144,14 +152,6 @@ simulateTarget<-function(
                                                                 datInd=datInd[[mod]][[i]])
       }
 
-      iPenalty = which(attPrim%in%attSel[attInd[[simVar[mod]]]])
-      if(length(iPenalty)>0){
-        attPrim.now = attPrim[iPenalty]
-        lambda.mult.now = optimArgs$lambda.mult[iPenalty]
-      } else {
-        attPrim.now = lambda.mult.now = NULL
-      }
-      
       optTest = multiStartOptim(optimArgs=optimArgs,
                                 #                                modelEnv = foreSIGHT_modelEnv,
                                 modelInfo=modelInfo[[mod]],
