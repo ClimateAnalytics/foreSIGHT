@@ -39,6 +39,10 @@ func_seasRatio = function(data,attArgs){
   } else {
     seasRatio = Pseas/Pall
   }
+  
+  # Prest = Pall-Pseas
+  # seasRatio = Pseas/Prest
+  
   return(seasRatio)
 }
 
@@ -1001,7 +1005,7 @@ tagBlender<-function(attLab=NULL
 ){
 
   o = calc_att_components(attLab); varName = o$varName; aggName = o$aggName; 
-  indexName = o$indexName; funcNameLong = o$funcNameLong; opName = o$opName; type=o$type; varName = o$varName
+  indexName = o$indexName; funcNameLong = o$funcNameLong; opName = o$opName; type=o$type; varName = o$varName; aggName = o$aggName
   
   #variable type
   if(varName== "P"){
@@ -1020,41 +1024,41 @@ tagBlender<-function(attLab=NULL
   month.str.abb <- c("JFMAMJJASONDJFMAMJJASOND") #2 year month abbreviation to allow for wrap around months
   month_number <- c(1:12,1:12)   #month.str.abb as month numbers
   if(indexName== "all"){
-    atype=""
+    stype=NULL
   }else if(indexName== "DJF"){
-    atype="DJF"
+    stype="DJF"
   }else if(indexName== "MAM"){
-    atype="MAM"
+    stype="MAM"
   }else if(indexName== "JJA"){
-    atype="JJA"
+    stype="JJA"
   }else if(indexName== "SON"){
-    atype="SON"
+    stype="SON"
   }else if(indexName== "Jan"){
-    atype="Jan"
+    stype="Jan"
   }else if(indexName== "Feb"){
-    atype="Feb"
+    stype="Feb"
   }else if(indexName== "Mar"){
-    atype="Mar"
+    stype="Mar"
   }else if(indexName== "Apr"){
-    atype="Apr"
+    stype="Apr"
   }else if(indexName== "May"){
-    atype="May"
+    stype="May"
   }else if(indexName== "Jun"){
-    atype="Jun"
+    stype="Jun"
   }else if(indexName== "Jul"){
-    atype="Jul"
+    stype="Jul"
   }else if(indexName== "Aug"){
-    atype="Aug"
+    stype="Aug"
   }else if(indexName== "Sep"){
-    atype="Sep"
+    stype="Sep"
   }else if(indexName== "Oct"){
-    atype="Oct"
+    stype="Oct"
   }else if(indexName== "Nov"){
-    atype="Nov"
+    stype="Nov"
   }else if(indexName== "Dec"){
-    atype="Dec"
+    stype="Dec"
   } else if (regexpr(indexName,month.str.abb)[1]!=-1 & nchar(indexName) > 1 & nchar(indexName) < 12) {
-    atype=indexName
+    stype=indexName
   } else {
     cat(paste0('invalid attribute: cannot use ',indexName,' stratification'))
     return(invisible())
@@ -1062,20 +1066,21 @@ tagBlender<-function(attLab=NULL
 
   # use calcFuncNamesAndArgs() to calculate parameter values from long function name
   o = calcFuncNamesAndArgs(funcNameLong = funcNameLong,datInd = NULL,type=type)
+  
   if(funcNameLong== "tot"){
-    mtype="total"
+    ftype="total"
   } else if(funcNameLong== "avg"){
-    mtype="average"
+    ftype="average"
   } else if (startsWith(funcNameLong,'seasRatio')){
     if (is.null(o$suffix)){
-      mtype='ratio of season to total'
+      ftype='ratio of season to total'
     } else {
       wetStart = substring(o$suffix,1,3)
       wetEnd = substring(o$suffix,4,6)
-      mtype=paste0('ratio of ',wetStart,'-',wetEnd,' to total')
+      ftype=paste0('ratio of ',wetStart,'-',wetEnd,' to total')
     }
     if(indexName=='all'){
-      atype = NULL
+      stype = NULL
     } else {
       errMess = paste0('invalid attribute: cannot compute seasRatio for ',indexName,' stratification\n')
       cat(errMess)
@@ -1088,62 +1093,62 @@ tagBlender<-function(attLab=NULL
       return(invisible())
     } else {
       p=o$suffix
-      mtype=paste0(p,'th percentile')
+      ftype=paste0(p,'th percentile')
     }
-    if(indexName== "all"){atype=NULL}
+    if(indexName== "all"){stype=NULL}
   } else if (startsWith(funcNameLong,'nWet')){
     if (is.null(o$suffix)){
-      mtype="no. wet days"
+      ftype="no. wet days"
     } else {
       thresh = o$suffix
-      mtype=paste0('no. wet days (above ',thresh,')')
+      ftype=paste0('no. wet days (above ',thresh,')')
     }
   } else if (startsWith(funcNameLong,'maxDSD')){
     if (is.null(o$suffix)){
-      mtype="max dryspell duration"
+      ftype="max dryspell duration"
     } else {
       thresh = o$suffix
-      mtype=paste0('max dryspell duration (below ',thresh,')')
+      ftype=paste0('max dryspell duration (below ',thresh,')')
     }
   } else if (startsWith(funcNameLong,'maxWSD')){
     if (is.null(o$suffix)){
-      mtype="max wetspell duration"
+      ftype="max wetspell duration"
     } else {
       thresh = o$suffix
-      mtype=paste0('max wetspell duration (above ',thresh,')')
+      ftype=paste0('max wetspell duration (above ',thresh,')')
     }
   } else if (startsWith(funcNameLong,'avgDSD')){
     if (is.null(o$suffix)){
-      mtype="average dryspell duration"
+      ftype="average dryspell duration"
     } else {
       thresh = o$suffix
-      mtype=paste0('average dryspell duration (below ',thresh,')')
+      ftype=paste0('average dryspell duration (below ',thresh,')')
     }
   } else if (startsWith(funcNameLong,'avgWSD')){
     if (is.null(o$suffix)){
-      mtype="average wetspell duration"
+      ftype="average wetspell duration"
     } else {
       thresh = o$suffix
-      mtype=paste0('average wetspell duration (above ',thresh,')')
+      ftype=paste0('average wetspell duration (above ',thresh,')')
     }
   } else if (startsWith(funcNameLong,'dyWet')){
     if (is.null(o$suffix)){
-      mtype="wet day amount"
+      ftype="wet day amount"
     } else {
       thresh = o$suffix
-      mtype=paste0('wet day amount (above ',thresh,')')
+      ftype=paste0('wet day amount (above ',thresh,')')
     }
   }else if(funcNameLong== "GSL"){
-    mtype="growing season length"
+    ftype="growing season length"
   }else if(funcNameLong== "CSL"){
-    mtype="cold season length"
+    ftype="cold season length"
   }else if(funcNameLong== "F0"){
     if(varName!='T'){
       errMess = 'invalid attribute: can only compute frost days for T\n'
       cat(errMess)
       return(invisible())
     }
-    mtype="no. frost days"
+    ftype="no. frost days"
   } else if (substring(funcNameLong,1,1)=='R'){
     if (is.null(o$suffix)){
       errMess = 'invalid attribute: R attribute requires specification of threshold\n'
@@ -1151,7 +1156,7 @@ tagBlender<-function(attLab=NULL
       return(invisible())
     } else {
       t=o$suffix
-      mtype=paste0('no. days above ',t)
+      ftype=paste0('no. days above ',t)
     }
   } else if (startsWith(funcNameLong,'rng')){
     if (is.null(o$attArgs$lim)){
@@ -1160,34 +1165,64 @@ tagBlender<-function(attLab=NULL
       return(invisible())
     } else {
       lim = 100*as.numeric(o$attArgs$lim)
-      mtype=paste0(lim,'% range')
+      ftype=paste0(lim,'% range')
     }
   } else {
-    errMess = paste0('invalid attribute: built-in function not available for ',funcNameLong)
-    cat(errMess)
-    mtype = funcNameLong
+    #errMess = paste0('invalid attribute: built-in function not available for ',funcNameLong)
+    #cat(errMess)
+    ftype = funcNameLong
     #return(invisible())
   }
 
-  #statType
+  #aggType
+  if (aggName=='day'){
+    atype="daily"
+  } else if (aggName=='month'){
+    atype="monthly"
+  } else if (aggName=='year'){
+    atype="annual"
+  } 
+  
+  #operation
   if(is.null(opName)){
-    stype = ''
-  } else if (opName=='m'){
-    stype="Mean"
-  } else if (opName=='sd'){
-    stype="Sdev"
-  } else if (opName=='min5yr'){
-    stype="Min 5yr total"
-  } else if (opName=='dwellTime'){
-    stype="dwell time"
-  } else if (opName=='range90'){
-    stype="90% range"
+    otype = NULL
   } else {
-    stype=opName
+    if (opName=='m'){
+      otype="mean annual"
+    } else if (opName=='sd'){
+      otype="sdev annual"
+    } else if (opName=='min5yr'){
+      otype="Min 5yr"
+    } else if (opName=='dwellTime'){
+      otype="dwell time annual"
+    } else if (opName=='range90'){
+      otype="90% range annual"
+    } else {
+      otype=opName
+    }
   }
 
+  if (funcNameLong=='tot'){
+    atype=NULL
+    if (!is.null(opName)){
+      ftype=NULL
+    }
+  }
+  if (startsWith(funcNameLong,'seasRatio')){
+    atype=NULL
+  }
+  
   #stitch togther
-  phrase=paste(stype,atype,mtype,vtype)
+  #phrase=paste(otype,stype,atype,ftype,vtype)
+  phrase = otype
+  if (!is.null(ftype)){phrase=paste(phrase,ftype)}
+  if (!is.null(stype)){phrase=paste(phrase,stype)}
+  if (!is.null(atype)){phrase=paste(phrase,atype)}
+  if (!is.null(vtype)){phrase=paste(phrase,vtype)}
+  
+  phrase = trimws(phrase)
+  phrase = paste(toupper(substr(phrase, 1, 1)), substr(phrase, 2, nchar(phrase)), sep="")
+  
   return(phrase)
 }
 
