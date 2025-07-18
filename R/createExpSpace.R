@@ -84,7 +84,7 @@
 #' @export
 
 createExpSpace <- function(attPerturb,
-                           attPerturbSamp,
+                           attPerturbSamp=NULL,
                            attPerturbMin,
                            attPerturbMax,
                            attPerturbType = "regGrid",
@@ -101,6 +101,9 @@ createExpSpace <- function(attPerturb,
       stop("Since attPerturbBy is specified, attPerturbSamp should be set to NULL")
     }
   } else {
+    if (is.null(attPerturbSamp)) {
+      stop("Need to specify one of attPerturbBy or attPerturbSamp")
+    }
     if (is.null(attTargetsFile)) {
       if (is.null(attPerturbSamp)) {
         stop("Either attPerturbSamp or attPerturbBy should be specified.")
