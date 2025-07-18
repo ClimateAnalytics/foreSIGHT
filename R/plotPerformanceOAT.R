@@ -168,20 +168,27 @@ plotPerformanceOAT <- function(performance,                   # system model per
       pMin <- NULL
       pMax <- NULL
     }
-    
+
     # create data.frame for plotting
     plotData <- getOATData(attPerturb, targetMat, performanceAv, pMin, pMax)
 
+    # plotDataTmp = c()
+    # for (i in 1:length(plotData)){
+    #   plotDataTmp = rbind(plotDataTmp,plotData[[i]])
+    # }
+    # plotData = list()
+    # plotData[[1]] = plotDataTmp
+
     # determine indices in target matrix corresponding to OAT perturbations
     iInd <- getOATData(attPerturb, targetMat, performanceAv, pMin, pMax, return_iInd = T)
-    
+
     # only consider changes associated with single attribute attSel (if attSel provided)
     if (!is.null(attSel)){
       i = which(plotData[[1]][,'attribute']==attSel)
       plotData[[1]] = plotData[[1]][i,]
       iInd = iInd[[attSel]]
     }
-    
+
     if (plotType=='base'){
     
       if(is.null(baseSettings$bias_base_thresh)){baseSettings$bias_base_thresh = 20}
@@ -270,7 +277,6 @@ plotPerformanceOAT <- function(performance,                   # system model per
       mtext(side=2,text='Change att (%)',line = 2,cex = cex.yaxis)
       
     } else if (plotType=='ggplot') {
-      
       perfPlots <- lapply(plotData, OATPlot, col = col, ylimits = ylim)
       if(!noPlot){print(perfPlots)}
       return(invisible(perfPlots))
@@ -427,7 +433,7 @@ getOATData <- function(attPerturb,   # vector; perturbed attNames
       }
     }
   }
-  
+
   #***************
   return(OATdf)
 }
@@ -443,8 +449,9 @@ OATPlot <- function(plotData, col = NULL, ylimits = NULL) {
   
   attNames <- unique(plotData[["attribute"]])
   attFullNames <- mapply(tagBlender, attNames)
-  
+
   # aggregate data if required
+  plotData$attribute = factor(plotData$attribute,levels=attNames)
   plotDataMean <- stats::aggregate(.~perturbation+attribute, plotData, mean)
   xLabeltext <- paste0("Perturbation", " (", varUnits, ")")
   
@@ -453,7 +460,7 @@ OATPlot <- function(plotData, col = NULL, ylimits = NULL) {
   }
   
   p1 <- ggplot(data = plotDataMean, aes(x = .data$perturbation, y = .data[[perfName]]))
-  
+
   # UNSMOOTHENED VERSION 
   #------------------------------------------------------------
   # add ribbon if data exists
@@ -465,8 +472,8 @@ OATPlot <- function(plotData, col = NULL, ylimits = NULL) {
     facet_wrap(vars(.data$attribute), scales = "free_x", nrow = 1, strip.position = "top", labeller = as_labeller(attFullNames, default = label_wrap_gen(35))) +
     theme_heatPlot(OATplot_textSize) + theme(strip.placement = "inside", strip.background = element_rect(fill = NA)) + xlab(xLabeltext) +
     theme(strip.text.x = element_text(size = OATplot_textSize, angle = 0)) +
-    theme(panel.spacing = unit(1, "lines")) +
-    labs(tag = tag_text)
+    theme(panel.spacing = unit(1, "lines")) #+
+    #labs(tag = tag_text)
           #axis.text.x = element_text(color = "black", size = textSize, face = "plain", vjust = 0))
   #--------------------------------------------------------------
   
