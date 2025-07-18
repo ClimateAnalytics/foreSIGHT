@@ -365,25 +365,18 @@ cat(paste0('Rep',iRep,' Targ',iTarg,'\n'))
           expTarg$attRot <- expSpace$attRot[iTarg]
         }
 
-cat(paste0('start sim Rep',iRep,' Targ',iTarg,'\n'))
-
     to.allSim <- generateScenario(reference = reference,
                                   expTarg = expTarg,
                                   simLengthNyrs = simLengthNyrs,
                                   seedID = seedIDs[iRep],
                                   controlFile = controlFile,
                                   iRepTarg = iRepTarg)
-#cat(paste0('end sim Rep',iRep,' Targ',iTarg,'\n'))
-#cat(to.allSim$targetSim,'\n')
-#    return(to.allSim)
       }
       parallel::stopCluster(c1)
 
   } else {
     stop('cores must be integer > 0')
   }
-
-cat('exited rep tar sim loop\n')
 
 #   # iRepTarg = 0
 # 
@@ -446,8 +439,6 @@ cat('exited rep tar sim loop\n')
 # ###### PARALLEL
 #  # parallel::stopCluster(c1)
 
-cat('tidying up allSim \n')
-
   names(allSim) <- paste0("Rep", 1:nRep)
   allSim[["simDates"]] <- allSim[[1]][[1]][["simDates"]]
   allSim[["expSpace"]] <- expSpace
@@ -457,8 +448,6 @@ cat('tidying up allSim \n')
     names(allSim[[iRep]]) <- paste0("Target", 1:nTarget)
     
     for (iTarg in 1:nTarget) {
-
-cat(paste0('Rep',iRep,' Targ',iTarg,'\n'))
 
       expTarg <- expSpace
       expTarg$targetMat <- expSpace$targetMat[iTarg, ]
@@ -477,8 +466,6 @@ cat(paste0('Rep',iRep,' Targ',iTarg,'\n'))
         
         for (var in varNames){
           
-	cat(paste0('checking Rep',iRep,' Targ',iTarg, var,'\n'))
-
           if (any(allSim[[iRep]][[iTarg]][[var]]$onBounds)){
             warning(paste0('parameters for ', var,' stoch rep, ', iRep, ' for target ',iTarg, ' on bounds\n'))
           }
@@ -606,7 +593,7 @@ add_scaling_info = function(obs,attSel,modelInfo){
   obsVars <- names(obs)[-which(names(obs) %in% c("times", "timeStep"))]
   
   attVars <- vapply(attSel,FUN = get.attribute.varType,FUN.VALUE=character(1),USE.NAMES = FALSE)
-  
+
   for (v in intersect(obsVars, attVars)) {
     attSelVar = attSel[attVars==v]
     tmp = unlist(strsplit(attSelVar,paste0(v,'_')))
@@ -811,7 +798,7 @@ generateScenario <- function(reference,       # list observed data with column n
         banner("SIMPLE SCALING FOR OBSERVED DATA",file)
         progress("Simple scaling data...",file)
         i_simple_ann = which(attInfo$varType %in% modelInfo[["Simple-ann"]]$simVar)
-        varSel = modelInfo[["Simple-ann"]]$simVar[i_simple_ann]
+        varSel = modelInfo[["Simple-ann"]]$simVar#[i_simple_ann]
         sim[varSel]=simple.scaling(target=unlist(targetMat)[i_simple_ann],
                                    targetType=attInfo$targetType[i_simple_ann],
                                    data=obs,
@@ -841,7 +828,6 @@ generateScenario <- function(reference,       # list observed data with column n
           }
           i2 = which(grepl(paste0(v,'_',timeStep,'_all_seasRatio'),names(targetMat)))         # seasonality ratio attribute
           attSeas = names(targetMat)[i2]
-          
           o = attribute.calculator.setup(attSeas,datInd$obs[[timeStep]])
           targetTypes = attInfo$targetType[c(i1,i2)]
           if (any(targetTypes!='frac')){
@@ -898,20 +884,20 @@ generateScenario <- function(reference,       # list observed data with column n
 
       a<-Sys.time()
 
-      #IF "OAT" ROTATE attPrim
-      #attRot is returned only for "OAT" grids
-      if(!is.null(expTarg$attRot)) {
-        attApp <- expTarg$attRot
-      } else {
-        attApp <- attPrim
-      }
+      # #IF "OAT" ROTATE attPrim
+      # #attRot is returned only for "OAT" grids
+      # if(!is.null(expTarg$attRot)) {
+      #   attApp <- expTarg$attRot
+      # } else {
+      #   attApp <- attPrim
+      # }
 
       sim=simulateTarget(optimArgs=optimArgs,         #sim[[i]]$P, $Temp $attSim $targetSim
                          simVar=simVar,
                          modelTag=modelTag,
                          modelInfo=modelInfo,
                          attSel=attSel,
-                         attPrim=attApp,              #controlled via switch
+                         attPrim=attPrim,              #controlled via switch
                          attInfo=attInfo,
                          attInd=attInd,
                          datInd=datInd,
@@ -955,11 +941,11 @@ generateScenario <- function(reference,       # list observed data with column n
 
       #IF "OAT" ROTATE attPrim
       #attRot is returned only for "OAT" grids
-      if(!is.null(expTarg$attRot)) {
-        attApp <- expTarg$attRot
-      } else {
-        attApp <- attPrim
-      }
+      # if(!is.null(expTarg$attRot)) {
+      #   attApp <- expTarg$attRot
+      # } else {
+      #   attApp <- attPrim
+      # }
 
       # perform Stage 1 of multi-site simulation, where we calculate marginal parameters at each site, based on input spatial correlation matrix (spatialArgs$spatCorMatIn)
       sim1=simulateTargetMarg(optimArgs=optimArgs,
@@ -967,7 +953,7 @@ generateScenario <- function(reference,       # list observed data with column n
                               modelTag=modelTag,
                               modelInfo=modelInfo,
                               attSel=attSel,
-                              attPrim=attApp,
+                              attPrim=attPrim,
                               attInfo=attInfo,
                               attInd=attInd,
                               datInd=datInd,
@@ -1627,19 +1613,19 @@ runSystemModel <- function(sim,                  # output from scenario generato
       scenarioData = list(times=sim[["simDates"]])
       varTemp <- list()
       for (v in varNames) {
-        if ((is.character(sim[["controlFile"]]))) {
-          if (sim[["controlFile"]] == "scaling") {
-            # using data.frame for single site & list for multi-site
+#        if ((is.character(sim[["controlFile"]]))) {
+#          if (sim[["controlFile"]] == "scaling") {
+#            # using data.frame for single site & list for multi-site
 #            max_nSites <- max(sapply(sim[[repNames[r]]][[tarNames[t]]], ncol))
 #            if (max_nSites==1) {
 #              varTemp <- as.data.frame(sim[[repNames[r]]][[tarNames[t]]][[v]])
 #            } else{
-              varTemp <- sim[[repNames[r]]][[tarNames[t]]][[v]]
-              #            }
-          } else {
-            stop(paste0("sim$controlFile unrecognized."))
-          }
-        } else {
+#              varTemp <- sim[[repNames[r]]][[tarNames[t]]][[v]]
+#              #            }
+#          } else {
+#            stop(paste0("sim$controlFile unrecognized."))
+#          }
+#        } else {
           # using data.frame for single site & list for multi-site
 #         max_nSites <- ncol(sim[[repNames[r]]][[tarNames[t]]][[v]][["sim"]])
 #         if (max_nSites==1) {
@@ -1647,7 +1633,7 @@ runSystemModel <- function(sim,                  # output from scenario generato
 #         } else {
            varTemp <- sim[[repNames[r]]][[tarNames[t]]][[v]][["sim"]]
 #         }
-        }
+#        }
 #        if (is.data.frame(varTemp)) {
 #          names(varTemp) <- v
 #          scenarioData <- cbind(scenarioData, varTemp)
