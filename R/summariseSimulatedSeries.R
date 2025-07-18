@@ -629,13 +629,13 @@ plotTrafficHeatmap <- function(targAttList,
         theme(plot.margin = unit(traffic_lowerMarg,"cm")) +
         labs(x = penaltyLabel, y = "") +
         scale_y_discrete(breaks = paste0(attNameList[[2]]), labels = paste0(attDef[[2]], markPrimList[[2]])) +
-        theme(aspect.ratio = 1/aspectRatio[[i]][[2]]) + labs(tag = tag_text)
+        theme(aspect.ratio = 1/aspectRatio[[i]][[2]]) #+ labs(tag = tag_text)
     } else {
       p2[[i]][[1]] <- p1[[i]][[1]] + theme_traffic(traffic_textSize) +
         theme(plot.margin = unit(traffic_margins,"cm")) +
         labs(x = penaltyLabel, y = "", title = plotTitleTraffic[[field]]) +
         scale_y_discrete(breaks = paste0(attNameList[[1]]), labels = paste0(attDef[[1]], markPrimList[[1]])) +
-        theme(aspect.ratio = 1/aspectRatio[[i]][[1]]) + labs(tag = tag_text)
+        theme(aspect.ratio = 1/aspectRatio[[i]][[1]]) #+ labs(tag = tag_text)
     }
    }
 
@@ -666,7 +666,7 @@ plotTarget <- function(obs,                    # observations
   # Variable and target type
   attSel_varType <- vapply(attSel, FUN = get.attribute.varType, FUN.VALUE = character(1), USE.NAMES = FALSE)
   targetType <- vapply(attSel_varType, FUN = get.target.type, FUN.VALUE = character(1), USE.NAMES = FALSE)
-
+  
   # modelTag and variables
   simVar <- names(nml[["modelType"]])
   modelTag <- NULL
