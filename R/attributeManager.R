@@ -257,6 +257,65 @@ func_ma3P99 = function(data){
   return(ma3P99)
 }
 
+###############
+
+mvFunc_cor = function(data.1,data.2){
+  return(cor(data.1,data.2,use='pairwise.complete.obs'))
+}
+
+mvFunc_avgWetDay = function(data.1,data.2){
+  return(mean(data.1[data.2>0],na.rm=T))
+}
+
+mvFunc_sdWetDay = function(data.1,data.2){
+  return(sd(data.1[data.2>0],na.rm=T))
+}
+
+mvFunc_avgDryDay = function(data.1,data.2){
+  return(mean(data.1[data.2==0],na.rm=T))
+}
+
+mvFunc_sdDryDay = function(data.1,data.2){
+  return(sd(data.1[data.2==0],na.rm=T))
+}
+
+func_sd = function(data){
+  return(sd(data,na.rm=T))
+}
+
+func_xP90 = function(data){
+  P90 = quantile(data,probs = 0.9,na.rm=T,names=F)
+  return(P90)
+}
+
+mvFunc_xP90WetDay = function(data.1,data.2){
+  return(quantile(data.1[data.2>0],probs=0.9,na.rm=T,names=F))
+}
+
+mvFunc_xP90DryDay = function(data.1,data.2){
+  return(quantile(data.1[data.2==0],probs=0.9,na.rm=T,names=F))
+}
+
+func_cv = function(data){
+  m = mean(data,na.rm=T)
+  if (m==0){
+    cv = 9999.
+  } else {
+    cv = sd(data,na.rm=T)/m
+  }
+  return(cv)
+}
+
+mvFunc_cvWetDay = function(data.1,data.2){
+  return(func_cv(data.1[data.2>0]))
+}
+
+mvFunc_cvDryDay = function(data.1,data.2){
+  return(func_cv(data.1[data.2==0]))
+}
+
+###############
+
 # for each doy calculate which dates have that doy, store results in matrix
 calc_keepMat = function(doy){
   keepMat = matrix(nrow=365,ncol=length(doy)/365)
