@@ -224,74 +224,158 @@ addExpArgs_attHold <- function(attPerturb = attPerturb, attHold = attHold, exSpA
   return(exSpArgs)
 }
 
-#' @export
-tieAttributes = function(expSpace,attTied,exclude.seas=NULL){
+#######
+
+setSeasonalTiedAttributes = function(attSel){
+  attsTied = list()
+  for (att in attSel){
+    attsTied[[att]] = c()
+    for (seas in c('DJF','MAM','JJA','SON')){
+      att.seas = gsub('all',seas,att)
+      attsTied[[att]] = c(attsTied[[att]],att.seas)
+    }
+  }
+  return(attsTied)
+}
+
+setWDdayTiedAttributes = function(attSel){
+  attsTied = list()
+  for (att in attSel){
+    var = get.attribute.varType(att)
+    if(grepl('/',var)){stop("can't have multivariable tied attributes in perturb/hold atts")}
+    var.new = paste0(var,'.P')
+    attsTied[[att]] = c()
+    for (cond in c('WetDay','DryDay')){
+      att.cond = gsub(var,var.new,att)
+      att.cond = paste0('mv.',att.cond,cond)
+      attsTied[[att]] = c(attsTied[[att]],att.cond)
+    }
+  }
+  return(attsTied)
+}
+
+
+#'     if(tieType=='wDdD'){
+#'       for (att in attSel){
+#'         i=which(colnames(expSpace$targetMat)==att)
+#'         var = get.attribute.varType(att)
+#'         if(grepl('/',var)){stop("can't have multivariable tied attributes in perturb/hold atts")}
+#'         var.new = paste0(var,'.P')
+#'         for (cond in c('WetDay','DryDay')){
+#'           att.cond = gsub(var,var.new,att)
+#'           att.cond = paste0('mv.',att.cond,cond)
+#'           if (att.cond%in%expSpace$attTied){
+#'             if (expSpace$targetType[i]=='frac'){
+#'               expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]*expSpace$targetMat[att]
+#'             } else if (expSpace$targetType[i]=='diff'){
+#'               expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]+expSpace$targetMat[att]
+#'             } 
+#'             expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]*expSpace$targetMat[att]
+#'           } else {
+#'             expSpace$targetMat[att.cond] = expSpace$targetMat[att]
+#'             expSpace$attTied = c(expSpace$attTied,att.cond)
+#'             expSpace$targetType = c(expSpace$targetType,expSpace$targetType[i])
+#'           }
+#'         }
+#'       }
+
+tieAttributes = function(expSpace,attsTied){
   
-  for (tieType in names(attTied)){
+  for (att1 in names(attsTied)){
     
-    attSel = attTied[[tieType]]
+    if (!att1%in%colnames(expSpace$targetMat)){stop("must have tied attributes in targetMat attributes")}
     
-    if (length(attSel)==1){
-      if (attSel=='allTargets'){
-        attSel=colnames(expSpace$targetMat)
-      }
+    for (att2 in attsTied[[att1]]){
+      i=which(colnames(expSpace$targetMat)==att1)
+      if (att2%in%expSpace$attTied){
+        if (expSpace$targetType[i]=='frac'){
+          expSpace$targetMat[att2] = expSpace$targetMat[att2]*expSpace$targetMat[att1]
+        } else if (expSpace$targetType[i]=='diff'){
+          expSpace$targetMat[att2] = expSpace$targetMat[att2]+expSpace$targetMat[att1]
+        } 
+      } else {
+        expSpace$targetMat[att2] = expSpace$targetMat[att1]
+        expSpace$attTied = c(expSpace$attTied,att2)
+        expSpace$targetType = c(expSpace$targetType,expSpace$targetType[i])
+      }         
     }
-    
-    if (!all(attSel%in%colnames(expSpace$targetMat))){stop("must have tied attributes in targetMat attributes")}
-    
-    if(tieType=='wDdD'){
-      for (att in attSel){
-        i=which(colnames(expSpace$targetMat)==att)
-        var = get.attribute.varType(att)
-        if(grepl('/',var)){stop("can't have multivariable tied attributes in perturb/hold atts")}
-        var.new = paste0(var,'.P')
-        for (cond in c('WetDay','DryDay')){
-          att.cond = gsub(var,var.new,att)
-          att.cond = paste0('mv.',att.cond,cond)
-          if (att.cond%in%expSpace$attTied){
-            if (expSpace$targetType[i]=='frac'){
-              expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]*expSpace$targetMat[att]
-            } else if (expSpace$targetType[i]=='diff'){
-              expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]+expSpace$targetMat[att]
-            } 
-            expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]*expSpace$targetMat[att]
-          } else {
-            expSpace$targetMat[att.cond] = expSpace$targetMat[att]
-            expSpace$attTied = c(expSpace$attTied,att.cond)
-            expSpace$targetType = c(expSpace$targetType,expSpace$targetType[i])
-          }
-        }
-      }
-    } else if(tieType=='seas'){
-      for (att in attSel){
-        i=which(colnames(expSpace$targetMat)==att)
-        for (seas in c('DJF','MAM','JJA','SON')){
-          att.seas = gsub('all',seas,att)
-          if (!att.seas%in%exclude.seas){
-            if (att.seas%in%expSpace$attTied){
-              if (expSpace$targetType[i]=='frac'){
-                expSpace$targetMat[att.seas] = expSpace$targetMat[att.seas]*expSpace$targetMat[att]
-              } else if (expSpace$targetType[i]=='diff'){
-                expSpace$targetMat[att.seas] = expSpace$targetMat[att.seas]+expSpace$targetMat[att]
-              } 
-            } else {
-              expSpace$targetMat[att.seas] = expSpace$targetMat[att]
-              expSpace$attTied = c(expSpace$attTied,att.seas)
-              expSpace$targetType = c(expSpace$targetType,expSpace$targetType[i])
-            }           
-          }
-        }
-      }
-    } else {
-      
-      stop(paste0('cannot handle tie type',tieType))
-      
-    }
-    
-    
     
   }
   
   return(expSpace)
   
 }
+
+#######
+
+#' #' @export
+#' tieAttributes = function(expSpace,attTied,exclude.seas=NULL){
+#'   
+#'   for (tieType in names(attTied)){
+#'     
+#'     attSel = attTied[[tieType]]
+#'     
+#'     if (length(attSel)==1){
+#'       if (attSel=='allTargets'){
+#'         attSel=colnames(expSpace$targetMat)
+#'       }
+#'     }
+#'     
+#'     if (!all(attSel%in%colnames(expSpace$targetMat))){stop("must have tied attributes in targetMat attributes")}
+#'     
+#'     if(tieType=='wDdD'){
+#'       for (att in attSel){
+#'         i=which(colnames(expSpace$targetMat)==att)
+#'         var = get.attribute.varType(att)
+#'         if(grepl('/',var)){stop("can't have multivariable tied attributes in perturb/hold atts")}
+#'         var.new = paste0(var,'.P')
+#'         for (cond in c('WetDay','DryDay')){
+#'           att.cond = gsub(var,var.new,att)
+#'           att.cond = paste0('mv.',att.cond,cond)
+#'           if (att.cond%in%expSpace$attTied){
+#'             if (expSpace$targetType[i]=='frac'){
+#'               expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]*expSpace$targetMat[att]
+#'             } else if (expSpace$targetType[i]=='diff'){
+#'               expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]+expSpace$targetMat[att]
+#'             } 
+#'             expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]*expSpace$targetMat[att]
+#'           } else {
+#'             expSpace$targetMat[att.cond] = expSpace$targetMat[att]
+#'             expSpace$attTied = c(expSpace$attTied,att.cond)
+#'             expSpace$targetType = c(expSpace$targetType,expSpace$targetType[i])
+#'           }
+#'         }
+#'       }
+#'     } else if(tieType=='seas'){
+#'       for (att in attSel){
+#'         i=which(colnames(expSpace$targetMat)==att)
+#'         for (seas in c('DJF','MAM','JJA','SON')){
+#'           att.seas = gsub('all',seas,att)
+#'           if (!att.seas%in%exclude.seas){
+#'             if (att.seas%in%expSpace$attTied){
+#'               if (expSpace$targetType[i]=='frac'){
+#'                 expSpace$targetMat[att.seas] = expSpace$targetMat[att.seas]*expSpace$targetMat[att]
+#'               } else if (expSpace$targetType[i]=='diff'){
+#'                 expSpace$targetMat[att.seas] = expSpace$targetMat[att.seas]+expSpace$targetMat[att]
+#'               } 
+#'             } else {
+#'               expSpace$targetMat[att.seas] = expSpace$targetMat[att]
+#'               expSpace$attTied = c(expSpace$attTied,att.seas)
+#'               expSpace$targetType = c(expSpace$targetType,expSpace$targetType[i])
+#'             }           
+#'           }
+#'         }
+#'       }
+#'     } else {
+#'       
+#'       stop(paste0('cannot handle tie type',tieType))
+#'       
+#'     }
+#'     
+#'     
+#'     
+#'   }
+#'   
+#'   return(expSpace)
+#'   
+#' }
