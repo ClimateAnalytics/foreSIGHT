@@ -262,6 +262,43 @@ assignSeasPars <- function(par1, par2, par3, par4, seasInd) {
   return(parAllDays)
 }
 
+# #################################
+# functions used in SWG parameter manager
+
+assignSeasonalParameters = function(parNamesSWG,parS,datInd,parTS=list()){
+  for (par in parNamesSWG){
+    parTS[[par]] = assignSeasPars(parS[paste0(par,'.SON')], 
+                                  parS[paste0(par,'.DJF')], 
+                                  parS[paste0(par,'.MAM')], 
+                                  parS[paste0(par,'.JJA')], 
+                                  datInd[["i.ss"]])  
+  } 
+  return(parTS)
+}
+
+
+assignHarmonicDailyParameters = function(parNamesSWG,parS,datInd,parTS=list()){
+  for (par in parNamesSWG){
+    parTS[[par]] = harmonicFunc(x=seq(1:datInd$nTimes),
+                                mean=parS[paste0(par,'.m')],
+                                amp=parS[paste0(par,'.amp')],
+                                phase.ang = parS[paste0(par,'.ang')],
+                                k=1,nperiod=365)
+  } 
+  return(parTS)
+}
+
+assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
+  for (par in parNamesSWG){
+    parTS[[par]] = rep(parS[par],datInd$nTimes)
+  } 
+  return(parTS)
+}
+
+
+# #################################
+
+
 # 
 # # Parameter manager for latent model WGEN
 # #-------------------------------------------------------------------------------------------------------------
