@@ -39,14 +39,14 @@ calcPerformanceAttributes = function(clim,sim,attSel,vSel=NULL,cSel=NULL){
   }
 
   attBase = calculateAttributes(clim,attSel)
-  
+
   systemPerf <- runSystemModel(sim = sim,                     # simulation; the perturbed time series
                                systemModel = systemModel_calcAtts,      # the system model function
                                systemArgs = list(attBase=attBase,
                                                  vSel=vSel,
                                                  cSel=cSel),        # argument to the system model function
                                metrics = attSel)              # selected performance metrics
-  
+
   return(systemPerf)
   
 }
@@ -54,14 +54,12 @@ calcPerformanceAttributes = function(clim,sim,attSel,vSel=NULL,cSel=NULL){
 ##################################################
 
 plotPerformanceAttributes = function(clim,sim,attPerturb,attEval){
-  
-  P = calcPerformanceAttributes(clim=tank_obs,sim=sim,attSel=attEval)
 
-  attSel='P_day_all_tot_m'
-  par(mfrow=c(4,4),mar=c(4,4,2,1))
-  for (att in names(P)){
-    plotPerformanceOAT(P, sim, metric=att,col='black',use_ggplot = F,attSel=attPerturb)
-  }
+  Perf = calcPerformanceAttributes(clim=clim,sim=sim,attSel=attEval)
+
+  for (att in names(Perf)){
+    plotPerformanceOAT(Perf, sim, metric=att,plotType='base',attSel=attPerturb)
+  } 
 
 }
 
