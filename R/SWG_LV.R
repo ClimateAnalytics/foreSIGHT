@@ -7,8 +7,6 @@ modelInfoList[["P-ann-latent"]] = list(simVar="P",
                                    simPriority=1,
                                    npars=4,
                                    parNam=c("alpha", "sigma", "mu", "lambda"),
-                                   # minBound=c(0, 0.001, -15, 1),
-                                   # maxBound=c(0.999, 10, 0, 2))
                                    minBound=c(0, 0.001, -15, 0.5),
                                    maxBound=c(0.999, 10, 5, 4))
 
@@ -37,14 +35,6 @@ modelInfoList[['P-har-latent']] = list(simVar='P',
                                                 'sigma.m','sigma.amp','sigma.ang',
                                                 'mu.m','mu.amp','mu.ang',
                                                 'lambda.m','lambda.amp','lambda.ang'),
-                                   # minBound=c(0, 0, 0,
-                                   #            0.001, 0, 0,
-                                   #            -15, 0, 0,
-                                   #            1, 0, 0),
-                                   # maxBound=c(0.999, 0, 0,
-                                   #            10, 5, 6.28,
-                                   #            0, 8, 6.28,
-                                   #            2, 0, 0))
                                    minBound=c(0, 0, 0,
                                               0.001, 0, 0,
                                               -15, 0, 0,
@@ -58,27 +48,16 @@ modelInfoList[['P-har-latent']] = list(simVar='P',
 
 parManager.latent = function(parS, SWGparameterization, datInd, auxInfo=NULL){
   
+  parNamesSWG = c('alpha','sigma','mu','lambda')
+  
   if (SWGparameterization=='ann'){
-    alpha <- rep(parS['alpha'],datInd$nTimes)
-    sigma <- rep(parS['sigma'],datInd$nTimes)
-    mu <- rep(parS['mu'],datInd$nTimes)
-    lambda <- rep(parS['lambda'],datInd$nTimes)
+     parTS = assignAnnualParameters(parNamesSWG=parNamesSWG,parS=parS,datInd=datInd) 
   } else if (SWGparameterization=='seas'){
-    alpha <- assignSeasPars(parS['alpha.SON'], parS['alpha.DJF'], parS['alpha.MAM'], parS['alpha.JJA'], datInd[["i.ss"]])
-    sigma <- assignSeasPars(parS['sigma.SON'], parS['sigma.DJF'], parS['sigma.MAM'], parS['sigma.JJA'], datInd[["i.ss"]])
-    mu <- assignSeasPars(parS['mu.SON'], parS['mu.DJF'], parS['mu.MAM'], parS['mu.JJA'], datInd[["i.ss"]])
-    lambda <- assignSeasPars(parS['lambda.SON'], parS['lambda.DJF'], parS['lambda.MAM'], parS['lambda.JJA'], datInd[["i.ss"]])
+    parTS = assignSeasonalParameters(parNamesSWG=parNamesSWG,parS=parS,datInd=datInd)
   } else if (SWGparameterization=='har'){
-    alpha = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['alpha.m'],amp=parS['alpha.amp'],phase.ang = parS['alpha.ang'],k=1,nperiod=365)
-    sigma = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['sigma.m'],amp=parS['sigma.amp'],phase.ang = parS['sigma.ang'],k=1,nperiod=365)
-    mu = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['mu.m'],amp=parS['mu.amp'],phase.ang = parS['mu.ang'],k=1,nperiod=365)
-    lambda = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['lambda.m'],amp=parS['lambda.amp'],phase.ang = parS['lambda.ang'],k=1,nperiod=365)
+    parTS = assignHarmonicDailyParameters(parNamesSWG=parNamesSWG,parS=parS,datInd=datInd)
   }
-  
-  parTS = list(alpha=alpha,sigma=sigma,mu=mu,lambda=lambda)
-  
   return(parTS)
-  
 }
 
 #################################

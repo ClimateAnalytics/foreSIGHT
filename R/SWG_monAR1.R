@@ -7,11 +7,8 @@ modelInfoList[["P-ann-monAR1"]] = list(simVar="P",
                                        simPriority=1,
                                        npars=4,
                                        parNam=c("mu","sigma","phi","lambda"),
-                                       # minBound=c(9,7.,0.2,1.2),
-                                       # maxBound=c(11,8.,0.3,1.6))
-minBound=c(-1e2,0.01,-0.7,0.5),
-maxBound=c(5e2,5e2,0.9,2))
-
+                                       minBound=c(-1e2,0.01,-0.7,0.5),
+                                       maxBound=c(5e2,5e2,0.9,2))
 
 modelInfoList[["P-seas-monAR1"]] = list(simVar="P",
                                         timeStep='1 month',
@@ -23,8 +20,6 @@ modelInfoList[["P-seas-monAR1"]] = list(simVar="P",
                                                  "lambda.SON","lambda.DJF","lambda.MAM","lambda.JJA"),
                                         minBound=rep(c(-1e2,0.01,-0.5,0.5),each=4),
                                         maxBound=rep(c(5e2,1e3,0.9,2),each=4))
-
-
 
 modelInfoList[["P-seas1-monAR1"]] = list(simVar="P",
                                          timeStep='1 month',
@@ -66,33 +61,44 @@ parManager.monAR1 = function(parS, SWGparameterization, datInd,auxInfo=NULL){
 
   
   if (SWGparameterization=='ann'){
-    mu <- rep(parS['mu'],datInd$nTimes)
-    sigma <- rep(parS['sigma'],datInd$nTimes)
-    phi <- rep(parS['phi'],datInd$nTimes)
-    lambda <- rep(parS['lambda'],datInd$nTimes)
+    # mu <- rep(parS['mu'],datInd$nTimes)
+    # sigma <- rep(parS['sigma'],datInd$nTimes)
+    # phi <- rep(parS['phi'],datInd$nTimes)
+    # lambda <- rep(parS['lambda'],datInd$nTimes)
+    
+    parTS = assignAnnualParameters(parS=parS,datInd=datInd) 
+    
   } else if (SWGparameterization=='seas'){
-    mu <- assignSeasPars(parS['mu.SON'], parS['mu.DJF'], parS['mu.MAM'], parS['mu.JJA'], datInd[["i.ss"]])
-    sigma <- assignSeasPars(parS['sigma.SON'], parS['sigma.DJF'], parS['sigma.MAM'], parS['sigma.JJA'], datInd[["i.ss"]])
-    phi <- assignSeasPars(parS['phi.SON'], parS['phi.DJF'], parS['phi.MAM'], parS['phi.JJA'], datInd[["i.ss"]])
-    lambda <- assignSeasPars(parS['lambda.SON'], parS['lambda.DJF'], parS['lambda.MAM'], parS['lambda.JJA'], datInd[["i.ss"]])
+    # mu <- assignSeasPars(parS['mu.SON'], parS['mu.DJF'], parS['mu.MAM'], parS['mu.JJA'], datInd[["i.ss"]])
+    # sigma <- assignSeasPars(parS['sigma.SON'], parS['sigma.DJF'], parS['sigma.MAM'], parS['sigma.JJA'], datInd[["i.ss"]])
+    # phi <- assignSeasPars(parS['phi.SON'], parS['phi.DJF'], parS['phi.MAM'], parS['phi.JJA'], datInd[["i.ss"]])
+    # lambda <- assignSeasPars(parS['lambda.SON'], parS['lambda.DJF'], parS['lambda.MAM'], parS['lambda.JJA'], datInd[["i.ss"]])
+    
+    parTS = assignSeasonalParameters(parS=parS,datInd=datInd)
+    
   } else if (SWGparameterization=='seas1'){
-    mu <- assignSeasPars(parS['mu.SON'], parS['mu.DJF'], parS['mu.MAM'], parS['mu.JJA'], datInd[["i.ss"]])
-    sigma <- assignSeasPars(parS['sigma.SON'], parS['sigma.DJF'], parS['sigma.MAM'], parS['sigma.JJA'], datInd[["i.ss"]])
-    lambda <- assignSeasPars(parS['lambda.SON'], parS['lambda.DJF'], parS['lambda.MAM'], parS['lambda.JJA'], datInd[["i.ss"]])
-    phi <- rep(parS['phi'],datInd$nTimes)
+    # mu <- assignSeasPars(parS['mu.SON'], parS['mu.DJF'], parS['mu.MAM'], parS['mu.JJA'], datInd[["i.ss"]])
+    # sigma <- assignSeasPars(parS['sigma.SON'], parS['sigma.DJF'], parS['sigma.MAM'], parS['sigma.JJA'], datInd[["i.ss"]])
+    # lambda <- assignSeasPars(parS['lambda.SON'], parS['lambda.DJF'], parS['lambda.MAM'], parS['lambda.JJA'], datInd[["i.ss"]])
+    # phi <- rep(parS['phi'],datInd$nTimes)
+    
+    parTS = assignSeasonalParameters(parNames=c('mu','sigma','lambda'),parS=parS,datInd=datInd)
+    parTS = assignAnnualParameters(parNames=c('phi'),parS=parS,datInd=datInd,parTS=parTS)
+    
   } else if (SWGparameterization=='har'){
-    mu = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['mu.m'],amp=parS['mu.amp'],phase.ang = parS['mu.ang'],k=1,nperiod=12)
-    sigma = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['sigma.m'],amp=parS['sigma.amp'],phase.ang = parS['sigma.ang'],k=1,nperiod=12)
-    phi = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['phi.m'],amp=parS['phi.amp'],phase.ang = parS['phi.ang'],k=1,nperiod=12)
-    lambda = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['lambda.m'],amp=parS['lambda.amp'],phase.ang = parS['lambda.ang'],k=1,nperiod=12)
+    # mu = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['mu.m'],amp=parS['mu.amp'],phase.ang = parS['mu.ang'],k=1,nperiod=12)
+    # sigma = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['sigma.m'],amp=parS['sigma.amp'],phase.ang = parS['sigma.ang'],k=1,nperiod=12)
+    # phi = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['phi.m'],amp=parS['phi.amp'],phase.ang = parS['phi.ang'],k=1,nperiod=12)
+    # lambda = harmonicFunc(x=seq(1:datInd$nTimes),mean=parS['lambda.m'],amp=parS['lambda.amp'],phase.ang = parS['lambda.ang'],k=1,nperiod=12)
+    
+    parTS = assignHarmonicDailyParameters(parS=parS,datInd=datInd)
     
   }
 
-  sigma[sigma<0] = 0.
-  phi[phi<-0.9]=-0.9
-  phi[phi>0.9]=0.9
+  parTS$sigma[parTS$sigma<0] = 0.
+  parTS$phi[parTS$phi<-0.9]=-0.9; parTS$phi[parTS$phi>0.9]=0.9
   
-  parTS = list(mu=mu,sigma=sigma,phi=phi,lambda=lambda)
+  # parTS = list(mu=mu,sigma=sigma,phi=phi,lambda=lambda)
 
   return(parTS)
 
