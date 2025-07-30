@@ -146,8 +146,9 @@ timestep_rank <- setNames(seq_along(timestep_order), timestep_order)
 ########################
 # aggregate data to diffreent aggregation periods
 aggregate_data = function(data=NULL,times,timeStep,aggPeriod){
-  
-  
+ 
+library(dplyr)
+
   if (timeStep==aggNameLong[[aggPeriod]]){
     
     out = list(times=times,
