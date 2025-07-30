@@ -28,25 +28,29 @@ nameMaker<-function(attSel=NULL,  # vector of selected attributes
   return(fnam)
 }
 
-makeOutputDataframe<-function(data=NULL,
-                              dates=NULL,
-                              simVar=NULL,
-                              modelTag=NULL
-){
-  #FUNCTION TO RETURN A SUBSECTION OF THE LIST
-  switch(modelTag,
-         "Simple-ann" = {returnTS=function(data,simVar){data[[simVar]]}},
-                        {returnTS=function(data,simVar){data[[simVar]]$sim}}
-         )
-
-  #MAKE OUTPUTTED DATAFRAME
-  outDat=vapply(simVar,FUN=returnTS,data=data,FUN.VALUE=numeric(length(dates[,1])))
-  outDat=cbind(dates,outDat)
-  names(outDat)=c(names(dates),simVar)
-  
-  return(outDat)
-  
-}
+# makeOutputDataframe<-function(data=NULL,
+#                               dates=NULL,
+#                               simVar=NULL,
+#                               modelTag=NULL
+# ){
+#   
+#   #FUNCTION TO RETURN A SUBSECTION OF THE LIST
+#   returnTS=function(data,simVar){data[[simVar]]}
+#   
+#   #MAKE OUTPUTTED DATAFRAME
+#   #outDat=vapply(simVar,FUN=returnTS,data=data,FUN.VALUE=numeric(length(dates[,1])))
+#   outDat=vapply(simVar,FUN=returnTS,data=data,FUN.VALUE=numeric(length(dates)))
+# 
+#   browser()
+#   
+#   outDat=cbind(dates,outDat)
+#   names(outDat)=c(names(dates),simVar)
+#   
+#   browser()
+#   
+#   return(outDat)
+#   
+# }
 
 saveTarget<-function(data=NULL,       # data[[i]]  ->    $P, $Temp $attSim $targetSim
                      dates=NULL,      # data frame dates info mm,dd,yy
