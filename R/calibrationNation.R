@@ -59,18 +59,17 @@ modCalibrator<-function(obs=NULL,
   argCheck=argument_check_calibrator(names=names(obs),  #Need an invalid modelTage Choice flag if FS type
                                      obs=obs,
                                      modelTag=modelTag)
+  
   #Update inputs (e.g truncate incomplete years)
-  obs=input_check_calibrator(obs=obs)
-
+  obs=input_process_check(obs=obs)
+  
   #GET ADDITIONAL MODEL INFO, SIMVARS etc
   modelInfo=get.multi.model.info(modelTag=modelTag)
   modelTag=update.simPriority(modelInfo=modelInfo)
   simVar=sapply(X=modelInfo[modelTag],FUN=return.simVar,USE.NAMES=TRUE)       #?CREATE MODEL MASTER INFO - HIGHER LEVEL?
 
-  print('need to fix modCalibrator - replace years with time, etc')
-  
   #Get date information
-  datInd=mod.get.date.ind(obs=obs[,c("year","month","day")],modelTag=modelTag,modelInfo=modelInfo) #Get datInd for all modelTags
+  datInd=mod.get.date.ind(obs=obs,modelTag=modelTag,modelInfo=modelInfo) #Get datInd for all modelTags
 
   #calibrate each model
   parDat=list()
@@ -135,7 +134,7 @@ init.calib.Pwgen<- function(modelTag=NULL,  #model identifier
 ){
 
   #RECLASSIFY IF "P-har12-wgen-FS"
-  if(modelTag=="P-har12-wgen-FS"){modelTag="P-har12-wgen"} #RECLASSIFY IF "P-har12-wgen-FS"
+  #if(modelTag=="P-har12-wgen-FS"){modelTag="P-har12-wgen"} #RECLASSIFY IF "P-har12-wgen-FS"
 
   #FOR ALL RAINFALL MODELS
   pdd=rep(0,modelInfo$nperiod); alpha=beta=pwd=pdd    #make space to store fitted pars
@@ -162,6 +161,7 @@ init.calib.Pwgen<- function(modelTag=NULL,  #model identifier
       alpha[p]=tmp$shape; beta[p]=tmp$scale
 
     } else {
+      
     #fit pwd and pdd
       tmp=pdd.pwd.estimator(dat=data,ind=datInd$i.pp[[p]],threshold=0.00)
       pdd[p]=tmp$pdd; pwd[p]=tmp$pwd
@@ -189,6 +189,8 @@ init.calib.Pwgen<- function(modelTag=NULL,  #model identifier
     #MAKE PAR VECTOR C(PAR1 X NPERIOD),(PAR2 X NPERIOD),...)
     initCalibPars=c(pdd,pwd,alpha,beta)
   }
+
+  names(initCalibPars)= modelInfo$parNam
 
   #PLOT UP
   # windows();par(mfrow=c(2,2))
@@ -282,7 +284,6 @@ init.calib.harTS<-function(modelTag=NULL,        #these are set to match the arg
                                   rain=rain,            #vector of rain
                                   threshold=threshold)
 
-
     if(modelInfo$WDcondition==FALSE){ #IF NO WET-DRY SEPARATION
       #CALCULATE HARMONIC PARAMETERS FOR THE MEANS AND STANDARD DEVIATIONS
       par_meanHar=fit.harmonic.opts(nperiod = modelInfo$nperiod,v.stat=periodStats$all$m,k=modelInfo$ncycle)
@@ -304,7 +305,7 @@ init.calib.harTS<-function(modelTag=NULL,        #these are set to match the arg
                            nperiod=modelInfo$nperiod)
 
       #CALCULATE VALUE BASED ON PERIOD PARS & STUFF BACK INTO TS AT CORRECT POINT
-      genRes=rep(NA,datInd$ndays)                                    #MAKE BLANK VECTOR FOR RESIDUAL TS
+      genRes=rep(NA,datInd$nTimes)                                    #MAKE BLANK VECTOR FOR RESIDUAL TS
       for(p in 1:modelInfo$nperiod){
         genRes[datInd$i.pp[[p]]]=calcDayResidFunc(data=data[datInd$i.pp[[p]]],mean=Hpar_m[p],sd=Hpar_sd[p])
       }
@@ -316,7 +317,10 @@ init.calib.harTS<-function(modelTag=NULL,        #these are set to match the arg
       #COLLATE PARAMETER SET IN REQUIRED ORDER
       parSet<-as.numeric(c(r.res,unlist(par_meanHar),unlist(par_sdHar))) #cor1, mean.m, mean.amp,mean.phase, sd.m, sd.amp, sd.phase
 
-
+      names(parSet) = c("cor0",
+                 "mu.m","mu.amp","mu.ang",
+                 "sigma.m","sigma.amp","sigma.ang")
+      
     }else{   #IF WET-DRY SEPARATION
 
       #CALCULATE HARMONIC PARAMETERS FOR THE MEANS AND STANDARD DEVIATIONS
@@ -370,13 +374,13 @@ init.calib.harTS<-function(modelTag=NULL,        #these are set to match the arg
                                 nperiod=modelInfo$nperiod)
       }
 
-
       #WHICH OF THE CYCLES ARE USED?
       switch(modelInfo$wdCycle,
              "All"={
                #CALCULATE VALUE BASED ON PERIOD PARS & WET DRY STATUS & STUFF BACK INTO TS AT CORRECT POINT
-               genRes=rep(NA,datInd$ndays)                                    #MAKE BLANK VECTOR FOR RESIDUAL TS
+               genRes=rep(NA,datInd$nTimes)                                    #MAKE BLANK VECTOR FOR RESIDUAL TS
                for(p in 1:modelInfo$nperiod){
+                 
                  genRes[datInd$i.pp[[p]]]=calcDayResidFunc_wdSep(data=data[datInd$i.pp[[p]]],
                                                                  mean_dry=Hpar_m_dry[p],
                                                                  sd_dry=Hpar_sd_dry[p],
@@ -384,6 +388,7 @@ init.calib.harTS<-function(modelTag=NULL,        #these are set to match the arg
                                                                  sd_wet=Hpar_sd_wet[p],
                                                                  rain=rain[datInd$i.pp[[p]]],
                                                                  threshold=threshold)
+                 
                }
 
                # CALCULATE LAG-1 CORRELATION IN RESIDUALS
@@ -397,7 +402,12 @@ init.calib.harTS<-function(modelTag=NULL,        #these are set to match the arg
                                     unlist(par_meanHar_dry),
                                     unlist(par_sdHar_dry)
                ))
-               #("cor0","W-mCycle-m","W-mCycle-amp","W-mCycle-ang", "W-sCycle-m","W-sCycle-amp","W-sCycle-ang", "D-mCycle-m","D-mCycle-amp","D-mCycle-ang","D-sCycle-m","D-sCycle-amp","D-sCycle-ang")
+
+               names(parSet) = c("cor0",
+                                "mu.W.m","mu.W.amp","mu.W.ang",
+                                "sigma.W.m","sigma.W.amp","sigma.W.ang",
+                                "mu.D.m","mu.D.amp","mu.D.ang",
+                                "sigma.D.m","sigma.D.amp","sigma.D.ang")
 
 
              },
@@ -424,6 +434,11 @@ init.calib.harTS<-function(modelTag=NULL,        #these are set to match the arg
                                     unlist(par_sdHar_wet),
                                     unlist(par_sdHar_dry)
                ))
+               
+               names(parSet) = c("cor0",
+                                 "mu.m","mu.amp","mu.ang",
+                                 "sigma.W.m","sigma.W.amp","sigma.W.ang",
+                                 "sigma.D.m","sigma.D.amp","sigma.D.ang")
              },
              {print("error")}
       ) #end switch
