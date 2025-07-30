@@ -35,11 +35,13 @@ targetFinder<- function(x,               # vector of pars (will change in optim)
   
   parS = x
   
+  timeStep = obs$timeStep
+  
   #SIMULATE SELECTED VARIABLE USING CHOSEN STOCHASTIC MODEL
   sim=simClim(parS=parS,              
               modelTag = modelTag,
               modelInfo=modelInfo,
-              datInd=datInd,
+              datInd=datInd[[aggNameShort[[timeStep]]]],
               randomTerm = list(randomVector = randomVector,
                                 randomUnitNormalVector = randomUnitNormalVector,
                                 seed=simSeed),
@@ -48,8 +50,6 @@ targetFinder<- function(x,               # vector of pars (will change in optim)
   if(length(which(is.na(sim))) > 0){
     score=-150  #default here
   }else{
-    
-    timeStep = obs$timeStep
     
     aggList = unique(attInfo$aggType)
     nagg = length(aggList)
