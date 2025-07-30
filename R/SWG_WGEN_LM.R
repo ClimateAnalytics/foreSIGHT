@@ -2,6 +2,8 @@
 
 #' @include default_parameters.R
 
+##########
+
 modelInfoList[['Temp-ann-wgenO']] = list(simVar='Temp',
                                          timeStep = '1 day',
                                          simPriority=2,
@@ -38,26 +40,26 @@ modelInfoList[['Temp-har-wgenO']] = list(simVar='Temp',
                                          WDcondition=FALSE,
                                          ncycle=1,nperiod=26)
 
+##########
+
 modelInfoList[['Temp-annWD-wgenO']] = list(simVar='Temp',
                                            timeStep = '1 day',
                                            simPriority=2,
                                            npars=3,
-                                           parNam = c("cor0","muW","sigmaW",
-                                                      "muD","sigmaD"),
+                                           parNam = c("cor0","mu.W","sigma.W","mu.D","sigma.D"),
                                            minBound=c(0.45,-10,0.1,-10,1),
                                            maxBound=c(0.95,40,20,40,20),
-                                           WDcondition=TRUE,
-                                           WDthresh=0)
+                                           WDcondition=TRUE,WDthresh=0)
 
 modelInfoList[['Temp-seasWD-wgenO']] = list(simVar='Temp',
                                             timeStep = '1 day',
                                             simPriority=2,
                                             npars=20,
                                             parNam = c("cor0.SON","cor0.DJF","cor0.MAM","cor0.JJA",
-                                                       "muW.SON","muW.DJF","muW.MAM","muW.JJA",
-                                                       "sigmaW.SON","sigmaW.DJF","sigmaW.MAM","sigmaW.JJA",
-                                                       "muD.SON","muD.DJF","muD.MAM","muD.JJA",
-                                                       "sigmaD.SON","sigmaD.DJF","sigmaD.MAM","sigmaD.JJA"
+                                                       "mu.W.SON","mu.W.DJF","mu.W.MAM","mu.W.JJA",
+                                                       "sigma.W.SON","sigma.W.DJF","sigma.W.MAM","sigma.W.JJA",
+                                                       "mu.D.SON","mu.D.DJF","mu.D.MAM","mu.D.JJA",
+                                                       "sigma.D.SON","sigma.D.DJF","sigma.D.MAM","sigma.D.JJA"
                                             ),
                                             minBound=c(0.45,0.45,0.45,0.45,
                                                        -10,-10,-10,-10,
@@ -69,72 +71,33 @@ modelInfoList[['Temp-seasWD-wgenO']] = list(simVar='Temp',
                                                        20,20,20,20,
                                                        40,40,40,40,
                                                        20,20,20,20),
-                                            WDcondition=TRUE,
-                                            WDthresh=0)
+                                            WDcondition=TRUE,WDthresh=0)
 
-modelInfoList[['PET-seasWD-wgenO']] = list(simVar='PET',
+modelInfoList[['Temp-harWD-wgenO']] = list(simVar='Temp',
                                            timeStep = '1 day',
                                            simPriority=2,
-                                           npars=20,
-                                           parNam = c("cor0.SON","cor0.DJF","cor0.MAM","cor0.JJA",
-                                                      "muW.SON","muW.DJF","muW.MAM","muW.JJA",
-                                                      "sigmaW.SON","sigmaW.DJF","sigmaW.MAM","sigmaW.JJA",
-                                                      "muD.SON","muD.DJF","muD.MAM","muD.JJA",
-                                                      "sigmaD.SON","sigmaD.DJF","sigmaD.MAM","sigmaD.JJA"
-                                           ),
-                                           minBound=c(0.45,0.45,0.45,0.45,
-                                                      0,0,0,0,
-                                                      0.1,0.1,0.1,0.1,
-                                                      0,0,0,0,
-                                                      0.1,0.1,0.1,0.1),
-                                           maxBound=c(0.95,0.95,0.95,0.95,
-                                                      10,10,10,10,
-                                                      2,2,2,2,
-                                                      10,10,10,10,
-                                                      2,2,2,2),
-                                           WDcondition=TRUE,
-                                           WDthresh=0,
-                                           minVal=0)
-
-modelInfoList[['PET-har-wgenO']] = list(simVar='PET',
-                                        timeStep = '1 day',
-                                        simPriority=2,
-                                        npars=7,
-                                        parNam = c("cor0",
-                                                   "mu.m","mu.amp","mu.ang",
-                                                   "sigma.m","sigma.amp","sigma.ang"),
-                                        minBound=c(0.1,
-                                                   0,0,0,
-                                                   0,0,0),
-                                        maxBound=c(0.95,
-                                                   10,5,15,
-                                                   2,1,15),
-                                        WDcondition=FALSE)
+                                           npars=13,
+                                           strat = list(cor0='ann',mu=c('har','wet'),sigma=c('har','dry')),
+                                           parNam = c("cor0",
+                                                      "mu.W.m","mu.W.amp","mu.W.ang",
+                                                      "sigma.W.m","sigma.W.amp","sigma.W.ang",
+                                                      "mu.D.m","mu.D.amp","mu.D.ang",
+                                                      "sigma.D.m","sigma.D.amp","sigma.D.ang"),
+                                           minBound=c(0.1,
+                                                      -10,0,-3.14,
+                                                      0,0,-3.14,
+                                                      10,0,-3.14,
+                                                      0,0,-3.14),
+                                           maxBound=c(0.95,
+                                                      40,20,3.14,
+                                                      20,20,3.14,
+                                                      40,20,3.14,
+                                                      20,20,3.14),
+                                           WDcondition=TRUE,WDthresh=0,
+                                           ncycle=1,nperiod=26,wdCycle="All")
 
 
-modelInfoList[['PET-harWD-wgenO']] = list(simVar='PET',
-                                          timeStep = '1 day',
-                                          simPriority=2,
-                                          npars=13,
-                                          parNam = c("cor0",
-                                                     "muW.m","muW.amp","muW.ang",
-                                                     "sigmaW.m","sigmaW.amp","sigmaW.ang",
-                                                     "muD.m","muD.amp","muD.ang",
-                                                     "sigmaD.m","sigmaD.amp","sigmaD.ang"),
-                                          minBound=c(0.1,
-                                                     0,0,-3.14,
-                                                     0,0,-3.14,
-                                                     0,0,-3.14,
-                                                     0,0,-3.14),
-                                          maxBound=c(0.95,
-                                                     10,5,3.14,
-                                                     2,1,3.14,
-                                                     10,5,3.14,
-                                                     5,2,3.14),
-                                          WDcondition=TRUE,
-                                          WDthresh=0,
-                                          minVal=0)
-
+##########
 
 modelInfoList[['PET-seas-wgenO']] = list(simVar='PET',
                                          timeStep = '1 day',
@@ -152,6 +115,73 @@ modelInfoList[['PET-seas-wgenO']] = list(simVar='PET',
                                          WDcondition=FALSE,
                                          minVal=0)
 
+
+modelInfoList[['PET-har-wgenO']] = list(simVar='PET',
+                                        timeStep = '1 day',
+                                        simPriority=2,
+                                        npars=7,
+                                        parNam = c("cor0",
+                                                   "mu.m","mu.amp","mu.ang",
+                                                   "sigma.m","sigma.amp","sigma.ang"),
+                                        minBound=c(0.1,
+                                                   0,0,0,
+                                                   0,0,0),
+                                        maxBound=c(0.95,
+                                                   10,5,15,
+                                                   2,1,15),
+                                        WDcondition=FALSE,
+                                        ncycle=1,nperiod=26)
+
+
+##########
+
+modelInfoList[['PET-seasWD-wgenO']] = list(simVar='PET',
+                                           timeStep = '1 day',
+                                           simPriority=2,
+                                           npars=20,
+                                           parNam = c("cor0.SON","cor0.DJF","cor0.MAM","cor0.JJA",
+                                                      "mu.W.SON","mu.W.DJF","mu.W.MAM","mu.W.JJA",
+                                                      "sigma.W.SON","sigma.W.DJF","sigma.W.MAM","sigma.W.JJA",
+                                                      "mu.D.SON","mu.D.DJF","mu.D.MAM","mu.D.JJA",
+                                                      "sigma.D.SON","sigma.D.DJF","sigma.D.MAM","sigma.D.JJA"
+                                           ),
+                                           minBound=c(0.45,0.45,0.45,0.45,
+                                                      0,0,0,0,
+                                                      0.1,0.1,0.1,0.1,
+                                                      0,0,0,0,
+                                                      0.1,0.1,0.1,0.1),
+                                           maxBound=c(0.95,0.95,0.95,0.95,
+                                                      10,10,10,10,
+                                                      2,2,2,2,
+                                                      10,10,10,10,
+                                                      2,2,2,2),
+                                           WDcondition=TRUE,WDthresh=0,
+                                           minVal=0)
+
+modelInfoList[['PET-harWD-wgenO']] = list(simVar='PET',
+                                          timeStep = '1 day',
+                                          simPriority=2,
+                                          npars=13,
+                                          parNam = c("cor0",
+                                                     "mu.W.m","mu.W.amp","mu.W.ang",
+                                                     "sigma.W.m","sigma.W.amp","sigma.W.ang",
+                                                     "mu.D.m","mu.D.amp","mu.D.ang",
+                                                     "sigma.D.m","sigma.D.amp","sigma.D.ang"),
+                                          minBound=c(0.1,
+                                                     0,0,-3.14,
+                                                     0,0,-3.14,
+                                                     0,0,-3.14,
+                                                     0,0,-3.14),
+                                          maxBound=c(0.95,
+                                                     10,5,3.14,
+                                                     2,1,3.14,
+                                                     10,5,3.14,
+                                                     5,2,3.14),
+                                          WDcondition=TRUE,WDthresh=0,
+                                          minVal=0,
+                                          ncycle=1,nperiod=26)
+
+
 # #################################
 
 parManager.wgenO = function(parS, SWGparameterization, datInd, auxInfo=NULL){
@@ -166,7 +196,7 @@ parManager.wgenO = function(parS, SWGparameterization, datInd, auxInfo=NULL){
   }   else if (SWGparameterization=='seas'){
     parTS = assignSeasonalParameters(parNames=c('cor0','mu','sigma'),parS=parS,datInd=datInd) 
   }   else if (SWGparameterization=='annWD'){
-    parTStmp = assignAnnualParameters(parNames=c('cor0','muD','muW','sigmaD','sigmaW'),parS=parS,
+    parTStmp = assignAnnualParameters(parNames=c('cor0','mu.D','mu.W','sigma.D','sigma.W'),parS=parS,
                                       datInd=datInd) 
     # select parameters mu and sigma based on wet-dry days 
     mu = parTStmp$muD; mu[auxInfo$wdStatus] = parTStmp$muW[auxInfo$wdStatus]
@@ -174,30 +204,36 @@ parManager.wgenO = function(parS, SWGparameterization, datInd, auxInfo=NULL){
     parTS = list(cor0=parTStmp$cor0,mu=mu,sigma=sigma)
   }   else if (SWGparameterization=='seasWD'){
     # setup seasonally varying parameter time series for all 5 parameters (including separate wet-dry day params)
-    parTStmp = assignSeasonalParameters(parNames=c('cor0','muD','muW','sigmaD','sigmaW'),parS=parS,
+    parTStmp = assignSeasonalParameters(parNames=c('cor0','mu.D','mu.W','sigma.D','sigma.W'),parS=parS,
                                       datInd=datInd)  
     # change correlation to 0 when switching between wet and dry days
     cor0 = parTStmp$cor0
-    change=c(1,which(abs(diff(auxInfo$wdStatus))==1)+1)
-    cor0[change] = 0
+    if(is.null(auxInfo$wdStatus)){stop('auxInfo$wdStatus is null')}
+    #change=c(1,which(abs(diff(auxInfo$wdStatus))==1)+1)
+    #cor0[change] = 0
     # select parameters mu and sigma based on wet-dry days 
+    if(is.null(auxInfo$wdStatus)){stop('auxInfo$wdStatus is null')}
     mu = parTStmp$muD; mu[auxInfo$wdStatus] = parTStmp$muW[auxInfo$wdStatus]
     sigma = parTStmp$sigmaD; sigma[auxInfo$wdStatus] = parTStmp$sigmaW[auxInfo$wdStatus]
     parTS = list(cor0=cor0,mu=mu,sigma=sigma)
   }   else if (SWGparameterization=='harWD'){
     
     # setup annual parameter for cor0
-    parTStmp = assignAnnualParameters(parNames=c('cor0'),parS=parS,atInd=datInd)  
+    parTStmp = assignAnnualParameters(parNames=c('cor0'),parS=parS,datInd=datInd)  
     # setup harmonic parameter for other
-    parTStmp = assignHarmonicParameters(parNames=c('muD','muW','sigmaD','sigmaW'),parS=parS,
+    parTStmp = assignHarmonicDailyParameters(parNames=c('mu.D','mu.W','sigma.D','sigma.W'),parS=parS,
                                         datInd=datInd,parTS=parTStmp)  
+    
     # change correlation to 0 when switching between wet and dry days
     cor0 = parTStmp$cor0
-    change=c(1,which(abs(diff(auxInfo$wdStatus))==1)+1)
-    cor0[change] = 0
+    if(is.null(auxInfo$wdStatus)){stop('auxInfo$wdStatus is null')}
+    #change=c(1,which(abs(diff(auxInfo$wdStatus))==1)+1)
+    #cor0[change] = 0
     # select parameters mu and sigma based on wet-dry days 
-    mu = parTStmp$muD; mu[auxInfo$wdStatus] = parTStmp$muW[auxInfo$wdStatus]
-    sigma = parTStmp$sigmaD; sigma[auxInfo$wdStatus] = parTStmp$sigmaW[auxInfo$wdStatus]
+    mu = parTStmp$mu.D; mu[auxInfo$wdStatus] = parTStmp$mu.W[auxInfo$wdStatus]
+    
+    sigma = parTStmp$sigma.D; sigma[auxInfo$wdStatus] = parTStmp$sigma.W[auxInfo$wdStatus]
+    
     parTS = list(cor0=cor0,mu=mu,sigma=sigma)
   }
   return(parTS)

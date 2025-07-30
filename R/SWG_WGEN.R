@@ -44,7 +44,10 @@ modelInfoList[['P-har-wgen']] = list(simVar='P',
                                      maxBound=c(0.950, 0.557, 6.28,
                                                 0.728, 0.519, 6.28,
                                                 0.950, 0.600, 6.28,
-                                                15.00, 10, 6.28))
+                                                15.00, 10, 6.28),
+                                     nperiod=365,ncycle=1
+
+)
 
 # modelInfoList[['P-annDelta-wgen']] = list(simVar='P',
 #                                             timeStep = '1 day',
