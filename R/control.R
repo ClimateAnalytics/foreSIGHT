@@ -1204,7 +1204,7 @@ simulateTargetCor = function(optimArgs=NULL,
         sim1 = simClim(parS=simIn$sites[[site1]][[simVar[1]]]$par,              
                           modelTag = modelTag,
                           modelInfo=modelInfo[[mod]],
-                          datInd=datInd[[mod]],
+                          datInd=datInd[[mod]][[aggNameShort[[timeStep]]]],
                           randomTerm = list(randomUnitNormalVector = MVTsampleMat[,1]),
                           auxInfo = list(obs=obsTmp1))
         
@@ -1213,7 +1213,7 @@ simulateTargetCor = function(optimArgs=NULL,
         sim2 = simClim(parS=simIn$sites[[site2]][[simVar[1]]]$par,              
                        modelTag = modelTag,
                        modelInfo=modelInfo[[mod]],
-                       datInd=datInd[[mod]],
+                       datInd=datInd[[mod]][[aggNameShort[[timeStep]]]],
                        randomTerm = list(randomUnitNormalVector = MVTsampleMat[,2]),
                        auxInfo = list(obs=obsTmp2))
 
@@ -1243,7 +1243,7 @@ simulateTargetCor = function(optimArgs=NULL,
     sim$sites[[site]] = simClim(parS=simIn$sites[[site]][[simVar[1]]]$par,              
                    modelTag = modelTag,
                    modelInfo=modelInfo[[mod]],
-                   datInd=datInd[[mod]],
+                   datInd=datInd[[mod]][[aggNameShort[[timeStep]]]],
                    randomTerm = list(randomUnitNormalVector = MVTsampleMat[,s]),
                    auxInfo = list(obs=obsTmp))
     
@@ -1715,12 +1715,15 @@ getSimSummary <- function(sim) {
   nRep <- length(repNames)
   nTar <- length(tarNames)
 
-  # variable names
-  if (is.list(sim[["controlFile"]])) {
-    varNames <- names(sim[["controlFile"]][["modelType"]])
-  } else if (!(sim[["controlFile"]]  == "scaling")) {
-    stop("sim$controlFile is not recognized.")
-  }
+  varNames = names(sim[['Rep1']][['Target1']])
+  varNames = varNames[!varNames%in%c('attSim','targetSim','parS','score')]
+  
+  # # variable names
+  # if (is.list(sim[["controlFile"]])) {
+  #   varNames <- names(sim[["controlFile"]][["modelType"]])
+  # } else if (!(sim[["controlFile"]]  == "scaling")) {
+  #   stop("sim$controlFile is not recognized.")
+  # }
 
   # subsetting sim to simSummary
   simSummary <- list()

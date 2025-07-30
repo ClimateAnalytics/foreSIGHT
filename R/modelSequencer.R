@@ -91,13 +91,15 @@ simulateTarget<-function(
                    wdStatus=wdStatus,
                    modelInfo=modelInfo[[mod]])
     
+    timeStep = obs$timeStep 
+    
     # write data to model environment
     #----------------------------------
-    write_model_env(envir = foreSIGHT_modelEnv,
-                    modelInfo = modelInfo[[mod]],
-                    modelTag = mod,
-                    datInd = datInd[[mod]]
-    )
+    # write_model_env(envir = foreSIGHT_modelEnv,
+    #                 modelInfo = modelInfo[[mod]],
+    #                 modelTag = mod,
+    #                 datInd = datInd[[mod]]
+    # )
     #-----------------------------------
     
     parMin = modelInfo[[mod]]$minBound
@@ -118,7 +120,7 @@ simulateTarget<-function(
       out[[simVar[mod]]]$sim = simClim(parS=parMin,              
                                        modelTag = mod,
                                        modelInfo=modelInfo[[mod]],
-                                       datInd=datInd[[mod]],
+                                       datInd=datInd[[mod]][[aggNameShort[[timeStep]]]],
                                        randomTerm = list(randomVector = randomVector,
                                                          randomUnitNormalVector = randomUnitNormalVector,
                                                          seed=setSeed),
@@ -181,7 +183,7 @@ simulateTarget<-function(
       out[[simVar[mod]]]$sim=simClim(parS=optTest$par,             
                                      modelTag = mod,
                                      modelInfo=modelInfo[[mod]],
-                                     datInd=datInd[[mod]],
+                                     datInd=datInd[[mod]][[aggNameShort[[timeStep]]]],
                                      randomTerm = list(randomVector = randomVector,
                                                        randomUnitNormalVector = randomUnitNormalVector,
                                                        seed=setSeed),
@@ -192,7 +194,6 @@ simulateTarget<-function(
     
     aggPeriods = names(datInd[[mod]])
     nagg = length(aggPeriods)
-    timeStep = obs$timeStep 
     
     data = list(times=datInd[[mod]][[aggNameShort[[timeStep]]]]$times,
                 timeStep=timeStep)

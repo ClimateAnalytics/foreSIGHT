@@ -35,25 +35,36 @@ simClim = function(parS,               # vector of pars (will change in optim)
   names(parS) = modelInfo$parNam
   class(parS) = SWGmodel
 
-  SWGpar = parManager(parS = parS, SWGparameterization = SWGparameterization, 
-                      datInd=datInd[[aggNameShort[[timeStep]]]],
-                      auxInfo=auxInfo)
+  # SWGpar = parManager(parS = parS, SWGparameterization = SWGparameterization, 
+  #                     datInd=datInd[[aggNameShort[[timeStep]]]],
+  #                     auxInfo=auxInfo)
 
+  SWGpar = parManager(parS = parS, SWGparameterization = SWGparameterization, 
+                      datInd=datInd,
+                      auxInfo=auxInfo)
+  
   class(SWGpar) = SWGmodel
   
-  sim = SWGsim(SWGpar = SWGpar,
-                  nTimes = datInd[[aggNameShort[[timeStep]]]]$nTimes,
-                  randomTerm = randomTerm,
-               auxInfo=auxInfo)
+  #sim = SWGsim(SWGpar = SWGpar,
+  #                nTimes = datInd[[aggNameShort[[timeStep]]]]$nTimes,
+  #                randomTerm = randomTerm,
+  #             auxInfo=auxInfo)
 
+  sim = SWGsim(SWGpar = SWGpar,
+               nTimes = datInd$nTimes,
+               randomTerm = randomTerm,
+               auxInfo=auxInfo)
+  
   WG_calls = foreSIGHT_optimizationDiagnosticsEnv$WG_calls + 1
   assign("WG_calls",WG_calls,envir = foreSIGHT_optimizationDiagnosticsEnv)
   
   simVar = modelInfo$simVar
   ppTypes = modelInfo$ppTypes
   for (pp in ppTypes){
+#    sim = runPP(sim=sim,obs=auxInfo$obs[[simVar]],PPname=pp,parS=parS,
+#                datInd=datInd[[aggNameShort[[timeStep]]]],randomTerm=randomTerm) 
     sim = runPP(sim=sim,obs=auxInfo$obs[[simVar]],PPname=pp,parS=parS,
-                datInd=datInd[[aggNameShort[[timeStep]]]],randomTerm=randomTerm) 
+                datInd=datInd,randomTerm=randomTerm) 
   }
   
   return(sim)  
