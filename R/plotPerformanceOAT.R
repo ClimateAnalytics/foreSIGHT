@@ -101,7 +101,9 @@ plotPerformanceOAT <- function(performance,                   # system model per
   # remove tied attributes from targetMat
   attTied = sim$expSpace$attTied
   i=which(colnames(targetMat) %in% c(attTied))
-  targetMat = targetMat[,-i]
+  if(length(i)>0){
+    targetMat = targetMat[,-i]
+  }
   
   if (!is.null(topReps)) {
     if (topReps > nRep) {
