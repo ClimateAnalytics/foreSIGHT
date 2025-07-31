@@ -96,7 +96,12 @@ plotPerformanceOAT <- function(performance,                   # system model per
   #tarNames <- names(sim[[repNames[1]]])
   nRep <- length(repNames)
   #nTar <- length(tarNames)
-  targetMat <- sim[["expSpace"]][["targetMat"]]
+  targetMat <- sim$expSpace$targetMat
+  
+  # remove tied attributes from targetMat
+  attTied = sim$expSpace$attTied
+  i=which(colnames(targetMat) %in% c(attTied))
+  targetMat = targetMat[,-i]
   
   if (!is.null(topReps)) {
     if (topReps > nRep) {
@@ -121,11 +126,11 @@ plotPerformanceOAT <- function(performance,                   # system model per
   # doing this here instead of using attPerturbSamp directly since the targetMat may be subsetted
 #  if (is.null(attPerturb)){attPerturb <- getAttPerturb(targetMat)}
 #  if (is.null(attPerturb)){attPerturb <- sim$expSpace$attPerturb}
-  if (is.null(attSel)){
+ #if (is.null(attSel)){
     attPerturb <- sim$expSpace$attPerturb
-  } else {
-    attPerturb = attSel
-  }
+ #} else {
+ #  attPerturb = attSel
+ #}
   if (is.null(attPerturb)) stop("The simulation does not contain OAT perturbed attributes to plot.")
   
   # identify x and y columns
@@ -319,7 +324,7 @@ getOATData <- function(attPerturb,   # vector; perturbed attNames
     icol <- which(attNames == attPerturb[i])
     attVar <- strsplit(attPerturb[i], "_")[[1]][1]
     attOther <- attNames[-icol]
-    
+
     if (length(attPerturb)==1) {
       iInd <- 1:nrow(targetMat)
     } else {
