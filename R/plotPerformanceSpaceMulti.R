@@ -366,7 +366,8 @@ addClimData <- function(p1,                  # ggplot object to add the plot to
                         xlimits,             # xlim (chop points outside this range)
                         ylimits,             # ylim ( " )
                         colLim = NULL,       # specified (colLimIn will be modified only if this is NULL)
-                        colLimIn = NULL      # colour limits are checking with plotData
+                        colLimIn = NULL,      # colour limits are checking with plotData
+                        pointColouring=T           # whether to add colors to points based on performance
                         ) {
   # climate data
   if (!is.null(climData)) {
@@ -400,7 +401,7 @@ addClimData <- function(p1,                  # ggplot object to add the plot to
       if (climPoints == 0) {
         warning("climData is not plotted since the perturbations in the data are outside the ranges of the perturbations in sim.")
       } else {
-        if (is.null(climData[[perfName]])) {
+        if ((is.null(climData[[perfName]])|!pointColouring)) {
           p1 <-  p1 + 
             geom_point(data = climData, mapping = aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], shape = .data$Name), show.legend = TRUE, size = ptSize, colour = perfSpace_climDataCol, fill = perfSpace_climDataBg) +
             scale_shape_manual(name = NULL, values = rep(c(21, 22, 24, 25, 23, 16, 17, 18, 19, 20, c(0:14)), 20))+#, guide = guide_legend(order = 2, ncol = ncolLeg,overide.aes=list(fill=rep(NA,500))))+
