@@ -42,6 +42,8 @@ plotOptions <- function(performanceOpt1,               # system model performanc
                         opt1Label = "Option 1",        # label of system option 1
                         opt2Label = "Option 2",        # label of system option 2
                         titleText = paste0(opt2Label, " - ", opt1Label), # title of the plot
+                        type="filled.contour",               # plotting options "heat.plot", "filled.contour"
+                        nContour = perfSpace_nContour,
                         perfThresh = NULL,             # desired performance threshold; plot would contain a contour to mark this threshold
                         perfThreshLabel = "Threshold", # label text for the threshold
                         attSlices = NULL,              # list containing the slices of attributes to use for plotting
@@ -186,8 +188,31 @@ plotOptions <- function(performanceOpt1,               # system model performanc
   # Base R: not used
   # plotPerfQuiltPlot(perfPlotData, nx, ny, colLim = colLim, colBar = colBar, perfThresh = perfThresh, climData = climData)
   # plot performance threshold difference heatmap without thershold contours - because thresholds are based on original metric, not the difference
-  p1 <- heatPlot(perfPlotData, colLim = colLim, colMap = colMap, 
-                        perfThresh = NULL, perfThreshLabel = perfThreshLabel, climData = climData)
+  
+  # p1 <- heatPlot(perfPlotData, colLim = colLim, colMap = colMap, 
+  #                       perfThresh = NULL, perfThreshLabel = perfThreshLabel, climData = climData)
+  
+  
+  if(type == "heat.plot"){
+    p1 <- heatPlot(plotData=perfPlotData,
+                          colLim = colLim,
+                          colMap = colMap,
+                          perfThresh = NULL,
+                          perfThreshLabel = perfThreshLabel,
+                          climData = climData)
+  }else if(type == "filled.contour"){
+    p1 <- filledContourPlot(plotData=perfPlotData,
+                                   colLim = colLim,
+                                   colMap = colMap,
+                            nContour = nContour,
+                                   perfThresh = NULL,
+                                   perfThreshLabel = perfThreshLabel,
+                                   climData = climData)
+  }else{
+    print("Warning: Invalid type specified in plotPerformanceSpace()")
+    perfPlots=NULL
+  }
+  
   
   # Add title
   p1 <- p1 + ggplot2::ggtitle(titleText)
