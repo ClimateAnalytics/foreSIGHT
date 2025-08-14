@@ -326,8 +326,9 @@ plotPerformanceSpace <- function(performance,                   # system model p
                                  colMap = NULL,                 # alternate colormap
                                  colLim = NULL,                 # if null, the full limit is used
                                  contourBreaks=NULL,            # if null, default number of contours used, otherwise accepts vector of breaks
+                                 nContour = perfSpace_nContour,
                                  axesPercentLabel="fraction",        # if false, natural units used (if true fractions converted to %)
-                                 type="heat.plot",               # plotting options "heat.plot", "filled.contour"
+                                 type="filled.contour",               # plotting options "heat.plot", "filled.contour"
                                  noPlot=F  ) {
 
   # assuming that performance is a list with a name
@@ -446,6 +447,7 @@ plotPerformanceSpace <- function(performance,                   # system model p
                             perfThreshLabel = perfThreshLabel,
                             climData = climData,
                             contourBreaks=contourBreaks,
+                            nContour=nContour,
                             axesPercentLabel=axesPercentLabel)
     }else if(type == "filled.contour"){
       perfPlots <- filledContourPlot(plotData=perfPlotData,
@@ -455,6 +457,7 @@ plotPerformanceSpace <- function(performance,                   # system model p
                                      perfThreshLabel = perfThreshLabel,
                                      climData = climData,
                                      contourBreaks=contourBreaks,
+                                     nContour=nContour,
                                      axesPercentLabel=axesPercentLabel)
     }else{
       print("Warning: Invalid type specified in plotPerformanceSpace()")
@@ -478,6 +481,7 @@ heatPlot <- function(plotData,
                      perfThreshLabel = "Threshold",
                      climData = NULL,
                      contourBreaks=NULL,
+                     nCounter=perfSpace_nContour,
                      axesPercentLabel="fraction"
                      ){
 
@@ -607,7 +611,7 @@ heatPlot <- function(plotData,
   if(perfSpace_contours) {  # TRUE or FALSE default setting
     # print(colLimIn)
 
-    if(is.null(contourBreaks)){contourBreaks <- pretty(colLimIn, perfSpace_nContour)} # create breaks if none-specified
+    if(is.null(contourBreaks)){contourBreaks <- pretty(colLimIn, nContour)} # create breaks if none-specified
     # print(contourBreaks)
 
     # not able to add bins here - fix later
@@ -621,10 +625,11 @@ heatPlot <- function(plotData,
     p1 <- addContourThreshold(p1, plotDataMean, perfThresh, perfThreshLabel, xyAtts, perfName)
 
   }
+  
   p2List <- addClimData(p1, climData, perfName, xyAtts, xlimits, ylimits, colLim, colLimIn)
   p2 <- p2List[[1]]
   colLimIn <- p2List[[2]]
-
+  
   # Does not work if there are more than one contour line
   # if (!is.null(perfThresh)) {
   #   p2 <- p2 +
@@ -635,8 +640,17 @@ heatPlot <- function(plotData,
   #   #p2 <- directlabels::direct.label(p2, method = "angled.boxes", stat = "contour", breaks = perfThresh)
   # }
 
+  # if (is.null(colMap)) {
+  #   coloursIn <- foreSIGHT.colmap(perfSpace_nlevel)
+  # } else {
+  #   coloursIn <- colMap
+  #}
+  
+  #Align colours with contours # needs fixing to align
   if (is.null(colMap)) {
     coloursIn <- foreSIGHT.colmap(perfSpace_nlevel)
+  } else if (is.function(colMap)){
+    coloursIn <- colMap(perfSpace_nlevel)
   } else {
     coloursIn <- colMap
   }
@@ -652,6 +666,22 @@ heatPlot <- function(plotData,
 
 }
 
+# pretty_breaks_exclude_zero <- function(x, n = 10) {
+#   # Generate pretty breaks
+#   breaks <- pretty(range(x, finite = TRUE), n = n)
+#   
+#   # If 0 is exactly one of the breakpoints, shift the sequence slightly
+#   if (0 %in% breaks) {
+#     step <- diff(breaks)[1]  # assume equal spacing
+#     # Shift by half a step to exclude 0
+#     breaks <- breaks + step / 2
+#     # Round again to nice numbers
+#     breaks <- pretty(breaks, n = n)
+#   }
+#   
+#   return(breaks)
+# }
+
 #Bree: Added 17Nov2021
 #Legend currently turned off
 filledContourPlot <- function(plotData,
@@ -661,6 +691,7 @@ filledContourPlot <- function(plotData,
                      perfThreshLabel = "Threshold",
                      climData = NULL,
                      contourBreaks=NULL,
+                     nContour=perfSpace_nContour,
                      axesPercentLabel="fraction"
 ){
 
@@ -684,15 +715,20 @@ filledContourPlot <- function(plotData,
   }
 
   #ADD CONTOUR BREAKS IF NONE SPECIFIED
-  if(is.null(contourBreaks)){contourBreaks <- pretty(colLimIn, perfSpace_nContour)} # create breaks if none-specified
+  if(is.null(contourBreaks)){ # create breaks if none-specified
+    contourBreaks <- pretty(colLimIn, nContour)
+#    contourBreaks <- pretty_breaks_exclude_zero(colLimIn, perfSpace_nContour)
+  } 
 
   #Align colours with contours # needs fixing to align
   if (is.null(colMap)) {
-    coloursIn <- foreSIGHT.colmap(length(contourBreaks))
+    coloursIn <- foreSIGHT.colmap(length(contourBreaks)-1)
+  } else if (is.function(colMap)){
+    coloursIn <- colMap((length(contourBreaks)-1))
   } else {
     coloursIn <- colMap
   }
-
+  
   #check matching colours and contours
   if(length(coloursIn)<(length(contourBreaks)-1)){print(paste0("Warning: ",length(coloursIn)," colours supplied for ", length(contourBreaks)," contour breaks."))}
 
@@ -823,20 +859,35 @@ filledContourPlot <- function(plotData,
     xlimits <- c(min(plotDataMean[ ,1]), max(plotDataMean[ ,1]))
     ylimits <- c(min(plotDataMean[ ,2]), max(plotDataMean[ ,2]))
 
-    p1 <- ggplot() +
+    # p1 <- ggplot() +
+    #   geom_contour_filled(data = plotDataMean,
+    #                       aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], z = .data[[perfName]]),
+    #                       breaks = contourBreaks,show.legend=TRUE)+
+    #   labs(x = xyLabels[1], y = xyLabels[2]) +
+    #   scale_x_continuous(expand=c(0, 0)) +                                          # no extra space on x and y axes
+    #   scale_y_continuous(expand=c(0, 0)) +
+    #   coord_cartesian(xlim=xlimits, ylim=ylimits) +
+    #   scale_fill_manual(drop=FALSE,values=coloursIn,labels=breaklab,name=perfName)+
+    #   guides(fill=guide_legend(order=1,override.aes = list(shape=rep(NA,length(breaklab)))))+
+    #   theme_heatPlot() +
+    #   theme(legend.position="right")
+    
+    # Step 1: Build a temporary plot just to get the levels
+    p_temp <- ggplot() +
       geom_contour_filled(data = plotDataMean,
-                          aes(x = .data[[xyAtts[1]]], y = .data[[xyAtts[2]]], z = .data[[perfName]]),
-                          breaks = contourBreaks,show.legend=TRUE)+
+                          aes(x = .data[[xyAtts[1]]], 
+                              y = .data[[xyAtts[2]]], 
+                              z = .data[[perfName]]),
+                          breaks = contourBreaks)
+    
+    p1 <- p_temp +
+      scale_fill_manual(values = coloursIn, name = perfName, drop = F) +
       labs(x = xyLabels[1], y = xyLabels[2]) +
-      scale_x_continuous(expand=c(0, 0)) +                                          # no extra space on x and y axes
-      scale_y_continuous(expand=c(0, 0)) +
-      coord_cartesian(xlim=xlimits, ylim=ylimits) +
-      scale_fill_manual(drop=FALSE,values=coloursIn,labels=breaklab,name=perfName)+
-      guides(fill=guide_legend(order=1,override.aes = list(shape=rep(NA,length(breaklab)))))+
-      theme_heatPlot() +
-      theme(legend.position="right")
+      coord_cartesian(xlim = xlimits, ylim = ylimits) +
+      theme_heatPlot()
+    
   }
-
+  
   # CONTOUR LINES
   if(perfSpace_contours) {  # TRUE or FALSE default setting
     # print(colLimIn)
@@ -855,13 +906,13 @@ filledContourPlot <- function(plotData,
     p1 <- addContourThreshold(p1, plotDataMean, perfThresh, perfThreshLabel, xyAtts, perfName)
   }
 
-  p2List <- addClimData(p1, climData, perfName, xyAtts, xlimits, ylimits, colLim, colLimIn)
+  p2List <- addClimData(p1, climData, perfName, xyAtts, xlimits, ylimits, colLim, colLimIn, pointColouring=FALSE)
   p2 <- p2List[[1]]
   colLimIn <- p2List[[2]]
 
   #LEGEND OPTION PLOTS ON RIGHT FOR NOW
   # p2 <- p2 + scale_fill_manual(values=coloursIn,drop=FALSE) #test edit
-  p2 <- p1 #+
+  #p2 <- p1 #+
      #labs(tag = tag_text)+ #add foreSIGHT TAG
 
   #print(p2)
@@ -1001,7 +1052,7 @@ plotPerfQuiltPlot <- function(plotData, nx, ny, colLim = NULL, colBar = TRUE, pe
   if (perfSpace_contours) {
     # get image for contours
     look <- fields::as.image(plotData[ ,3], ind = cbind(plotData[ ,1], plotData[ ,2]), nx = nx, ny = ny)
-    graphics::contour(add = TRUE, x = look$x, y = look$y, z = look$z, method="edge", labcex = 1, nlevels = perfSpace_nContour)
+    graphics::contour(add = TRUE, x = look$x, y = look$y, z = look$z, method="edge", labcex = 1, nlevels = nContour)
   }
 
   if (!is.null(perfThresh)) {
