@@ -130,6 +130,7 @@ modelInfoList[['PET-har-wgenO']] = list(simVar='PET',
                                                    10,5,15,
                                                    2,1,15),
                                         WDcondition=FALSE,
+                                        minVal=0,
                                         ncycle=1,nperiod=26)
 
 
@@ -179,7 +180,7 @@ modelInfoList[['PET-harWD-wgenO']] = list(simVar='PET',
                                                      5,2,3.14),
                                           WDcondition=TRUE,WDthresh=0,
                                           minVal=0,
-                                          ncycle=1,nperiod=26)
+                                          ncycle=1,nperiod=26,wdCycle="All")
 
 
 # #################################
