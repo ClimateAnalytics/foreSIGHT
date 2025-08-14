@@ -41,15 +41,16 @@ plotPerformanceOAT <- function(performance,                   # system model per
                                # perfThresh = NULL,             # desired performance threshold; plot would contain a contour to mark this threshold
                                # perfThreshLabel = "Threshold", # label text for the threshold
                                # do we need this - attSlices = NULL,              # list containing the slices of attributes to use for plotting
-                               # climData = NULL,               # changes in climate attributes from other sources - can include label. If the performance measure being plotted is a column in the data.frame, the points will be coloured accordingly
+                               climData = NULL,               # changes in climate attributes from other sources - can include label. If the performance measure being plotted is a column in the data.frame, the points will be coloured accordingly
                                col = NULL,                    # colour of the ribbon
                                ylim = NULL,                    # ylim of the data, xlim is determined by the perturbation range
                                noPlot=T,
-                               plotType='ggplot',
-                               baseSettings=list(),
+                               # plotType='ggplot',
+                               # baseSettings=list(),
                                plim=c(0.05,0.95),              # probability limits
                                attSel=NULL,
-                               cex.main=0.8,cex.xaxis=0.5,cex.yaxis=0.5) {
+                               # cex.main=0.8,cex.xaxis=0.5,cex.yaxis=0.5,
+                               returnPlotData=F) {
   
   # assuming that performance is a list with a name
   # it may also be a matrix without a name; will be named "performance"
@@ -97,6 +98,7 @@ plotPerformanceOAT <- function(performance,                   # system model per
   nRep <- length(repNames)
   #nTar <- length(tarNames)
   targetMat <- sim$expSpace$targetMat
+  targetAtts = colnames(targetMat)
   
   # remove tied attributes from targetMat
   attTied = sim$expSpace$attTied
@@ -179,13 +181,6 @@ plotPerformanceOAT <- function(performance,                   # system model per
     # create data.frame for plotting
     plotData <- getOATData(attPerturb, targetMat, performanceAv, pMin, pMax)
 
-    # plotDataTmp = c()
-    # for (i in 1:length(plotData)){
-    #   plotDataTmp = rbind(plotDataTmp,plotData[[i]])
-    # }
-    # plotData = list()
-    # plotData[[1]] = plotDataTmp
-
     # determine indices in target matrix corresponding to OAT perturbations
     iInd <- getOATData(attPerturb, targetMat, performanceAv, pMin, pMax, return_iInd = T)
 
@@ -196,99 +191,104 @@ plotPerformanceOAT <- function(performance,                   # system model per
       iInd = iInd[[attSel]]
     }
 
-    if (plotType=='base'){
+    # determine target values associated with OAT perturbations  
+    if (metric %in% colnames(sim$expSpace$targetMat)){
+      targetVal = sim$expSpace$targetMat[iInd,metric]
+      targetVal = (targetVal-1)*100
+    } else {
+      targetVal = NULL
+    }
     
-      if(is.null(baseSettings$bias_base_thresh)){baseSettings$bias_base_thresh = 20}
-      if(is.null(baseSettings$slope_thresh)){baseSettings$slope_thresh = 1.5}
-
-      colMed = 'black'; lwdMed = 1
-      colShade='lightgrey'
-      colHold = 'green'; ltyHold = 2; lwdHold = 3
-      colTied = 'cyan'; ltyTied = 2; lwdTied = 3
-      colPert = 'blue'; ltyPert = 2; lwdPert = 3
-      colZero = 'black'; ltyZero = 3; lwdZero=0.5 
-      lwd=1
-      
-      # determine target values associated with OAT perturbations  
-      targetMat = sim$expSpace$targetMat
-      if (metric %in% colnames(targetMat)){
-        targetVal =targetMat[iInd,metric]
-        targetVal = (targetVal-1)*100
-      } else {
-        targetVal = NULL
-      }
-      
-      # determine median and upper and lower limits
-      m = 1
-      x = plotData[[m]][,1]
-      x = (x-1)*100
-      med = plotData[[m]][,2]
-      if (dim(plotData[[m]])[2]==5){
-        lo = plotData[[m]][,3]
-        hi = plotData[[m]][,4]
-      } else {
-        lo=NULL
-        hi=NULL
-      }
-
-     if (is.null(ylim)){
-        yMin = min(med,lo,hi,-10)
-        yMax = max(med,lo,hi,10)
-        ylim = c(yMin,yMax)
-      }
-      
-      plot(x=x,y=med,type='o',ylim=ylim,xaxs='i',xlab='',ylab='',col=colMed)
-      if (!is.null(lo)){
-        polygon(c(rev(x), x), c(rev(hi), lo), col = colShade, border = NA)
-      }
-      lines(x,med,type='l',col=colMed,lwd=lwdMed)
-      box()
-      if(!is.null(targetVal)){
-        if (metric==attSel){
-          col=colPert
-          lty=ltyPert
-          lwd=lwdPert
-        } else {
-          col=colHold
-          lty=ltyHold
-          lwd=lwdHold          
-        }
-        lines(x,targetVal,col=col,lty=lty,lwd=lwd)
-      }
-      points(x,med,col=colMed,lwd=lwdMed)
-
-      abline(h=0,lty=ltyZero,lwd=lwdZero,col=colZero)
-      abline(v=0,lty=ltyZero,lwd=lwdZero,col=colZero)
-      
-      bias_base = med[x==0]
-      bias_base_hi = abs(bias_base) > baseSettings$bias_base_thresh
-      if (bias_base_hi){points(x=0,bias_base,col='red',pch=4,cex=2,lwd=2)}
-      
-      mod = lm(med~x)
-      slope = mod$coefficients[2] 
-      inflated_response = abs(slope)>baseSettings$slope_thresh  
-      if (inflated_response){lines(x,med,col='red',lwd=2)}
-      
-      title_str = metric
-      if (bias_base_hi){title_str=paste0(title_str,' B')}
-      if (inflated_response){title_str=paste0(title_str,' I')}
-      title(title_str,cex.main=cex.main)
-
-      #attribute = unique(plotData[[m]][,'attribute'])
-      #mtext(side=1,text=attribute,line = 2,cex = 0.7)
-      
-      # mtext(side=1,text=paste0('D ',attPerturb,' (%)'),line = 2,cex = cex.xaxis)
-      # mtext(side=2,text=paste0('D ',metric,' (%)'),line = 2,cex = cex.yaxis)
-
-      mtext(side=1,text='Change pert att (%)',line = 2,cex = cex.xaxis)
-      mtext(side=2,text='Change att (%)',line = 2,cex = cex.yaxis)
-      
-    } else if (plotType=='ggplot') {
-      perfPlots <- lapply(plotData, OATPlot, col = col, ylimits = ylim)
+    if(returnPlotData){
+      return(list(plotData=plotData,
+                  iInd=iInd,
+                  targetVal=targetVal))
+    }
+    
+    # if (plotType=='base'){
+    # 
+    #   if(is.null(baseSettings$bias_base_thresh)){baseSettings$bias_base_thresh = 20}
+    #   if(is.null(baseSettings$slope_thresh)){baseSettings$slope_thresh = 1.5}
+    # 
+    #   colMed = 'black'; lwdMed = 1
+    #   colShade='lightgrey'
+    #   colHold = 'green'; ltyHold = 2; lwdHold = 3
+    #   colTied = 'cyan'; ltyTied = 2; lwdTied = 3
+    #   colPert = 'blue'; ltyPert = 2; lwdPert = 3
+    #   colZero = 'black'; ltyZero = 3; lwdZero=0.5 
+    #   lwd=1
+    #   
+    #   # determine median and upper and lower limits
+    #   m = 1
+    #   x = plotData[[m]][,1]
+    #   x = (x-1)*100
+    #   med = plotData[[m]][,2]
+    #   if (dim(plotData[[m]])[2]==5){
+    #     lo = plotData[[m]][,3]
+    #     hi = plotData[[m]][,4]
+    #   } else {
+    #     lo=NULL
+    #     hi=NULL
+    #   }
+    # 
+    #  if (is.null(ylim)){
+    #     yMin = min(med,lo,hi,-10)
+    #     yMax = max(med,lo,hi,10)
+    #     ylim = c(yMin,yMax)
+    #   }
+    #   
+    #   plot(x=x,y=med,type='o',ylim=ylim,xaxs='i',xlab='',ylab='',col=colMed)
+    #   if (!is.null(lo)){
+    #     polygon(c(rev(x), x), c(rev(hi), lo), col = colShade, border = NA)
+    #   }
+    #   lines(x,med,type='l',col=colMed,lwd=lwdMed)
+    #   box()
+    #   if(!is.null(targetVal)){
+    #     if (metric==attSel){
+    #       col=colPert
+    #       lty=ltyPert
+    #       lwd=lwdPert
+    #     } else {
+    #       col=colHold
+    #       lty=ltyHold
+    #       lwd=lwdHold          
+    #     }
+    #     lines(x,targetVal,col=col,lty=lty,lwd=lwd)
+    #   }
+    #   points(x,med,col=colMed,lwd=lwdMed)
+    # 
+    #   abline(h=0,lty=ltyZero,lwd=lwdZero,col=colZero)
+    #   abline(v=0,lty=ltyZero,lwd=lwdZero,col=colZero)
+    #   
+    #   bias_base = med[x==0]
+    #   bias_base_hi = abs(bias_base) > baseSettings$bias_base_thresh
+    #   if (bias_base_hi){points(x=0,bias_base,col='red',pch=4,cex=2,lwd=2)}
+    #   
+    #   mod = lm(med~x)
+    #   slope = mod$coefficients[2] 
+    #   inflated_response = abs(slope)>baseSettings$slope_thresh  
+    #   if (inflated_response){lines(x,med,col='red',lwd=2)}
+    #   
+    #   title_str = metric
+    #   if (bias_base_hi){title_str=paste0(title_str,' B')}
+    #   if (inflated_response){title_str=paste0(title_str,' I')}
+    #   title(title_str,cex.main=cex.main)
+    # 
+    #   #attribute = unique(plotData[[m]][,'attribute'])
+    #   #mtext(side=1,text=attribute,line = 2,cex = 0.7)
+    #   
+    #   # mtext(side=1,text=paste0('D ',attPerturb,' (%)'),line = 2,cex = cex.xaxis)
+    #   # mtext(side=2,text=paste0('D ',metric,' (%)'),line = 2,cex = cex.yaxis)
+    # 
+    #   mtext(side=1,text='Change pert att (%)',line = 2,cex = cex.xaxis)
+    #   mtext(side=2,text='Change att (%)',line = 2,cex = cex.yaxis)
+    #   
+    # } else if (plotType=='ggplot') {
+      perfPlots <- lapply(plotData, OATPlot, col = col, ylimits = ylim, climData=climData)
       if(!noPlot){print(perfPlots)}
       return(invisible(perfPlots))
       
-    }
+    # }
     
 }
 
@@ -445,7 +445,7 @@ getOATData <- function(attPerturb,   # vector; perturbed attNames
   return(OATdf)
 }
 
-OATPlot <- function(plotData, col = NULL, ylimits = NULL) {
+OATPlot <- function(plotData, col = NULL, ylimits = NULL, climData=NULL) {
   
   dfNames <- colnames(plotData)
   # the second column is always performance (named according to the input data)
@@ -516,6 +516,28 @@ OATPlot <- function(plotData, col = NULL, ylimits = NULL) {
   if (!is.null(ylimits)) {
     p1 <- p1 + ylim(ylimits)
   }
+  
+  if (!is.null(climData)) {
+    # Prepare rug data for the plot using columns matching the perturbed attributes
+    # 1. Select only columns in climData that correspond to the attributes being perturbed
+    # 2. Reshape the data to long format: one row per value per attribute
+    rugData <- climData %>%
+      dplyr::select(all_of(attNames)) %>%
+      tidyr::pivot_longer(cols = everything(), names_to = "attribute", values_to = "value")
+    
+    # Ensure 'attribute' in rugData is a factor with levels matching plot facets
+    rugData$attribute <- factor(rugData$attribute, levels = unique(plotDataMean$attribute))
+    
+    # Add rug plots (distribution "hairs") to bottom of each facet using matching input data
+    p1 <- p1 + geom_rug(
+      data = rugData,
+      aes(x = value),
+      sides = "b",
+      col = col,
+      inherit.aes = FALSE
+    )
+  }
+
   print(p1)
   return(p1)
   # return(list(p1, p1Build, ggPMean, ggPMin, ggPMax))
