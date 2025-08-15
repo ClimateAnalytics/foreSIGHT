@@ -481,7 +481,7 @@ heatPlot <- function(plotData,
                      perfThreshLabel = "Threshold",
                      climData = NULL,
                      contourBreaks=NULL,
-                     nCounter=perfSpace_nContour,
+                     nContour=perfSpace_nContour,
                      axesPercentLabel="fraction"
                      ){
 
