@@ -52,6 +52,10 @@ plotPerformanceOAT <- function(performance,                   # system model per
                                # cex.main=0.8,cex.xaxis=0.5,cex.yaxis=0.5,
                                returnPlotData=F) {
   
+  if (length(attSel)>1){
+    stop('attSel must have length 1')
+  }
+  
   # assuming that performance is a list with a name
   # it may also be a matrix without a name; will be named "performance"
   if (is.list(performance)) {
@@ -186,9 +190,15 @@ plotPerformanceOAT <- function(performance,                   # system model per
 
     # only consider changes associated with single attribute attSel (if attSel provided)
     if (!is.null(attSel)){
-      i = which(plotData[[1]][,'attribute']==attSel)
-      plotData[[1]] = plotData[[1]][i,]
-      iInd = iInd[[attSel]]
+      plotDataTmp = list()
+      for (n in 1:length(plotData)){
+        i = which(plotData[[n]][,'attribute']==attSel)
+        if (length(i)>0){
+          plotDataTmp[[1]] = plotData[[1]][i,]
+          iInd = iInd[[attSel]]
+        } 
+      }
+      plotData = plotDataTmp
     }
 
     # determine target values associated with OAT perturbations  
