@@ -53,6 +53,7 @@ calcPerformanceAttributes = function(clim,sim,attSel,vSel=NULL,cSel=NULL){
 
 ##################################################
 
+#' @export
 plotPerformanceAttributesOAT = function(clim,sim,attPerturb,attEval,Perf=NULL){
 
   if (is.null(Perf)){
