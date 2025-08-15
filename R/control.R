@@ -324,6 +324,7 @@ generateScenarios <- function(reference,                # data frame of observed
         total = nTarget, clear = FALSE, width= 60)
       pb$tick(0)
       for (iTarg in 1:nTarget) {
+        cat(paste0("Generating target number ", iTarg,  " out of ", nTarget, " targets...\n"))
         iRepTarg = (iRep-1)*nTarget+iTarg
         # Get the target location in the exposure space
         expTarg <- expSpace
