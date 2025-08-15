@@ -350,10 +350,10 @@ fillHeatPlot <- function(plotData,
     # does not work for long legend titles: # https://stackoverflow.com/questions/48000292/center-align-legend-title-and-legend-keys-in-ggplot2-for-long-legend-titles
     # look for workaround if required
     theme(legend.title.align = 0.5) +
-    #theme(legend.text = element_text(hjust = 0.5)) +
-    labs(tag = tag_text)
+    theme(legend.text = element_text(hjust = 0.5)) #+
+    #labs(tag = tag_text)
     
-  print(p2) 
+  #print(p2) 
   return(p2)
   
 }
