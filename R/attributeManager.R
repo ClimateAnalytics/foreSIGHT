@@ -84,38 +84,38 @@ func_fracxP99overPave = function(data,attArgs){
   return(fracxP99overPave)
 }
 
-#  function for calulcating ratio of P99 to average rainfall
-func_xP99overPave = function(data){
-  m = mean(data,na.rm=T)
-  if (m==0){
-    xP99overPave = 1e3
-  } else {
-    xP99overPave = quantile(data,0.99,names=F,na.rm=T)/mean(data,na.rm=T)
-  }
-  return(xP99overPave)
-}
-
-#  function for calulcating ratio of P90 to average rainfall
-func_xP90overPave = function(data){
-  m = mean(data,na.rm=T)
-  if (m==0){
-    xP90overPave = 1e3
-  } else {
-    xP90overPave = quantile(data,0.9,na.rm=T,names=F)/mean(data,na.rm=T)
-  }
-  return(xP90overPave)
-}
-
-#  function for calulcating ratio of P99.9 to average rainfall
-func_xP99.9overPave = function(data){
-  m = mean(data,na.rm=T)
-  if (m==0){
-    xP99.9overPave = 1e3
-  } else {
-    xP99.9overPave = quantile(data,0.999,na.rm=T,names=F)/mean(data,na.rm=T)
-  }
-  return(xP99.9overPave)
-}
+# #  function for calulcating ratio of P99 to average rainfall
+# func_xP99overPave = function(data){
+#   m = mean(data,na.rm=T)
+#   if (m==0){
+#     xP99overPave = 1e3
+#   } else {
+#     xP99overPave = quantile(data,0.99,names=F,na.rm=T)/mean(data,na.rm=T)
+#   }
+#   return(xP99overPave)
+# }
+# 
+# #  function for calulcating ratio of P90 to average rainfall
+# func_xP90overPave = function(data){
+#   m = mean(data,na.rm=T)
+#   if (m==0){
+#     xP90overPave = 1e3
+#   } else {
+#     xP90overPave = quantile(data,0.9,na.rm=T,names=F)/mean(data,na.rm=T)
+#   }
+#   return(xP90overPave)
+# }
+# 
+# #  function for calulcating ratio of P99.9 to average rainfall
+# func_xP99.9overPave = function(data){
+#   m = mean(data,na.rm=T)
+#   if (m==0){
+#     xP99.9overPave = 1e3
+#   } else {
+#     xP99.9overPave = quantile(data,0.999,na.rm=T,names=F)/mean(data,na.rm=T)
+#   }
+#   return(xP99.9overPave)
+# }
 
 #' Calculates number of wet days (above threshold)
 #' @param data is a vector, representing a time series
@@ -164,6 +164,20 @@ func_R = function(data,attArgs) get.nwet(data=data,threshold=attArgs$threshold)
 #' @param attArgs is a list, with attArgs$quant denoting the probability of the quantile
 #' @export
 func_P = function(data,attArgs) get.quantile(data=data,quant=attArgs$quant)
+
+#' Calculates normalised quantile (quantile divided by mean)
+#' @param data is a vector, representing a time series
+#' @param attArgs is a list, with attArgs$quant denoting the probability of the quantile
+#' @export
+func_normP = function(data,attArgs){
+  m = mean(data,na.rm=T)
+  if (m==0){
+    normP = 1e3
+  } else {
+    normP = get.quantile(data=data,quant=attArgs$quant)/m
+  }
+  return(normP)
+} 
 
 #' Calculates average of time series
 #' @param data is a vector, representing a time series
@@ -782,6 +796,17 @@ calcFuncNamesAndArgs = function(funcNameLong, # long function name (including pa
       invalidSuffixStop(funcName=funcName,suffix=suffix)
     }
 
+    # normalised percentiles
+  } else if (substring(funcNameLong,1,5)=='normP'){
+    funcName = 'normP'
+    suffix = strsplit(funcNameLong,funcName)[[1]][2]
+    p = as.numeric(suffix)
+    if (!is.na(p)){
+      attArgs=list(quant=0.01*p) # convert percentile to quantile
+    } else {
+      invalidSuffixStop(funcName=funcName,suffix=suffix)
+    }
+    
     # num days above threshold
   } else if (substring(funcNameLong,1,1)=='R'){
     funcName = 'R'
