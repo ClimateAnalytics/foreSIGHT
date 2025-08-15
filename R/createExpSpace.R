@@ -90,6 +90,7 @@ createExpSpace <- function(attPerturb,
                            attPerturbType = "regGrid",
                            attPerturbBy = NULL,
                            attHold = NULL,
+                           attTied = NULL,
                            attTargetsFile = NULL, # If this file is specified, use this, else create based on sample space
                            targetTypes = NULL
 ) {
@@ -170,6 +171,10 @@ createExpSpace <- function(attPerturb,
   spaceInfo$attPerturbBy <- attPerturbBy
   spaceInfo$targetType <- attInfo$targetType
 
+  if (!is.null(attTied)){
+    spaceInfo = tieAttributes(spaceInfo,attTied)
+  }
+  
   return(spaceInfo)
   
 }
@@ -283,7 +288,7 @@ tieAttributes = function(expSpace,attsTied){
   
   for (att1 in names(attsTied)){
     
-    if (!att1%in%colnames(expSpace$targetMat)){stop("must have tied attributes in targetMat attributes")}
+    if (!att1%in%colnames(expSpace$targetMat)){stop(paste0("must have tied attribute ",att1," in targetMat attributes"))}
     
     for (att2 in attsTied[[att1]]){
       i=which(colnames(expSpace$targetMat)==att1)
