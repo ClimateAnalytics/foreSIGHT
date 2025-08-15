@@ -39,6 +39,27 @@ convert_climYMD_POSIXct = function(clim){
 }
 ##################
 
+#' @export
+create_clim = function(timeStart,timeEnd,timeStep,fmt=NULL,tz='UTC',...){
+  
+  vars = list(...)
+  
+  timeStart = as.POSIXct(timeStart,tz=tz,fmt=fmt)
+  timeEnd = as.POSIXct(timeEnd,tz=tz,fmt=fmt)
+  
+  times = seq(timeStart,timeEnd,by=timeStep)
+  
+  clim = list(times=times)
+
+  for (varName in names(vars)){
+    clim[[varName]] = vars[[varName]] 
+  }
+  
+  return(clim)
+  
+}
+##################
+
 
 
 
