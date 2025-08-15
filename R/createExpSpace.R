@@ -231,6 +231,7 @@ addExpArgs_attHold <- function(attPerturb = attPerturb, attHold = attHold, exSpA
 
 #######
 
+#' @export
 setSeasonalTiedAttributes = function(attSel){
   attsTied = list()
   for (att in attSel){
@@ -243,6 +244,7 @@ setSeasonalTiedAttributes = function(attSel){
   return(attsTied)
 }
 
+#' @export
 setWDdayTiedAttributes = function(attSel){
   attsTied = list()
   for (att in attSel){
@@ -284,6 +286,7 @@ setWDdayTiedAttributes = function(attSel){
 #'         }
 #'       }
 
+#' @export
 tieAttributes = function(expSpace,attsTied){
   
   for (att1 in names(attsTied)){
