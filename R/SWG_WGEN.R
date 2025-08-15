@@ -49,15 +49,6 @@ modelInfoList[['P-har-wgen']] = list(simVar='P',
 
 )
 
-# modelInfoList[['P-annDelta-wgen']] = list(simVar='P',
-#                                             timeStep = '1 day',
-#                                             simPriority=1,
-#                                             npars=4,
-#                                             parNam = c('delta.pdd','delta.pwd','delta.alpha','delta.beta'),
-#                                             minBound=c(-1, -1, -1, -10),
-#                                             maxBound=c(1, 1, 1, 10.))
-
-
 #################################
 
 parManager.wgen = function(parS, SWGparameterization, datInd, auxInfo=NULL){
@@ -66,45 +57,13 @@ parManager.wgen = function(parS, SWGparameterization, datInd, auxInfo=NULL){
   
   nTimes = datInd$nTimes
   
-  # basePar = c(0.8004759,0.3494826,0.4233287,7.6178369)
-  # names(basePar) = c('pdd','pwd','alpha','beta')
   if (SWGparameterization=='ann'){
-    # for (par in names(parS)){
-    #   parTS[[par]] = rep(parS[par],nTimes)
-    # }
-    
     parTS = assignAnnualParameters(parNames=c('pdd','pwd','alpha','beta'),parS=parS,
                                    datInd=datInd) 
-    
-    #    parTS$pdd <- rep(parS['pdd'],datInd$nTimes)
-    #    parTS$pwd <- rep(parS['pwd'],datInd$nTimes)
-    #    parTS$alpha <- rep(parS['alpha'],datInd$nTimes)
-    #    parTS$beta <- rep(parS['beta'],datInd$nTimes)
-    # } else if (SWGparameterization=='annDelta'){
-    #   pdd = basePar['pdd']+parS['delta.pdd']#; pdd = max(min(pdd,1),0)
-    #   pwd = basePar['pwd']+parS['delta.pwd']#; pwd = max(min(pwd,1),0)
-    #   alpha = basePar['alpha']+parS['delta.alpha']#; alpha = max(alpha,0)
-    #   beta = basePar['beta']+parS['delta.beta']#; beta = max(beta,0)
-    #   parTS$pdd <- rep(pdd,nTimes)
-    #   parTS$pwd <- rep(pwd,nTimes)
-    #   parTS$alpha <- rep(alpha,nTimes)
-    #   parTS$beta <- rep(beta,nTimes)
   } else if (SWGparameterization=='seas'){
-    # parTS$pdd <- assignSeasPars(parS['pdd.SON'], parS['pdd.DJF'], parS['pdd.MAM'], parS['pdd.JJA'], datInd[["i.ss"]])
-    # parTS$pwd <- assignSeasPars(parS['pwd.SON'], parS['pwd.DJF'], parS['pwd.MAM'], parS['pwd.JJA'], datInd[["i.ss"]])
-    # parTS$alpha <- assignSeasPars(parS['alpha.SON'], parS['alpha.DJF'], parS['alpha.MAM'], parS['alpha.JJA'], datInd[["i.ss"]])
-    # parTS$beta <- assignSeasPars(parS['beta.SON'], parS['beta.DJF'], parS['beta.MAM'], parS['beta.JJA'], datInd[["i.ss"]])
-    
     parTS = assignSeasonalParameters(parNames=c('pdd','pwd','alpha','beta'),parS=parS,
                                    datInd=datInd)
-    
   } else if (SWGparameterization=='har'){
-    #Culley 2019 these parameter generators ignore leap years, so for long time series will become out of sync - DM comment: should create new function for applying harmonic to year, dealing with leap years
-    # parTS$pdd = harmonicFunc(x=seq(1:nTimes),mean=parS['pdd.m'],amp=parS['pdd.amp'],phase.ang = parS['pdd.ang'],k=1,nperiod=365)
-    # parTS$pwd = harmonicFunc(x=seq(1:nTimes),mean=parS['pwd.m'],amp=parS['pwd.amp'],phase.ang = parS['pwd.ang'],k=1,nperiod=365)
-    # parTS$alpha = harmonicFunc(x=seq(1:nTimes),mean=parS['alpha.m'],amp=parS['alpha.amp'],phase.ang = parS['alpha.ang'],k=1,nperiod=365)
-    # parTS$beta = harmonicFunc(x=seq(1:nTimes),mean=parS['beta.m'],amp=parS['beta.amp'],phase.ang = parS['beta.ang'],k=1,nperiod=365)
-    
     parTS = assignHarmonicDailyParameters(parNames=c('pdd','pwd','alpha','beta'),parS=parS,
                                      datInd=datInd)
     
