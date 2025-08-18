@@ -1,13 +1,16 @@
 rm(list=ls())
 
-foreSIGHTDir = 'C:/Users/a1065639/Work/foreSIGHT/'
-devtools::load_all(foreSIGHTDir)
+#foreSIGHTDir = 'C:/Users/a1065639/Work/foreSIGHT/'
+foreSIGHTDir = '/scratchdata1/users/a1065639/DEW_foreSIGHT/foreSIGHT/'
+
+#devtools::load_all(foreSIGHTDir)
+library(foreSIGHT)
 
 runDirname = paste0(foreSIGHTDir,'testing_2.0/')
 setwd(runDirname)
 
 source(paste0(runDirname,'GR4J_funcs.R'))
-# source(paste0(runDirname,'boxplot.ext_DM.r'))
+source(paste0(runDirname,'boxplot.ext_DM.r'))
 
 ############################################################################
 
@@ -18,10 +21,21 @@ endYr = 1985
 #endYr = 1995
 #endYr = 2005
 
-numReplicates = 1
-cores = 1
+numReplicates = 50
+cores = 50
 
 load_data = TRUE # read RData files (TRUE) or create them using DroughtRisk Package (FALSE) 
+
+############################################################################
+
+runStr = 'V1'
+#runStr = paste0(runStr,'_',catchment,'_',startYr,'_',endYr,
+#		paste(attPerturb,collapse='_'))
+
+#fname = paste0(runDirname,'summary_',catchment,'_',startYr,'_',endYr,'.pdf')
+#fname = paste0(runDirname,'sim_',catchment,'_',startYr,'_',endYr,
+#	       paste(attPerturb,collapse='_'),'.RData')
+
 
 ############################################################################
 
@@ -41,19 +55,20 @@ clim_ref <- list(times = data$times,
 
 ############################################################################
 
-fname = paste0(runDirname,'summary_',catchment,'_',startYr,'_',endYr,'.pdf')
-pdf(fname)
+#fname = paste0(runDirname,'summary_',catchment,'_',startYr,'_',endYr,'.pdf')
+#fname = paste0(runDirname,'summary_',runStr,'.pdf')
+#pdf(fname)
 
 ############################################################################
 
 attPerturbType = "regGrid"
 attPerturb = c('P_day_all_seasRatioMarMay','P_day_all_P99')
-attPerturbSamp = c(1,1)
-attPerturbMin = c(1,1)
-attPerturbMax = c(1,1)
-#attPerturbSamp = c(5,5)
-#attPerturbMin = c(0.7,1.)
-#attPerturbMax = c(1.3,1.3)
+#attPerturbSamp = c(1,1)
+#attPerturbMin = c(1,1)
+#attPerturbMax = c(1,1)
+attPerturbSamp = c(5,5)
+attPerturbMin = c(0.7,1.)
+attPerturbMax = c(1.3,1.3)
 attHold = c('P_day_all_tot','P_day_all_avgDSD','P_day_all_nWet',
             'P_day_DJF_avgDSD','P_day_MAM_avgDSD','P_day_JJA_avgDSD','P_day_SON_avgDSD',
             'P_day_DJF_nWet','P_day_MAM_nWet','P_day_JJA_nWet','P_day_SON_nWet',
@@ -85,7 +100,7 @@ modelSelection[["optimisationArguments"]][["OFtol"]] <- 0.1
 
 modelSelection[["penaltyAttributes"]] <- c('P_day_all_seasRatioMarMay','P_day_all_P99','P_day_all_tot',
                                            'P_day_all_avgDSD','P_day_all_nWet')
-modelSelection[["penaltyWeights"]] = c(2,2,2,1.5,1.5)
+modelSelection[["penaltyWeights"]] = c(3,3,3,1.5,1.5)
 
 modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
 controlFile = paste0(tempdir(), "\\eg_controlFile.json")
@@ -93,18 +108,32 @@ write(modelSelectionJSON, file = controlFile)
 
 ############################################################################
 
-time.1 = Sys.time()
-sim = generateScenarios(reference = clim_ref,
-                        expSpace = expSpace,
-                        controlFile = controlFile,
-                        seedID = 1,
-                        numReplicates = numReplicates,
-                        cores = cores)
-time.2 = Sys.time()
-print(time.2-time.1)
+runStr = paste0(runStr,'_',catchment,'_',startYr,'_',endYr,
+                paste(attPerturb,collapse='_'))
 
-fname = paste0(runDirname,'summary_',paste(attPerturb,collapse='_'),'.RData')
-save.image(file=fname)
+#fname = paste0(runDirname,'summary_',catchment,'_',startYr,'_',endYr,'.pdf')
+fname = paste0(runDirname,'summary_',runStr,'.pdf')
+pdf(fname)
+
+############################################################################
+
+#time.1 = Sys.time()
+#sim = generateScenarios(reference = clim_ref,
+#                        expSpace = expSpace,
+#                        controlFile = controlFile,
+#                        seedID = 1,
+#                        numReplicates = numReplicates,
+#                        cores = cores)
+#time.2 = Sys.time()
+#print(time.2-time.1)
+
+#fname = paste0(runDirname,'summary_',paste(attPerturb,collapse='_'),'.RData')
+fname = paste0(runDirname,'sim_',runStr,'.RData')
+
+
+#save.image(file=fname)
+
+load(fname)
 
 ##########################################################################
 
@@ -163,15 +192,20 @@ for (metric in metrics){
 
 if (nTar>1){
   
-  plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'meanQ',attSel=attPerturb)
-  plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'P99',attSel=attPerturb)
-  plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'P25',attSel=attPerturb)
-  plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'min3yr',attSel=attPerturb)
+  plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'meanQ',attSel=attPerturb[1])
+  plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'P99',attSel=attPerturb[1])
+  plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'P25',attSel=attPerturb[1])
+  plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'min3yr',attSel=attPerturb[1])
 
-  plotPerformanceSpace(performance = sysOutSim, sim=sim, metric = 'meanQ')
-  plotPerformanceSpace(performance = sysOutSim, sim=sim, metric = 'P99')
-  plotPerformanceSpace(performance = sysOutSim, sim=sim, metric = 'P25')
-  plotPerformanceSpace(performance = sysOutSim, sim=sim, metric = 'min3yr')
+  plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'meanQ',attSel=attPerturb[2])
+  plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'P99',attSel=attPerturb[2])
+  plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'P25',attSel=attPerturb[2])
+  plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'min3yr',attSel=attPerturb[2])
+
+  plotPerformanceSpace(performance = sysOutSim, sim=sim, metric = 'meanQ',type='filled.contour',nContour=5)
+  plotPerformanceSpace(performance = sysOutSim, sim=sim, metric = 'P99',type='filled.contour',nContour=5)
+  plotPerformanceSpace(performance = sysOutSim, sim=sim, metric = 'P25',type='filled.contour',nContour=5)
+  plotPerformanceSpace(performance = sysOutSim, sim=sim, metric = 'min3yr',type='filled.contour',nContour=5)
   
 }
 
