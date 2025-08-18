@@ -20,7 +20,7 @@ simple.scaling<-function(target=NULL,          #extracted from matrix output of 
     nLoc[[var]] = dimVar[2]
     temp[[var]] = list()
     temp[[var]]$sim = matrix(NA,nrow=dimVar[1],ncol=dimVar[2])
-    colnames(temp[[var]])=colnames(data[[var]])
+    colnames(temp[[var]]$sim)=colnames(data[[var]])
   }
 
   for (p in 1:period) {           #for annual this is equal to 1
