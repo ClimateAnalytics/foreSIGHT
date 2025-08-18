@@ -355,7 +355,7 @@ generateScenarios <- function(reference,                # data frame of observed
     allSim <- foreach (iRep=1:nRep,.packages = "foreSIGHT",.export = ls(globalenv())) %:%
       foreach (iTarg=1:nTarget,.packages = "foreSIGHT",.export = ls(globalenv())) %dopar% {
    
-cat(paste0('Rep',iRep,' Targ',iTarg,'\n'))
+        cat(paste0('Rep',iRep,' Targ',iTarg,'\n'))
 
         iRepTarg = (iRep-1)*nTarget+iTarg
     
@@ -771,7 +771,7 @@ generateScenario <- function(reference,       # list observed data with column n
   if(modelTag[1]%in%c("Simple-ann","Simple-seas")){simVar=attInfo$varType}
   attInd=get.att.ind(attInfo=attInfo,simVar=simVar)
 
-   attInfo=update.att.Info(attInfo=attInfo,attInd=attInd,modelTag=modelTag,simVar=simVar) #add extra level for easier model mangmt
+  attInfo=update.att.Info(attInfo=attInfo,attInd=attInd,modelTag=modelTag,simVar=simVar) #add extra level for easier model mangmt
 
   #GET DATES DATA (and indexes for harmonic periods)
   banner("INDEXING DATES",file)
@@ -1205,7 +1205,7 @@ simulateTargetCor = function(optimArgs=NULL,
         sim1 = simClim(parS=simIn$sites[[site1]][[simVar[1]]]$par,              
                           modelTag = modelTag,
                           modelInfo=modelInfo[[mod]],
-                          datInd=datInd[[mod]][[aggNameShort[[timeStep]]]],
+                          datInd=datInd[[mod]][[timeStep]],
                           randomTerm = list(randomUnitNormalVector = MVTsampleMat[,1]),
                           auxInfo = list(obs=obsTmp1))
         
@@ -1214,7 +1214,7 @@ simulateTargetCor = function(optimArgs=NULL,
         sim2 = simClim(parS=simIn$sites[[site2]][[simVar[1]]]$par,              
                        modelTag = modelTag,
                        modelInfo=modelInfo[[mod]],
-                       datInd=datInd[[mod]][[aggNameShort[[timeStep]]]],
+                       datInd=datInd[[mod]][[timeStep]],
                        randomTerm = list(randomUnitNormalVector = MVTsampleMat[,2]),
                        auxInfo = list(obs=obsTmp2))
 
@@ -1239,12 +1239,12 @@ simulateTargetCor = function(optimArgs=NULL,
     site = sites[s]
     
     obsTmp = obs; obsTmp[[simVar[mod]]] = obs[[simVar[mod]]][,s]
-    
+
     # note currently not setup to include auxInfo (i.e. obs, wdStatus)
     sim$sites[[site]] = simClim(parS=simIn$sites[[site]][[simVar[1]]]$par,              
                    modelTag = modelTag,
                    modelInfo=modelInfo[[mod]],
-                   datInd=datInd[[mod]][[aggNameShort[[timeStep]]]],
+                   datInd=datInd[[mod]][[timeStep]],
                    randomTerm = list(randomUnitNormalVector = MVTsampleMat[,s]),
                    auxInfo = list(obs=obsTmp))
     
