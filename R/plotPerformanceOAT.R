@@ -201,9 +201,15 @@ plotPerformanceOAT <- function(performance,                   # system model per
       plotData = plotDataTmp
     }
 
-    # determine target values associated with OAT perturbations  
-    if (metric %in% colnames(sim$expSpace$targetMat)){
-      targetVal = sim$expSpace$targetMat[iInd,metric]
+    # # determine target values associated with OAT perturbations  
+    # if (metric %in% colnames(sim$expSpace$targetMat)){
+    #   targetVal = sim$expSpace$targetMat[iInd,metric]
+    #   targetVal = (targetVal-1)*100
+    # } else {
+    #   targetVal = NULL
+    # }
+    if (perfName %in% colnames(sim$expSpace$targetMat)){
+      targetVal = sim$expSpace$targetMat[iInd,perfName]
       targetVal = (targetVal-1)*100
     } else {
       targetVal = NULL
