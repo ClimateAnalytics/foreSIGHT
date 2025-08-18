@@ -1,5 +1,6 @@
 ######################################################
 
+#' @export
 combine_sims = function(sim.1,var.1,sim.2,var.2,combination.reps=T){
   
   sim.new = list()
@@ -130,6 +131,7 @@ add_obs_var_to_sim = function(sim,var,data){
 
 ######################################################
 
+#' @export
 shuffle_sim = function(sim,clim,attPerturb='P_day_all_tot_dwellTime',
                        targetVals,
                        targetType='frac',seed=1,
