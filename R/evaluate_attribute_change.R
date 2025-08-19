@@ -54,7 +54,9 @@ calcPerformanceAttributes = function(clim,sim,attSel,vSel=NULL,cSel=NULL){
 ##################################################
 
 #' @export
-plotPerformanceAttributesOAT = function(clim,sim,attPerturb,attEval,Perf=NULL,vSel=NULL,cSel=NULL){
+plotPerformanceAttributesOAT = function(clim,sim,attPerturb,attEval,Perf=NULL,vSel=NULL,cSel=NULL,
+                                        ylim=NULL,
+                                        cex.main=0.8,cex.xaxis=0.5,cex.yaxis=0.5){
 
   if (is.null(Perf)){
     Perf = calcPerformanceAttributes(clim=clim,sim=sim,attSel=attEval,vSel=vSel,cSel=cSel)
@@ -63,7 +65,9 @@ plotPerformanceAttributesOAT = function(clim,sim,attPerturb,attEval,Perf=NULL,vS
   for (att in names(Perf)){
     o = plotPerformanceOAT(Perf, sim, metric=att,attSel=attPerturb,returnPlotData=T)
     plotPerformanceOAT.baseR(plotData=o$plotData,sim=sim,metric=att,targetVal = o$targetVal,
-                             attSel=attPerturb)
+                             attSel=attPerturb,
+                             ylim=ylim,
+                             cex.main=cex.main,cex.xaxis=cex.main,cex.yaxis=cex.main)
   } 
 
 }
@@ -72,8 +76,7 @@ plotPerformanceAttributesOAT = function(clim,sim,attPerturb,attEval,Perf=NULL,vS
 
 plotPerformanceOAT.baseR = function(plotData,sim,metric,attSel,
                                     targetVal,
-                                    baseSettings=list(),
-                                    ylim=NULL,
+                                    ylim=NULL,baseSettings=list(),
                                     cex.main=0.8,cex.xaxis=0.5,cex.yaxis=0.5){
   
   if(is.null(baseSettings$bias_base_thresh)){baseSettings$bias_base_thresh = 20}
