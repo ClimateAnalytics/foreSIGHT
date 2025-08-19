@@ -67,7 +67,7 @@ plotPerformanceAttributesOAT = function(clim,sim,attPerturb,attEval,Perf=NULL,vS
     plotPerformanceOAT.baseR(plotData=o$plotData,sim=sim,metric=att,targetVal = o$targetVal,
                              attSel=attPerturb,
                              ylim=ylim,
-                             cex.main=cex.main,cex.xaxis=cex.main,cex.yaxis=cex.main)
+                             cex.main=cex.main,cex.xaxis=cex.xaxis,cex.yaxis=cex.yaxis)
   } 
 
 }
