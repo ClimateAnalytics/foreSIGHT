@@ -51,7 +51,7 @@ evaluate_system_metrics = function(sim,clim,systemModel,systemArgs,metrics,obs_m
 }
 
 #' @export
-boxplot.prob =function(xin,whiskersProb=c(0.025,0.975),at=NULL,...){
+boxplot_prob =function(xin,whiskersProb=c(0.025,0.975),at=NULL,...){
   # Draws a boxplot with the whiskers at the probability limits, provided by whiskersProb
   # x can be vector or data.frame
   # whiskers Prob values are probabilities for the lower and upper whisker (respectively)
