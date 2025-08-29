@@ -46,6 +46,7 @@ modelInfoList[['P-har-latent']] = list(simVar='P',
 
 # #################################
 
+#' @exportS3Method parManager latent
 parManager.latent = function(parS, SWGparameterization, datInd, auxInfo=NULL){
   
   parNamesSWG = c('alpha','sigma','mu','lambda')
@@ -62,6 +63,7 @@ parManager.latent = function(parS, SWGparameterization, datInd, auxInfo=NULL){
 
 #################################
 
+#' @exportS3Method SWGsim latent
 SWGsim.latent = function(SWGpar,
                         nTimes,
                         randomTerm,

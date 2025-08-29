@@ -12,6 +12,7 @@ modelInfoList[["P-ann-BLRPM"]] = list(simVar="P",
 
 #################################
 
+#' @exportS3Method parManager BLRPM
 parManager.BLRPM = function(parS, SWGparameterization, datInd,auxInfo=NULL){
   
   if (SWGparameterization=='ann'){
@@ -30,6 +31,7 @@ parManager.BLRPM = function(parS, SWGparameterization, datInd,auxInfo=NULL){
 
 #################################
 
+#' @exportS3Method SWGsim BLRPM
 SWGsim.BLRPM = function(SWGpar,
                         nTimes,
                         randomTerm,
@@ -37,7 +39,7 @@ SWGsim.BLRPM = function(SWGpar,
   
   set.seed(randomTerm$seed)
   
-  P = BLRPM.sim(lambda=SWGpar$lambda,
+  P = BLRPM::BLRPM.sim(lambda=SWGpar$lambda,
                 gamma=SWGpar$gamma,
                 beta=SWGpar$beta,
                 eta=SWGpar$eta,

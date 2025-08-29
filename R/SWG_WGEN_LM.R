@@ -185,19 +185,20 @@ modelInfoList[['PET-harWD-wgenO']] = list(simVar='PET',
 
 # #################################
 
+#' @exportS3Method parManager wgenO
 parManager.wgenO = function(parS, SWGparameterization, datInd, auxInfo=NULL){
   
   if (SWGparameterization=='ann'){
-    parTS = assignAnnualParameters(parNames=c('cor0','mu','sigma'),parS=parS,
+    parTS = assignAnnualParameters(parNamesSWG=c('cor0','mu','sigma'),parS=parS,
                                    datInd=datInd) 
   } else if (SWGparameterization=='har'){
-    parTS = assignAnnualParameters(parNames=c('cor0'),parS=parS,datInd=datInd) 
-    parTS = assignHarmonicDailyParameters(parNames=c('mu','sigma'),parS=parS,
+    parTS = assignAnnualParameters(parNamesSWG=c('cor0'),parS=parS,datInd=datInd) 
+    parTS = assignHarmonicDailyParameters(parNamesSWG=c('mu','sigma'),parS=parS,
                                           datInd=datInd,parTS=parTS)
   }   else if (SWGparameterization=='seas'){
-    parTS = assignSeasonalParameters(parNames=c('cor0','mu','sigma'),parS=parS,datInd=datInd) 
+    parTS = assignSeasonalParameters(parNamesSWG=c('cor0','mu','sigma'),parS=parS,datInd=datInd) 
   }   else if (SWGparameterization=='annWD'){
-    parTStmp = assignAnnualParameters(parNames=c('cor0','mu.D','mu.W','sigma.D','sigma.W'),parS=parS,
+    parTStmp = assignAnnualParameters(parNamesSWG=c('cor0','mu.D','mu.W','sigma.D','sigma.W'),parS=parS,
                                       datInd=datInd) 
     # select parameters mu and sigma based on wet-dry days 
     mu = parTStmp$muD; mu[auxInfo$wdStatus] = parTStmp$muW[auxInfo$wdStatus]
@@ -205,7 +206,7 @@ parManager.wgenO = function(parS, SWGparameterization, datInd, auxInfo=NULL){
     parTS = list(cor0=parTStmp$cor0,mu=mu,sigma=sigma)
   }   else if (SWGparameterization=='seasWD'){
     # setup seasonally varying parameter time series for all 5 parameters (including separate wet-dry day params)
-    parTStmp = assignSeasonalParameters(parNames=c('cor0','mu.D','mu.W','sigma.D','sigma.W'),parS=parS,
+    parTStmp = assignSeasonalParameters(parNamesSWG=c('cor0','mu.D','mu.W','sigma.D','sigma.W'),parS=parS,
                                       datInd=datInd)  
     # change correlation to 0 when switching between wet and dry days
     cor0 = parTStmp$cor0
@@ -220,9 +221,9 @@ parManager.wgenO = function(parS, SWGparameterization, datInd, auxInfo=NULL){
   }   else if (SWGparameterization=='harWD'){
     
     # setup annual parameter for cor0
-    parTStmp = assignAnnualParameters(parNames=c('cor0'),parS=parS,datInd=datInd)  
+    parTStmp = assignAnnualParameters(parNamesSWG=c('cor0'),parS=parS,datInd=datInd)  
     # setup harmonic parameter for other
-    parTStmp = assignHarmonicDailyParameters(parNames=c('mu.D','mu.W','sigma.D','sigma.W'),parS=parS,
+    parTStmp = assignHarmonicDailyParameters(parNamesSWG=c('mu.D','mu.W','sigma.D','sigma.W'),parS=parS,
                                         datInd=datInd,parTS=parTStmp)  
     
     # change correlation to 0 when switching between wet and dry days
@@ -242,6 +243,7 @@ parManager.wgenO = function(parS, SWGparameterization, datInd, auxInfo=NULL){
 
 #################################
 
+#' @exportS3Method SWGsim wgenO
 SWGsim.wgenO = function(SWGpar,
                         nTimes,
                         randomTerm,

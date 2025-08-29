@@ -57,6 +57,7 @@ modelInfoList[["P-har-monAR1"]] = list(simVar="P",
 
 # #################################
 
+#' @exportS3Method parManager monAR1
 parManager.monAR1 = function(parS, SWGparameterization, datInd,auxInfo=NULL){
 
   
@@ -65,8 +66,8 @@ parManager.monAR1 = function(parS, SWGparameterization, datInd,auxInfo=NULL){
   } else if (SWGparameterization=='seas'){
     parTS = assignSeasonalParameters(parS=parS,datInd=datInd)
   } else if (SWGparameterization=='seas1'){
-    parTS = assignSeasonalParameters(parNames=c('mu','sigma','lambda'),parS=parS,datInd=datInd)
-    parTS = assignAnnualParameters(parNames=c('phi'),parS=parS,datInd=datInd,parTS=parTS)
+    parTS = assignSeasonalParameters(parNamesSWG=c('mu','sigma','lambda'),parS=parS,datInd=datInd)
+    parTS = assignAnnualParameters(parNamesSWG=c('phi'),parS=parS,datInd=datInd,parTS=parTS)
   } else if (SWGparameterization=='har'){
     parTS = assignHarmonicDailyParameters(parS=parS,datInd=datInd)
   }
@@ -80,6 +81,7 @@ parManager.monAR1 = function(parS, SWGparameterization, datInd,auxInfo=NULL){
 
 #################################
 
+#' @exportS3Method SWGsim monAR1
 SWGsim.monAR1 = function(SWGpar,
                          nTimes,
                          randomTerm,
@@ -102,7 +104,7 @@ SWGsim.monAR1 = function(SWGpar,
   }
 
   sigma = SWGpar[['sigma']]*sqrt(1-SWGpar[['phi']]^2)
-  epsilonT = qnorm(randomTerm$randomVector) * sigma
+  epsilonT = stats::qnorm(randomTerm$randomVector) * sigma
   X = latentX_calc_cpp(SWGpar[['phi']], epsilonT, nTimes)
 
   X = X + SWGpar[['mu']]

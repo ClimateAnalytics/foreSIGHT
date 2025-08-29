@@ -51,6 +51,7 @@ modelInfoList[['P-har-wgen']] = list(simVar='P',
 
 #################################
 
+#' @exportS3Method parManager wgen
 parManager.wgen = function(parS, SWGparameterization, datInd, auxInfo=NULL){
   
   parTS = list()
@@ -58,13 +59,13 @@ parManager.wgen = function(parS, SWGparameterization, datInd, auxInfo=NULL){
   nTimes = datInd$nTimes
   
   if (SWGparameterization=='ann'){
-    parTS = assignAnnualParameters(parNames=c('pdd','pwd','alpha','beta'),parS=parS,
+    parTS = assignAnnualParameters(parNamesSWG=c('pdd','pwd','alpha','beta'),parS=parS,
                                    datInd=datInd) 
   } else if (SWGparameterization=='seas'){
-    parTS = assignSeasonalParameters(parNames=c('pdd','pwd','alpha','beta'),parS=parS,
+    parTS = assignSeasonalParameters(parNamesSWG=c('pdd','pwd','alpha','beta'),parS=parS,
                                    datInd=datInd)
   } else if (SWGparameterization=='har'){
-    parTS = assignHarmonicDailyParameters(parNames=c('pdd','pwd','alpha','beta'),parS=parS,
+    parTS = assignHarmonicDailyParameters(parNamesSWG=c('pdd','pwd','alpha','beta'),parS=parS,
                                      datInd=datInd)
     
   }
@@ -85,6 +86,7 @@ parManager.wgen = function(parS, SWGparameterization, datInd, auxInfo=NULL){
 
 #################################
 
+#' @exportS3Method SWGsim wgen
 SWGsim.wgen = function(SWGpar,
                        nTimes,
                        randomTerm,

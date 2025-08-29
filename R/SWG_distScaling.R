@@ -12,6 +12,7 @@ modelInfoList[["P-ann-distScaling"]] = list(simVar="P",
 
 # #################################
 
+#' @exportS3Method parManager distScaling
 parManager.distScaling = function(parS, SWGparameterization, datInd, auxInfo=NULL){
 
   if (SWGparameterization=='ann'){
@@ -27,6 +28,7 @@ parManager.distScaling = function(parS, SWGparameterization, datInd, auxInfo=NUL
 
 #################################
 
+#' @exportS3Method SWGsim distScaling
 SWGsim.distScaling = function(SWGpar,
                             nTimes=NULL,
                             randomTerm=NULL,
@@ -39,11 +41,11 @@ SWGsim.distScaling = function(SWGpar,
 
   pars.obs=gammaParsMLE2(dat=dat,wetThresh=0.00)
 
-  CDFvals = pgamma(dat,shape=pars.obs$shape,scale=pars.obs$scale)
+  CDFvals = stats::pgamma(dat,shape=pars.obs$shape,scale=pars.obs$scale)
 
   P.new = P
 
-  P.new[i.ww] = qgamma(CDFvals,shape=SWGpar$shape,scale=SWGpar$scale)
+  P.new[i.ww] = stats::qgamma(CDFvals,shape=SWGpar$shape,scale=SWGpar$scale)
 
   return(P.new)
 
