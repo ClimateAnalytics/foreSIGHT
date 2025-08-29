@@ -144,7 +144,7 @@ str.end<-function(x,n,pad=" "){
 }
 
 # FUNCTION TO ADD BOXPLOT WITH PROBLIMS
-boxplot.func=function(z,at.pt=NULL,decile.low="10%",decile.high="90%",col=NULL,medcol=NULL,boxwex=0.7){
+boxplot_func=function(z,at.pt=NULL,decile.low="10%",decile.high="90%",col=NULL,medcol=NULL,boxwex=0.7){
   boxplot.info <- graphics::boxplot(z, plot=FALSE,na.action=T);deciles <- stats::quantile(z, probs=seq(0,1,0.05),na.rm=T)
   boxplot.info$stats[1] <- deciles[decile.low]; boxplot.info$stats[5] <- deciles[decile.high]
   graphics::bxp(boxplot.info,at=at.pt,add=T,col=col,na.action=T,range=0,boxwex=boxwex,outline=F,medcol=medcol,yaxt='n',boxfill=col)
@@ -354,23 +354,23 @@ extractor.summaryDwellTime<-function(func=NULL,
     sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
   }
   spell.lengths = get.spell.lengths(data=sim.series, 
-                                    thresh=median(sim.series),  
+                                    thresh=stats::median(sim.series),  
                                     type="dry")
   m.series=mean(spell.lengths)
   return(m.series)
 }
 
-extractor.summaryRange90<-function(func=NULL,
-                                     data=NULL,
-                                     indx=NULL,...){
-  nperiod=length(indx)
-  sim.series=rep(NA,nperiod)
-  for(p in 1:nperiod){
-    sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
-  }
-  m.series=quantile(sim.series,probs=0.95)-quantile(sim.series,probs=0.05)
-  return(m.series)
-}
+# extractor.summaryRange90<-function(func=NULL,
+#                                      data=NULL,
+#                                      indx=NULL,...){
+#   nperiod=length(indx)
+#   sim.series=rep(NA,nperiod)
+#   for(p in 1:nperiod){
+#     sim.series[p]=extractor(func=func,data=data,indx=indx[[p]],...)
+#   }
+#   m.series=quantile(sim.series,probs=0.95)-quantile(sim.series,probs=0.05)
+#   return(m.series)
+# }
 
 extractor.summaryMin<-function(func=NULL,
                               data=NULL,
@@ -419,7 +419,7 @@ extractor.cv<-function(func=NULL,
   nperiod=length(indx)
   tmp=extractor.multPeriod(func=func,data=data,indx=indx,nperiod=nperiod,...)
   sdTmp = stats::sd(tmp,na.rm=TRUE)
-  meanTmp = stats::mean(tmp,na.rm=TRUE)
+  meanTmp = base::mean(tmp,na.rm=TRUE)
   if (meanTmp==0){
     if (sdTmp==0){
       cv = 0.
@@ -692,7 +692,7 @@ categ.fun=function(perf.lim=c(5,10), # performance limits (<=5% good, <=10& fair
 
 #plot classifer chart element - one of many in grid of classifiers
 
-plot.attrib.perf.solo=function(rel.diff,                   #relative difference - scalar
+plot_attrib_perf_solo=function(rel.diff,                   #relative difference - scalar
                                perf.lim=c(5,10),           #performance limits - good, fair, poor beyond
                                targetType=NULL,
                                att.name=NULL,              #string that will label plot

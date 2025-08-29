@@ -109,7 +109,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
 
   for (r in 1:optimArgs$nMultiStart){
 
-    print(r)
+    #print(r)
     
     # optim_num = foreSIGHT_optimizationSeedTrackerEnv$optim_num + 1
     # assign("optim_num",optim_num,envir = foreSIGHT_optimizationSeedTrackerEnv)
@@ -124,7 +124,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
       seed = seed1 + r - 1
     }
     
-    print(paste0('seed =',seed))
+    print(paste0('multistart seed = ',seed))
 
     set.seed(seed) # set the random seed for selecting initial parameter values. note same set of seeds will be used for each target/replicate.
 
@@ -351,6 +351,7 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
       fTraceTrim = callsTraceTrim = NULL
     }
     
+    print(optOutput$fSingle)
     fMulti[r] = optOutput$fSingle
     parsMulti[r,] = optOutput$parsSingle
     timeMulti[r] = timeSingle
@@ -396,8 +397,6 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
            fTraceMulti=fTraceMulti,
            callsTraceMulti=callsTraceMulti)
 
-  # browser()
-  
   return(out)
 
 }
@@ -459,32 +458,32 @@ singleOptim = function(optInput,...){
     parsSingle = calcParFixedPars(outTmp$par,fixedPars)
     convergedSingle = (outTmp$convergence)
 
-  } else if (optimArgs$optimizer=='CMAES') {
-
-    set.seed(seed)
-    outTmp <- cmaes::cma_es(fn=targetFinderFixPars,
-                            par = par,
-                            fixedPars=fixedPars,
-                            modelInfo=modelInfo,
-                            target=target,
-                            # lambda.mult=optimArgs$lambda.mult,
-                            obj.func=optimArgs$obj.func,
-                            ...,
-                            lower = lower,
-                            upper = upper,
-                            control=optimArgs$CMAES.control)
-
-    fSingle = -outTmp$value
-    if (is.null(outTmp$par)){
-      fSingle=9e9
-      parSingle = NULL
-    } else {
-      parsSingle = calcParFixedPars(outTmp$par,fixedPars)
-    }
-
-    convergedSingle = (outTmp$convergence==0)
-    convergenceCodeSingle = outTmp$convergence
-
+  # } else if (optimArgs$optimizer=='CMAES') {
+  # 
+  #   set.seed(seed)
+  #   outTmp <- cmaes::cma_es(fn=targetFinderFixPars,
+  #                           par = par,
+  #                           fixedPars=fixedPars,
+  #                           modelInfo=modelInfo,
+  #                           target=target,
+  #                           # lambda.mult=optimArgs$lambda.mult,
+  #                           obj.func=optimArgs$obj.func,
+  #                           ...,
+  #                           lower = lower,
+  #                           upper = upper,
+  #                           control=optimArgs$CMAES.control)
+  # 
+  #   fSingle = -outTmp$value
+  #   if (is.null(outTmp$par)){
+  #     fSingle=9e9
+  #     parSingle = NULL
+  #   } else {
+  #     parsSingle = calcParFixedPars(outTmp$par,fixedPars)
+  #   }
+  # 
+  #   convergedSingle = (outTmp$convergence==0)
+  #   convergenceCodeSingle = outTmp$convergence
+  # 
   } else if (optimArgs$optimizer=='GA') {
 
     outTmp = GA::ga(type = "real-valued",

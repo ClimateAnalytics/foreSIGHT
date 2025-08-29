@@ -70,7 +70,7 @@ modSimulator<-function(datStart,
 
   #GET ADDITIONAL MODEL INFO, SIMVARS etc
   modelInfo=get.multi.model.info(modelTag=modelTag)
-  modelTag=update.simPriority(modelInfo=modelInfo)
+  modelTag=update_simPriority(modelInfo=modelInfo)
   simVar=sapply(X=modelInfo[modelTag],FUN=return.simVar,USE.NAMES=TRUE)       #?CREATE MODEL MASTER INFO - HIGHER LEVEL?
 
   #Manage dates

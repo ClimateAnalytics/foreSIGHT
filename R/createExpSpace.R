@@ -28,6 +28,13 @@
 #' If \code{attPerturbBy} is specified, attPerturbSamp should be set as \code{NULL}.
 #' @param attHold A char vector; the names of the attributes to be held at historical levels. 
 #'                This vector can contain attributes of different hydroclimatic variables.
+#' @param attTied A list; the attributes to be tied to other perturbed or held attributes. 
+#'                First level of list is name of perturbed/held attributes. 
+#'                Second level of list is vector of attributes that are tied (chnage with) to attribute in first level. 
+#' @param targetTypes A list; target type ('frac','diff') used to calculate changes in attributes. 
+#'                First level of list is name of attribute. 
+#'                Second level of list is target type ('frac','diff').
+#'                Specifying \code{targetTypes} overrides default target types ('diff' for temperature attributes, 'frac' for other) 
 #' @param attTargetsFile String specifying the full path to a CSV file containing the target exposure space. 
 #'                       The column names in the file should correspond to the attributes specified in \code{attPerturb} and \code{attHold}. 
 #'                       \code{attTargetsFile} is alternate way to specify exposure space targets that do not form a regular grid. 
@@ -43,29 +50,29 @@
 #' @seealso \code{generateScenarios}, \code{viewAttributeDef}
 #' @examples
 #' # To view the definition of any valid attribute
-#' viewAttributeDef("P_ann_tot_m")
+#' viewAttributeDef("P_day_all_tot_m")
 #' 
 #' # To create an exposure space of points on a regular grid
-#' attPerturb <- c("P_ann_tot_m", "P_ann_nWet_m", "P_ann_R10_m")
+#' attPerturb <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m")
 #' attPerturbType <- "regGrid"
 #' attPerturbSamp <- c(3, 1, 1)
 #' attPerturbMin <- c(0.9, 1, 1)
 #' attPerturbMax <- c(1.1, 1, 1)
-#' attHold <- c("P_Feb_tot_m", "P_SON_dyWet_m", "P_JJA_avgWSD_m", 
-#' "P_MAM_tot_m", "P_DJF_avgDSD_m", "Temp_ann_rng_m", "Temp_ann_avg_m")
+#' attHold <- c("P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", 
+#' "P_day_MAM_tot_m", "P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m")
 #' expSpace <- createExpSpace(attPerturb = attPerturb, attPerturbSamp = attPerturbSamp, 
 #' attPerturbMin = attPerturbMin, attPerturbMax = attPerturbMax, 
 #' attPerturbType = attPerturbType, attHold = attHold, attTargetsFile = NULL)
 #' 
 #' # Using attPerturbBy to specify the increment of perturbation (attPerturbSamp set to NULL)
 #' 
-#' attPerturb <- c("P_ann_tot_m", "P_ann_nWet_m", "P_ann_R10_m")
+#' attPerturb <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m")
 #' attPerturbType <- "regGrid"
 #' attPerturbMin <- c(0.9, 1, 1)
 #' attPerturbMax <- c(1.1, 1, 1)
 #' attPerturbBy <- c(0.1, 0, 0)
-#' attHold <- c("P_Feb_tot_m", "P_SON_dyWet_m", "P_JJA_avgWSD_m", "P_MAM_tot_m", 
-#' "P_DJF_avgDSD_m", "Temp_ann_rng_m", "Temp_ann_avg_m")
+#' attHold <- c("P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m", 
+#' "P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m")
 #' expSpace <- createExpSpace(attPerturb = attPerturb, attPerturbSamp = NULL, 
 #' attPerturbMin = attPerturbMin, attPerturbMax = attPerturbMax, attPerturbType = attPerturbType, 
 #' attPerturbBy = attPerturbBy, attHold = attHold, attTargetsFile = NULL)
@@ -73,7 +80,7 @@
 #' # To create an exposure space of observed attributes without perturbation
 #' # Note that attPerturbMin and attPerturbMax values are set to 1 for variables like precipitation, 
 #' # and 0 for temperature 
-#' attPerturb <- c("P_ann_tot_m", "P_ann_nWet_m", "P_ann_R10_m", "Temp_DJF_avg_m")
+#' attPerturb <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m", "Temp_day_DJF_avg_m")
 #' attPerturbType <- "regGrid"
 #' attPerturbSamp <- c(1, 1, 1, 1)
 #' attPerturbMin <- c(1, 1, 1, 0)
@@ -91,8 +98,9 @@ createExpSpace <- function(attPerturb,
                            attPerturbBy = NULL,
                            attHold = NULL,
                            attTied = NULL,
-                           attTargetsFile = NULL, # If this file is specified, use this, else create based on sample space
-                           targetTypes = NULL
+                           targetTypes = NULL,
+                           attTargetsFile = NULL # If this file is specified, use this, else create based on sample space
+                           
 ) {
   
   # print("CHECKING INPUT ARGUMENTS")
@@ -102,9 +110,6 @@ createExpSpace <- function(attPerturb,
       stop("Since attPerturbBy is specified, attPerturbSamp should be set to NULL")
     }
   } else {
-    if (is.null(attPerturbSamp)) {
-      stop("Need to specify one of attPerturbBy or attPerturbSamp")
-    }
     if (is.null(attTargetsFile)) {
       if (is.null(attPerturbSamp)) {
         stop("Either attPerturbSamp or attPerturbBy should be specified.")
@@ -171,6 +176,7 @@ createExpSpace <- function(attPerturb,
   spaceInfo$attPerturbBy <- attPerturbBy
   spaceInfo$targetType <- attInfo$targetType
 
+  # add tied attributes to exposure space
   if (!is.null(attTied)){
     spaceInfo = tieAttributes(spaceInfo,attTied)
   }
@@ -262,38 +268,41 @@ setWDdayTiedAttributes = function(attSel){
 }
 
 
-#'     if(tieType=='wDdD'){
-#'       for (att in attSel){
-#'         i=which(colnames(expSpace$targetMat)==att)
-#'         var = get.attribute.varType(att)
-#'         if(grepl('/',var)){stop("can't have multivariable tied attributes in perturb/hold atts")}
-#'         var.new = paste0(var,'.P')
-#'         for (cond in c('WetDay','DryDay')){
-#'           att.cond = gsub(var,var.new,att)
-#'           att.cond = paste0('mv.',att.cond,cond)
-#'           if (att.cond%in%expSpace$attTied){
-#'             if (expSpace$targetType[i]=='frac'){
-#'               expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]*expSpace$targetMat[att]
-#'             } else if (expSpace$targetType[i]=='diff'){
-#'               expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]+expSpace$targetMat[att]
-#'             } 
-#'             expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]*expSpace$targetMat[att]
-#'           } else {
-#'             expSpace$targetMat[att.cond] = expSpace$targetMat[att]
-#'             expSpace$attTied = c(expSpace$attTied,att.cond)
-#'             expSpace$targetType = c(expSpace$targetType,expSpace$targetType[i])
-#'           }
-#'         }
-#'       }
+#     if(tieType=='wDdD'){
+#       for (att in attSel){
+#         i=which(colnames(expSpace$targetMat)==att)
+#         var = get.attribute.varType(att)
+#         if(grepl('/',var)){stop("can't have multivariable tied attributes in perturb/hold atts")}
+#         var.new = paste0(var,'.P')
+#         for (cond in c('WetDay','DryDay')){
+#           att.cond = gsub(var,var.new,att)
+#           att.cond = paste0('mv.',att.cond,cond)
+#           if (att.cond%in%expSpace$attTied){
+#             if (expSpace$targetType[i]=='frac'){
+#               expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]*expSpace$targetMat[att]
+#             } else if (expSpace$targetType[i]=='diff'){
+#               expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]+expSpace$targetMat[att]
+#             } 
+#             expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]*expSpace$targetMat[att]
+#           } else {
+#             expSpace$targetMat[att.cond] = expSpace$targetMat[att]
+#             expSpace$attTied = c(expSpace$attTied,att.cond)
+#             expSpace$targetType = c(expSpace$targetType,expSpace$targetType[i])
+#           }
+#         }
+#       }
 
-#' @export
-tieAttributes = function(expSpace,attsTied){
+##################################################
+# add tied attributes to expsire space
+tieAttributes = function(expSpace, # initial exposure space (created by createExpSpace)
+                         attTied) # list of tied attributes
+  {
   
-  for (att1 in names(attsTied)){
+  for (att1 in names(attTied)){
     
     if (!att1%in%colnames(expSpace$targetMat)){stop(paste0("must have tied attribute ",att1," in targetMat attributes"))}
     
-    for (att2 in attsTied[[att1]]){
+    for (att2 in attTied[[att1]]){
       i=which(colnames(expSpace$targetMat)==att1)
       if (att2%in%expSpace$attTied){
         if (expSpace$targetType[i]=='frac'){

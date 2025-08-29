@@ -46,8 +46,8 @@ optimArgsdefault=list(optimizer='RGN',
                       SCE.control=list(fnscale=-1,
                                        initsample='random',
                                        ncomplex=5),
-                      CMAES.control=list(fnscale=-1,
-                                         stopfitness=1e-5),
+                      # CMAES.control=list(fnscale=-1,
+                      #                    stopfitness=1e-5),
                       NM.control = list(maximize=T,
                                         tol=1e-6),
                       lambda.mult=NULL,
@@ -167,10 +167,10 @@ getVarUnits <- function(varNames) {
 #                 )
 # names(modelTimeStep) <- modelTaglist
 
-defaultModelTags <- c(P = "P-har-wgen",
-                      Temp = "Temp-har-wgenLM",
-                      PET = "PET-har-wgenLM",
-                      Radn = "Radn-har-wgenLM")
+defaultModelTags <- c(P = "P-seas-latent",
+                      Temp = "Temp-har-wgenO",
+                      PET = "PET-har-wgenO",
+                      Radn = "Radn-har-wgenO")
 
 # existing foreSIGHT variables
 # fSVars <- unique(sapply(strsplit(modelTaglist[!(modelTaglist%in%c("Simple-ann","Simple-seas"))], "-"), `[[`, 1))
@@ -269,11 +269,13 @@ viewModelParameters <- function(variable, modelType, modelParameterVariation) {
   print(modelPars)
 }
 
-modelInfoList = list()
  
 get.model.info = function(modelTag=NULL){
   return(modelInfoList[[modelTag]])
 }
+
+modelInfoList = list()
+
 
 modelInfoList[["Simple-ann"]]  = list(simVar=c(),
                                       simPriority=1)

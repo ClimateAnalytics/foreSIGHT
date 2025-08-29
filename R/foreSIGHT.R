@@ -5,9 +5,10 @@
 #' @docType package
 #' @name foreSIGHT
 #' @useDynLib foreSIGHT
-NULL
+#NULL
 #> NULL
-
+#' @keywords internal
+"_PACKAGE"
 
 # globalVariables(c(".", "!!"))
 

@@ -28,7 +28,7 @@
 
 
 #UPDATE MODEL INFO IF FIXED PARAMETERS
-update.model.info<-function(modelTag=NULL, modelInfo=NULL,fixedPars=NULL,minUserBound=NULL,maxUserBound=NULL,file=NULL){
+ update_model_info<-function(modelTag=NULL, modelInfo=NULL,fixedPars=NULL,minUserBound=NULL,maxUserBound=NULL,file=NULL){
   #check if model info correct
   # if((modelTag =="P-har12-wgen-FS")){  #only for FS currently
   #   #Check if the correct number of fixed parameters is supplied
@@ -113,15 +113,15 @@ update.model.info<-function(modelTag=NULL, modelInfo=NULL,fixedPars=NULL,minUser
 # # #EXAMPLE 1
 # # modelTag="P-har12-wgen-FS"
 # # modelInfo=get.model.info(modelTag)
-# # update.model.info(modelTag=modelTag, modelInfo=modelInfo,fixedPars=c(1,2,3,4),minUserBound=NULL,maxUserBound=NULL)
+# # update_model_info(modelTag=modelTag, modelInfo=modelInfo,fixedPars=c(1,2,3,4),minUserBound=NULL,maxUserBound=NULL)
 # # #EXAMPLE 2
 # # modelTag="P-ann-wgen"
 # # modelInfo=get.model.info(modelTag)
-# # update.model.info(modelTag=modelTag, modelInfo=modelInfo,fixedPars=NULL,minUserBound=c(0,0,3,4),maxUserBound=c(1,1,5,5))
+# # update_model_info(modelTag=modelTag, modelInfo=modelInfo,fixedPars=NULL,minUserBound=c(0,0,3,4),maxUserBound=c(1,1,5,5))
 # #EXAMPLE 3
 # # modelTag="P-ann-wgen"
 # # modelInfo=get.model.info(modelTag)
-# # update.model.info(modelTag=modelTag, modelInfo=modelInfo,fixedPars=NULL,minUserBound=NULL,maxUserBound=NULL)
+# # update_model_info(modelTag=modelTag, modelInfo=modelInfo,fixedPars=NULL,minUserBound=NULL,maxUserBound=NULL)
 # 
 #RETURN VARIOUS PARS
 return.simPriority<-function(modelInfo=NULL){
@@ -702,7 +702,7 @@ whichPars<-function(modelInfo=NULL
 }
 
 #Update modelTag order
-update.simPriority<-function(modelInfo=NULL){
+update_simPriority<-function(modelInfo=NULL){
   simPriority=sort(sapply(X=modelInfo,FUN=return.simPriority,USE.NAMES=TRUE)) #get simulation priority of each model
   modelTag=names(simPriority)                                                 # Force simVar="P" to come first via sorting by $simPrority
   return(modelTag)

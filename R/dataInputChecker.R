@@ -21,6 +21,16 @@ calc_timeStep = function(times){
 
 ##################
 
+#' Converts "old" reference climate data format (<V1.2) to "new" format with POSIXct dates.
+#'
+#' \code{convert_climYMD_POSIXct} produces reference climate data list for use in V2.0 and newer.
+#' @param clim data.frame or list; contains reference daily climate data. \cr
+#'            For single site data, \code{clim} is a data.frame with columns named \emph{year}, \emph{month}, \emph{day}, \emph{*variable_name1*}, \emph{*variable_name2*}.
+#'            Note that the first three columns of the data.frame contain the year, month, and day of the data.
+#'            The columns have to be named as specified.
+#'            For multi-site data, \code{clim} is a list, with elements named \emph{year}, \emph{month}, \emph{day}, \emph{*variable_name1*}, \emph{*variable_name2*}. List format is suitable for both single and multi-site data.
+#'            Climate variables are specified as matrices, with columns for each site. \cr
+#' @return The function returns a list containing \code{times} in POSIXct format (corresponding to year, month and day from original data \code{clim}), and climate variables.   
 #' @export
 convert_climYMD_POSIXct = function(clim){
 
@@ -39,6 +49,25 @@ convert_climYMD_POSIXct = function(clim){
 }
 ##################
 
+#' Create foreSIGHT reference climate object from time information and climate data.
+#'
+#' \code{create_clim} produces reference climate data list.
+#' @param timeStart a character; the first time for the climate data
+#' @param timeEnd a character; the last time
+#' @param timeStep a character; the time step, containing one of "hour", "day", "week", "month" or "year"
+#' @param fmt a character; format of \code{timeStart} and \code{timeEnd}
+#' @param tz a character; the timezone. Default is 'UTC', which avoids issues with daylight savings. 
+#' @param ... vectors or matrices; climate data objects which will be added to the output list. 
+#' @return The function returns a list containing \code{times} in POSIXct format and climate data.   
+#' @examples
+#' # create small reference climate list (only 10 days) 
+#' clim = create_clim(timeStart='2007/01/01', # start date
+#'                    timeEnd='2007/01/10',   # end date 
+#'                    timeStep='day',         # time step 
+#'                    fmt='%Y/%m/%d',         # format of start/end dates
+#'                    P=c(0,0,0,0,0,4.5,2.6,0,0,0), # precip data
+#'                    Temp=c(25,24,30,32,33,27,21,21,22,30) #temperature data
+#'                    )
 #' @export
 create_clim = function(timeStart,timeEnd,timeStep,fmt=NULL,tz='UTC',...){
   

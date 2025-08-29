@@ -85,7 +85,7 @@ monthwise.boxplots<-function(simDat=NULL, #sim data list of stats (from collate.
   
   #ADD BOXPLOT FOR EACH MONTH
   for(m in 1:12){
-    boxplot.func(z=simDat$TS[m,],at.pt=m,col="lightgray")   #plot each month separately
+    boxplot_func(z=simDat$TS[m,],at.pt=m,col="lightgray")   #plot each month separately
   }
   
   #ADD LEGEND
@@ -133,7 +133,7 @@ seasonal.boxplots<-function(simDat=NULL, #sim data list of stats (from collate.s
   
   #ADD BOXPLOT FOR EACH MONTH
   for(s in 1:4){
-    boxplot.func(z=simDat$TS[seas.order[s],],at.pt=s,col="lightgray")   #plot each season separately
+    boxplot_func(z=simDat$TS[seas.order[s],],at.pt=s,col="lightgray")   #plot each season separately
   }
   
   #ADD LEGEND
@@ -180,7 +180,7 @@ annual.boxplots<-function(simDat=NULL, #sim data list of stats (from collate.sta
   } 
   
   #ADD BOXPLOT
-    boxplot.func(z=simDat$TS,at.pt=1,col="lightgray")   #plot each season separately
+    boxplot_func(z=simDat$TS,at.pt=1,col="lightgray")   #plot each season separately
   
   
   #ADD LEGEND
@@ -588,7 +588,7 @@ trafficAttPlot<-function(attSel=NULL,
                    diff.lim=diff.lim)
 
       #PLOT PERCENT/REL DIFF - PERFROMANCE CATEGORY INDICATED BY COLOUR
-      plot.attrib.perf.solo(rel.diff=mdiff$diff.att,
+      plot_attrib_perf_solo(rel.diff=mdiff$diff.att,
                             att.name=attSel[indPrim[i]],
                             perf.lim=mdiff$class.lim,
                             prim.lab="Perturbed",
@@ -608,7 +608,7 @@ trafficAttPlot<-function(attSel=NULL,
                          diff.lim=diff.lim)
       
       #PLOT PERCENT/REL DIFF - PERFROMANCE CATEGORY INDICATED BY COLOUR
-      plot.attrib.perf.solo(rel.diff=mdiff$diff.att,
+      plot_attrib_perf_solo(rel.diff=mdiff$diff.att,
                             att.name=attSel[indSec[i]],
                             perf.lim=mdiff$class.lim,
                             prim.lab="",

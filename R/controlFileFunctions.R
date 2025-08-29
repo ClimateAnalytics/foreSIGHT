@@ -232,7 +232,7 @@ cleanOptimArgs = function(optimArgs){
 
   if(optimArgs$optimizer!='RGN'){optimArgs$RGN.control=NULL}
   if(optimArgs$optimizer!='SCE'){optimArgs$SCE.control=NULL}
-  if(optimArgs$optimizer!='CMAES'){optimArgs$CMAES.control=NULL}
+  # if(optimArgs$optimizer!='CMAES'){optimArgs$CMAES.control=NULL}
   if(optimArgs$optimizer!='NM'){optimArgs$NM.control=NULL}
   if(optimArgs$optimizer!='GA'){optimArgs$GA.args=NULL}
 

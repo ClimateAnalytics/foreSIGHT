@@ -21,26 +21,28 @@
 #' For multi-site data, names are combinations of attribute and site names.
 #' @examples
 #' #----------------------------------------------------------------------
-#' # Example 1: Single-site data.frame input
+#' # Example 1: Single-site  input
 #' # load 'tank' example climate data available in the package
 #' data("tankDat")
 #' # specify rainfall and temperature attributes to calculate
-#' attSel <- c("P_ann_tot_m", "P_ann_nWet_m", "P_ann_R10_m", "Temp_ann_rng_m", "Temp_ann_avg_m")
+#' attSel <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m", 
+#'             "Temp_day_all_rng_m", "Temp_day_all_avg_m")
 #' tank_obs_atts <- calculateAttributes(tank_obs, attSel = attSel)
 #' #----------------------------------------------------------------------
-#' # Example 2: Multi-site list input
+#' # Example 2: Multi-site  input
 #' # load 'Barossa' example climate data available in the package
 #' data("barossaDat")
 #' # specify rainfall attributes to calculate
-#' attSel <- c("P_ann_tot_m", "P_ann_nWet_m", "P_ann_P99")
+#' attSel <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_P99")
 #' barossa_obs_atts <- calculateAttributes(tank_obs, attSel = attSel)
 #' @export
 
 calculateAttributes<-function(climateData,                    # input data in the format of tank_obs (can be reference, obs, or, future projections)
                               attSel,                         # vector of selected attributes
                               startYr = NULL,                 # changed slice & window to startYr and endYr
-                              endYr = NULL,                    #       - can specify one without the other as well 
-                              attCalcInfo=NULL, return_attCalcInfo = F                            
+                              endYr = NULL#,                    #       - can specify one without the other as well 
+#                              attCalcInfo=NULL, 
+#                              return_attCalcInfo = F                            
 ){
   IOmode="verbose"
   arrayID=NULL
@@ -95,21 +97,23 @@ calculateAttributes<-function(climateData,                    # input data in th
     stop()
   }
 
-  i = which(!simVar%in%varNames)  
-  if (length(i)>0){
-    cat('variable',simVar[i],'not in climateData\n')
-    stop()
-  }
+  # browser()
+  
+  # i = which(!simVar%in%varNames)  
+  # if (length(i)>0){
+  #   cat('variable',simVar[i],'not in climateData\n')
+  #   stop()
+  # }
   
   datInd = setup_datInd_agg(simAgg=simAgg,obs$times,timeStep=timeStep)
     
-  if (return_attCalcInfo){
-      attCalcInfo = attribute.calculator.setup(attSel=attSel,
-                                               datInd=datInd[[1]])
-      return(attCalcInfo)
-  } else {
-    attInfo$attCalcInfo = attCalcInfo
-  }
+  # if (return_attCalcInfo){
+  #     attCalcInfo = attribute.calculator.setup(attSel=attSel,
+  #                                              datInd=datInd[[1]])
+  #     return(attCalcInfo)
+  # } else {
+  #   attInfo$attCalcInfo = attCalcInfo
+  # }
  
   attObs = aggregate_calculate_attributes(data=obs,
                                      attSel=attSel,
@@ -144,10 +148,11 @@ timestep_order <- c('hour','3hour','12hour','day', 'week', 'month','year')
 timestep_rank <- setNames(seq_along(timestep_order), timestep_order)
 
 ########################
-# aggregate data to diffreent aggregation periods
+# aggregate data to different aggregation periods
+#' @importFrom dplyr '%>%' 
 aggregate_data = function(data=NULL,times,timeStep,aggPeriod){
  
-library(dplyr)
+#library(dplyr)
 
   if (timeStep==aggNameLong[[aggPeriod]]){
     

@@ -1,22 +1,3 @@
-# POSSIBLE NAMES:
-# plotPerformanceSpace
-# plotSystemPerformace
-
-# The other function for OAT performance plots can be:
-# plotPerformanceOAT
-
-#------------------------------------------------------------------------------------------
-#Plotting grid
-
-# visualizeSpaces()
-#------------------------------------------------------------------------------------------
-
-# User input that will become function arguments
-
-# should the plotScenarios function also include topReps? so that the user knows what is the mean bias and SD associated with those replicates
-# should the plot include a colorbar? For a wrapper function to plot multiple panels, this could be false
-
-
 getAttXY <- function(attPerturb, attX, attY) {
 
   if (length(attPerturb) < 2) stop(paste0("sim should contain two or more perturbed attributes to plot a performance space."))
@@ -218,6 +199,7 @@ getSliceIndices <- function(expSpace, attSlices) {
 #' @param colMap a vector of colours; to specify the colourmap to be used. If \code{NULL}, the default foreSIGHT colourmap is used.
 #' @param colLim a vector of 2 values; the minimum and maximum limits of the colour scale.
 #' @param contourBreaks a vector; specifies breaks in the performance metric
+#' @param nContour a number; specifies number of contours in the performance metric (if contourBreaks not specified)
 #' @param axesPercentLabel a string; indicates display format for x and y axes. To display as a fraction, use "fraction", to display as a percentage change use "percentage.change", and to display as a percentage increase or decrease use "percentage.total".
 #' @param type a string; indicates type of plot as "heat.plot" (default) or "filled.contour"
 #' @param noPlot logical; indicates whether plots will be printed (\code{TRUE}) or not printed (\code{FALSE}) and only saved as an object.
@@ -326,7 +308,7 @@ plotPerformanceSpace <- function(performance,                   # system model p
                                  colMap = NULL,                 # alternate colormap
                                  colLim = NULL,                 # if null, the full limit is used
                                  contourBreaks=NULL,            # if null, default number of contours used, otherwise accepts vector of breaks
-                                 nContour = perfSpace_nContour,
+                                 nContour = perfSpace_nContour,  # number of contours
                                  axesPercentLabel="fraction",        # if false, natural units used (if true fractions converted to %)
                                  type="filled.contour",               # plotting options "heat.plot", "filled.contour"
                                  noPlot=F  ) {

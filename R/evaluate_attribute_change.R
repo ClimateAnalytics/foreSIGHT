@@ -120,10 +120,10 @@ plotPerformanceOAT.baseR = function(plotData,sim,metric,attSel,
   
   plot(x=x,y=med,type='o',ylim=ylim,xaxs='i',xlab='',ylab='',col=colMed)
   if (!is.null(lo)){
-    polygon(c(rev(x), x), c(rev(hi), lo), col = colShade, border = NA)
+    graphics::polygon(c(rev(x), x), c(rev(hi), lo), col = colShade, border = NA)
   }
-  lines(x,med,type='l',col=colMed,lwd=lwdMed)
-  box()
+  graphics::lines(x,med,type='l',col=colMed,lwd=lwdMed)
+  graphics::box()
   if(!is.null(targetVal)){
     if (metric==attSel){
       col=colPert
@@ -134,26 +134,26 @@ plotPerformanceOAT.baseR = function(plotData,sim,metric,attSel,
       lty=ltyHold
       lwd=lwdHold          
     }
-    lines(x,targetVal,col=col,lty=lty,lwd=lwd)
+    graphics::lines(x,targetVal,col=col,lty=lty,lwd=lwd)
   }
-  points(x,med,col=colMed,lwd=lwdMed)
+  graphics::points(x,med,col=colMed,lwd=lwdMed)
   
-  abline(h=0,lty=ltyZero,lwd=lwdZero,col=colZero)
-  abline(v=0,lty=ltyZero,lwd=lwdZero,col=colZero)
+  graphics::abline(h=0,lty=ltyZero,lwd=lwdZero,col=colZero)
+  graphics::abline(v=0,lty=ltyZero,lwd=lwdZero,col=colZero)
   
   bias_base = med[x==0]
   bias_base_hi = abs(bias_base) > baseSettings$bias_base_thresh
-  if (bias_base_hi){points(x=0,bias_base,col='red',pch=4,cex=2,lwd=2)}
+  if (bias_base_hi){graphics::points(x=0,bias_base,col='red',pch=4,cex=2,lwd=2)}
   
-  mod = lm(med~x)
+  mod = stats::lm(med~x)
   slope = mod$coefficients[2] 
   inflated_response = abs(slope)>baseSettings$slope_thresh  
-  if (inflated_response){lines(x,med,col='red',lwd=2)}
+  if (inflated_response){graphics::lines(x,med,col='red',lwd=2)}
   
   title_str = metric
   if (bias_base_hi){title_str=paste0(title_str,' B')}
   if (inflated_response){title_str=paste0(title_str,' I')}
-  title(title_str,cex.main=cex.main)
+  graphics::title(title_str,cex.main=cex.main)
   
   #attribute = unique(plotData[[m]][,'attribute'])
   #mtext(side=1,text=attribute,line = 2,cex = 0.7)
@@ -161,8 +161,8 @@ plotPerformanceOAT.baseR = function(plotData,sim,metric,attSel,
   # mtext(side=1,text=paste0('D ',attPerturb,' (%)'),line = 2,cex = cex.xaxis)
   # mtext(side=2,text=paste0('D ',metric,' (%)'),line = 2,cex = cex.yaxis)
   
-  mtext(side=1,text='Change pert att (%)',line = 2,cex = cex.xaxis)
-  mtext(side=2,text='Change att (%)',line = 2,cex = cex.yaxis)
+  graphics::mtext(side=1,text='Change pert att (%)',line = 2,cex = cex.xaxis)
+  graphics::mtext(side=2,text='Change att (%)',line = 2,cex = cex.yaxis)
   
 }
 

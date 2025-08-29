@@ -7,7 +7,6 @@
   #attribute.calculator() - calculate values of attributes
   #attribute.calculator.setup() - calculate arguments used in attribute.calculator() based on attribute names
   #attribute.info.check() - get targetType, varType and identify any invalid model selections
-    #check.attribute.model.combo() - check if any attribute-model combos are invalid
     #get.attribute.info() - Identify invalid models
     #get.target.type() - treated as fractions, percent or abs value
     #get.attribute.varType() - "P", "Temp" OR ...
@@ -46,43 +45,43 @@ func_seasRatio = function(data,attArgs){
   return(seasRatio)
 }
 
-func_fracTot = function(data,attArgs){
-  Pseas = func_tot(data) 
-  fracTot = Pseas/attArgs$tot
-  return(fracTot)
-}
-
-func_fracNwet = function(data,attArgs){
-  nWetSeas = func_nWet(data,attArgs) 
-  fracNwet = nWetSeas/attArgs$nWetTot
-  return(fracNwet)
-}
-
-func_fracCor = function(data,attArgs){
-  corSeas = func_cor(data) 
-  fracCor = corSeas/attArgs$corTot
-  return(fracCor)
-}
-
-func_fracWDcor = function(data,attArgs){
-  WDcorSeas = func_WDcor(data) 
-  fracWDcor = WDcorSeas/attArgs$WDcorTot
-  return(fracWDcor)
-}
-
-
-func_fracP99 = function(data,attArgs){
-  P99Seas = quantile(data,probs = 0.99,na.rm=T,names=F) 
-  fracP99 = P99Seas/attArgs$P99Tot
-  return(fracP99)
-}
-
-func_fracxP99overPave = function(data,attArgs){
-  xP99overPaveSeas = func_xP99overPave(data)
-  fracxP99overPave = xP99overPaveSeas/attArgs$xP99overPave
-  if(is.na(fracxP99overPave)){browser()}
-  return(fracxP99overPave)
-}
+# func_fracTot = function(data,attArgs){
+#   Pseas = func_tot(data) 
+#   fracTot = Pseas/attArgs$tot
+#   return(fracTot)
+# }
+# 
+# func_fracNwet = function(data,attArgs){
+#   nWetSeas = func_nWet(data,attArgs) 
+#   fracNwet = nWetSeas/attArgs$nWetTot
+#   return(fracNwet)
+# }
+# 
+# func_fracCor = function(data,attArgs){
+#   corSeas = func_cor(data) 
+#   fracCor = corSeas/attArgs$corTot
+#   return(fracCor)
+# }
+# 
+# func_fracWDcor = function(data,attArgs){
+#   WDcorSeas = func_WDcor(data) 
+#   fracWDcor = WDcorSeas/attArgs$WDcorTot
+#   return(fracWDcor)
+# }
+# 
+# 
+# func_fracP99 = function(data,attArgs){
+#   P99Seas = quantile(data,probs = 0.99,na.rm=T,names=F) 
+#   fracP99 = P99Seas/attArgs$P99Tot
+#   return(fracP99)
+# }
+# 
+# func_fracxP99overPave = function(data,attArgs){
+#   xP99overPaveSeas = func_xP99overPave(data)
+#   fracxP99overPave = xP99overPaveSeas/attArgs$xP99overPave
+#   if(is.na(fracxP99overPave)){browser()}
+#   return(fracxP99overPave)
+# }
 
 # #  function for calulcating ratio of P99 to average rainfall
 # func_xP99overPave = function(data){
@@ -139,13 +138,13 @@ func_maxWSD = function(data,attArgs) get.spell.lengths.max(data=data,thresh=attA
 #' @param data is a vector, representing a time series
 #' @param attArgs is a list, with attArgs$threshold denoting the threshold
 #' @export
-func_avgDSD = function(data,attArgs) mean(get.spell.lengths(data=data,thresh=attArgs$threshold,type="dry"),na.rm=TRUE)
+func_avgDSD = function(data,attArgs) base::mean(get.spell.lengths(data=data,thresh=attArgs$threshold,type="dry"),na.rm=TRUE)
 
 #' Calculates average wet spell duration (below threshold)
 #' @param data is a vector, representing a time series
 #' @param attArgs is a list, with attArgs$threshold denoting the threshold
 #' @export
-func_avgWSD = function(data,attArgs) mean(get.spell.lengths(data=data,thresh=attArgs$threshold,type="wet"),na.rm=TRUE)
+func_avgWSD = function(data,attArgs) base::mean(get.spell.lengths(data=data,thresh=attArgs$threshold,type="wet"),na.rm=TRUE)
 
 #' Calculates average rainfall on wet days (above threshold)
 #' @param data is a vector, representing a time series
@@ -170,7 +169,7 @@ func_P = function(data,attArgs) get.quantile(data=data,quant=attArgs$quant)
 #' @param attArgs is a list, with attArgs$quant denoting the probability of the quantile
 #' @export
 func_normP = function(data,attArgs){
-  m = mean(data,na.rm=T)
+  m = base::mean(data,na.rm=T)
   if (m==0){
     normP = 1e3
   } else {
@@ -215,6 +214,8 @@ func_wettest6monPeakDay = function(data,attArgs=NULL){
   i = stats::median(which(seas==max(seas)))
 }
 
+#' Calculates the lag-1 autocorrelation for wet days
+#' @param data is a vector, representing a time series
 #' @export
 func_WDcor = function(data){
   N = length(data)
@@ -223,30 +224,35 @@ func_WDcor = function(data){
   if (length(which(!is.na(diff)))<2){
     WDcor = 1e3
   } else {
-    WDcor = cor(data[1:(N-1)],data[2:N],use = 'pairwise.complete.obs')
+    WDcor = stats::cor(data[1:(N-1)],data[2:N],use = 'pairwise.complete.obs')
   }
-  if (is.na(WDcor)){browser()}
+  if (is.na(WDcor)){cor=1e3}
   return(WDcor)
 }
 
+#' Calculates the lag-1 autocorrelation
+#' @param data is a vector, representing a time series
 #' @export
 func_cor = function(data){
   N = length(data)
   if (sum(data[1:(N-1)],na.rm=T)==0|sum(data[2:N],na.rm=T)==0){
     cor = 1e3
   } else {
-    cor = suppressWarnings(cor(data[1:(N-1)],data[2:N],use = 'pairwise.complete.obs'))
+    cor = suppressWarnings(stats::cor(data[1:(N-1)],data[2:N],use = 'pairwise.complete.obs'))
   }
   if (is.na(cor)){cor=1e3}
   return(cor)
 }
 
+#' Calculates the coefficient of variation (mead/sd)
+#' @param data is a vector, representing a time series
+#' @export
 func_cv = function(data){
-  m = mean(data,na.rm=T)
+  m = base::mean(data,na.rm=T)
   if (m==0){
     cv = 9999.
   } else {
-    cv = sd(data,na.rm=T)/m
+    cv = stats::sd(data,na.rm=T)/m
   }
   return(cv)
 }
@@ -267,55 +273,55 @@ func_wettest6monSeasRatio = function(data,attArgs=NULL){
 
 func_ma3P99 = function(data){
   ma3 = movingAverage(data,n=3,centered = T)
-  ma3P99 = quantile(ma3,0.99,na.rm=T,names=F)
+  ma3P99 = stats::quantile(ma3,0.99,na.rm=T,names=F)
   return(ma3P99)
 }
 
 ###############
 
 mvFunc_cor = function(data.1,data.2){
-  return(cor(data.1,data.2,use='pairwise.complete.obs'))
+  return(stats::cor(data.1,data.2,use='pairwise.complete.obs'))
 }
 
 mvFunc_avgWetDay = function(data.1,data.2){
-  return(mean(data.1[data.2>0],na.rm=T))
+  return(base::mean(data.1[data.2>0],na.rm=T))
 }
 
 mvFunc_sdWetDay = function(data.1,data.2){
-  return(sd(data.1[data.2>0],na.rm=T))
+  return(stats::sd(data.1[data.2>0],na.rm=T))
 }
 
 mvFunc_avgDryDay = function(data.1,data.2){
-  return(mean(data.1[data.2==0],na.rm=T))
+  return(base::mean(data.1[data.2==0],na.rm=T))
 }
 
 mvFunc_sdDryDay = function(data.1,data.2){
-  return(sd(data.1[data.2==0],na.rm=T))
+  return(stats::sd(data.1[data.2==0],na.rm=T))
 }
 
 func_sd = function(data){
-  return(sd(data,na.rm=T))
+  return(stats::sd(data,na.rm=T))
 }
 
 func_xP90 = function(data){
-  P90 = quantile(data,probs = 0.9,na.rm=T,names=F)
+  P90 = stats::quantile(data,probs = 0.9,na.rm=T,names=F)
   return(P90)
 }
 
 mvFunc_xP90WetDay = function(data.1,data.2){
-  return(quantile(data.1[data.2>0],probs=0.9,na.rm=T,names=F))
+  return(stats::quantile(data.1[data.2>0],probs=0.9,na.rm=T,names=F))
 }
 
 mvFunc_xP90DryDay = function(data.1,data.2){
-  return(quantile(data.1[data.2==0],probs=0.9,na.rm=T,names=F))
+  return(stats::quantile(data.1[data.2==0],probs=0.9,na.rm=T,names=F))
 }
 
 func_cv = function(data){
-  m = mean(data,na.rm=T)
+  m = base::mean(data,na.rm=T)
   if (m==0){
     cv = 9999.
   } else {
-    cv = sd(data,na.rm=T)/m
+    cv = stats::sd(data,na.rm=T)/m
   }
   return(cv)
 }
@@ -396,59 +402,59 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
     attCalcInfo[["P_day_all_wettest6monSeasRatio"]]$attArgs$seas = attCalcInfo[["P_day_all_wettest6monPeakDay"]]$attArgs$seas = seas
   }
 
-  fracTotList = attSel[grepl('fracTot',attSel)]
-  if (length(fracTotList)>0){
-    tot = func_tot(data)
-    tot = max(tot,0.001)
-    for (att in fracTotList){
-      attCalcInfo[[att]]$attArgs$tot = tot
-    }
-  }
-  
-  fracNwetList = attSel[grepl('fracNwet',attSel)]
-  if (length(fracNwetList)>0){
-    threshold = attCalcInfo[[fracNwetList[1]]]$attArgs$threshold # note currently assumes thresold same for all attributes
-    nWet = func_nWet(data,attArgs=list(threshold=threshold))
-    nWet = max(nWet,0.001)
-    for (att in fracNwetList){
-      attCalcInfo[[att]]$attArgs$nWetTot = nWet
-      attCalcInfo[[att]]$attArgs$threshold = threshold
-    }
-  }
-
-  fracCorList = attSel[grepl('fracCor',attSel)]
-  if (length(fracCorList)>0){
-    cor = func_cor(data)
-    for (att in fracCorList){
-      attCalcInfo[[att]]$attArgs$corTot = cor
-    }
-  }
-  
-  fracWDcorList = attSel[grepl('fracWDcor',attSel)]
-  if (length(fracWDcorList)>0){
-    WDcor = func_WDcor(data)
-    for (att in fracWDcorList){
-      attCalcInfo[[att]]$attArgs$WDcorTot = WDcor
-    }
-  }
-  
-  fracP99List = attSel[grepl('fracP99',attSel)]
-  if (length(fracP99List)>0){
-    P99Tot = quantile(data,probs=0.99,na.rm=T,names=F)
-    P99Tot = max(P99Tot,0.001)
-    for (att in fracP99List){
-      attCalcInfo[[att]]$attArgs$P99Tot = P99Tot
-    }
-  }
-  
-  fracxP99overPaveList = attSel[grepl('fracxP99overPave',attSel)]
-  if (length(fracxP99overPaveList)>0){
-    xP99overPaveTot = func_xP99overPave(data)
-    xP99overPaveTot = max(xP99overPaveTot,0.001)
-    for (att in fracxP99overPaveList){
-      attCalcInfo[[att]]$attArgs$xP99overPaveTot = xP99overPaveTot
-    }
-  }
+  # fracTotList = attSel[grepl('fracTot',attSel)]
+  # if (length(fracTotList)>0){
+  #   tot = func_tot(data)
+  #   tot = max(tot,0.001)
+  #   for (att in fracTotList){
+  #     attCalcInfo[[att]]$attArgs$tot = tot
+  #   }
+  # }
+  # 
+  # fracNwetList = attSel[grepl('fracNwet',attSel)]
+  # if (length(fracNwetList)>0){
+  #   threshold = attCalcInfo[[fracNwetList[1]]]$attArgs$threshold # note currently assumes thresold same for all attributes
+  #   nWet = func_nWet(data,attArgs=list(threshold=threshold))
+  #   nWet = max(nWet,0.001)
+  #   for (att in fracNwetList){
+  #     attCalcInfo[[att]]$attArgs$nWetTot = nWet
+  #     attCalcInfo[[att]]$attArgs$threshold = threshold
+  #   }
+  # }
+  # 
+  # fracCorList = attSel[grepl('fracCor',attSel)]
+  # if (length(fracCorList)>0){
+  #   cor = func_cor(data)
+  #   for (att in fracCorList){
+  #     attCalcInfo[[att]]$attArgs$corTot = cor
+  #   }
+  # }
+  # 
+  # fracWDcorList = attSel[grepl('fracWDcor',attSel)]
+  # if (length(fracWDcorList)>0){
+  #   WDcor = func_WDcor(data)
+  #   for (att in fracWDcorList){
+  #     attCalcInfo[[att]]$attArgs$WDcorTot = WDcor
+  #   }
+  # }
+  # 
+  # fracP99List = attSel[grepl('fracP99',attSel)]
+  # if (length(fracP99List)>0){
+  #   P99Tot = quantile(data,probs=0.99,na.rm=T,names=F)
+  #   P99Tot = max(P99Tot,0.001)
+  #   for (att in fracP99List){
+  #     attCalcInfo[[att]]$attArgs$P99Tot = P99Tot
+  #   }
+  # }
+  # 
+  # fracxP99overPaveList = attSel[grepl('fracxP99overPave',attSel)]
+  # if (length(fracxP99overPaveList)>0){
+  #   xP99overPaveTot = func_xP99overPave(data)
+  #   xP99overPaveTot = max(xP99overPaveTot,0.001)
+  #   for (att in fracxP99overPaveList){
+  #     attCalcInfo[[att]]$attArgs$xP99overPaveTot = xP99overPaveTot
+  #   }
+  # }
   
   out = list()
   for (att in attSel){
@@ -513,18 +519,18 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
                            indx=attCalcInfo[[att]]$indx,
                            attArgs=attCalcInfo[[att]]$attArgs)
       }
-    } else if (attCalcInfo[[att]]$opName=='corSOI'){ # 
-      if (is.null(dim(data))){
-        out[[att]] = extractor.summaryCorSOI(func=attCalcInfo[[att]]$func,
-                                          data=data,
-                                          indx=attCalcInfo[[att]]$indx,
-                                          attArgs=attCalcInfo[[att]]$attArgs)
-      } else {
-        out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryCorSOI,
-                           func=attCalcInfo[[att]]$func,
-                           indx=attCalcInfo[[att]]$indx,
-                           attArgs=attCalcInfo[[att]]$attArgs)
-      }
+    # } else if (attCalcInfo[[att]]$opName=='corSOI'){ # 
+    #   if (is.null(dim(data))){
+    #     out[[att]] = extractor.summaryCorSOI(func=attCalcInfo[[att]]$func,
+    #                                       data=data,
+    #                                       indx=attCalcInfo[[att]]$indx,
+    #                                       attArgs=attCalcInfo[[att]]$attArgs)
+    #   } else {
+    #     out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryCorSOI,
+    #                        func=attCalcInfo[[att]]$func,
+    #                        indx=attCalcInfo[[att]]$indx,
+    #                        attArgs=attCalcInfo[[att]]$attArgs)
+    #   }
     } else if (attCalcInfo[[att]]$opName=='dwellTime'){ # sd of values calculated in each year
       if (is.null(dim(data))){
         out[[att]] = extractor.summaryDwellTime(func=attCalcInfo[[att]]$func,
@@ -537,18 +543,18 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
                            indx=attCalcInfo[[att]]$indx,
                            attArgs=attCalcInfo[[att]]$attArgs)
       }
-    } else if (attCalcInfo[[att]]$opName=='range90'){ # sd of values calculated in each year
-      if (is.null(dim(data))){
-        out[[att]] = extractor.summaryRange90(func=attCalcInfo[[att]]$func,
-                                                data=data,
-                                                indx=attCalcInfo[[att]]$indx,
-                                                attArgs=attCalcInfo[[att]]$attArgs)
-      } else {
-        out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryRange90,
-                           func=attCalcInfo[[att]]$func,
-                           indx=attCalcInfo[[att]]$indx,
-                           attArgs=attCalcInfo[[att]]$attArgs)
-      }
+    # } else if (attCalcInfo[[att]]$opName=='range90'){ # sd of values calculated in each year
+    #   if (is.null(dim(data))){
+    #     out[[att]] = extractor.summaryRange90(func=attCalcInfo[[att]]$func,
+    #                                             data=data,
+    #                                             indx=attCalcInfo[[att]]$indx,
+    #                                             attArgs=attCalcInfo[[att]]$attArgs)
+    #   } else {
+    #     out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryRange90,
+    #                        func=attCalcInfo[[att]]$func,
+    #                        indx=attCalcInfo[[att]]$indx,
+    #                        attArgs=attCalcInfo[[att]]$attArgs)
+    #   }
     } else if (attCalcInfo[[att]]$opName%in%c('max3yr','max5yr')){ # maximum of 3 or 5 year values
       if (is.null(dim(data))){
         out[[att]] = extractor.summaryMax(func=attCalcInfo[[att]]$func,
@@ -573,30 +579,30 @@ attribute.calculator<-function(attSel=NULL,         #list of evaluated attribute
                            indx=attCalcInfo[[att]]$indx,
                            attArgs=attCalcInfo[[att]]$attArgs)
       }
-    } else if (attCalcInfo[[att]]$opName%in%c('p10.3yr','p10.5yr')){ # maximum of 3 or 5 year values
-      if (is.null(dim(data))){
-        out[[att]] = extractor.summaryP10(func=attCalcInfo[[att]]$func,
-                                          data=data,
-                                          indx=attCalcInfo[[att]]$indx,
-                                          attArgs=attCalcInfo[[att]]$attArgs)
-      } else {
-        out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryP10,
-                           func=attCalcInfo[[att]]$func,
-                           indx=attCalcInfo[[att]]$indx,
-                           attArgs=attCalcInfo[[att]]$attArgs)
-      }
-    } else if (attCalcInfo[[att]]$opName%in%c('p1.3yr','p1.5yr')){ # maximum of 3 or 5 year values
-      if (is.null(dim(data))){
-        out[[att]] = extractor.summaryP1(func=attCalcInfo[[att]]$func,
-                                          data=data,
-                                          indx=attCalcInfo[[att]]$indx,
-                                          attArgs=attCalcInfo[[att]]$attArgs)
-      } else {
-        out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryP1,
-                           func=attCalcInfo[[att]]$func,
-                           indx=attCalcInfo[[att]]$indx,
-                           attArgs=attCalcInfo[[att]]$attArgs)
-      }
+    # } else if (attCalcInfo[[att]]$opName%in%c('p10.3yr','p10.5yr')){ # maximum of 3 or 5 year values
+    #   if (is.null(dim(data))){
+    #     out[[att]] = extractor.summaryP10(func=attCalcInfo[[att]]$func,
+    #                                       data=data,
+    #                                       indx=attCalcInfo[[att]]$indx,
+    #                                       attArgs=attCalcInfo[[att]]$attArgs)
+    #   } else {
+    #     out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryP10,
+    #                        func=attCalcInfo[[att]]$func,
+    #                        indx=attCalcInfo[[att]]$indx,
+    #                        attArgs=attCalcInfo[[att]]$attArgs)
+    #   }
+    # } else if (attCalcInfo[[att]]$opName%in%c('p1.3yr','p1.5yr')){ # maximum of 3 or 5 year values
+    #   if (is.null(dim(data))){
+    #     out[[att]] = extractor.summaryP1(func=attCalcInfo[[att]]$func,
+    #                                       data=data,
+    #                                       indx=attCalcInfo[[att]]$indx,
+    #                                       attArgs=attCalcInfo[[att]]$attArgs)
+    #   } else {
+    #     out[[att]] = apply(X=data,MARGIN=2,FUN=extractor.summaryP1,
+    #                        func=attCalcInfo[[att]]$func,
+    #                        indx=attCalcInfo[[att]]$indx,
+    #                        attArgs=attCalcInfo[[att]]$attArgs)
+    #   }
     }
   }
 
@@ -622,6 +628,14 @@ invalidSuffixStop = function(funcName,suffix){
 
 invalidStratificationStop = function(strat){
   errMess = paste0("Error: invalid attribute name (stratification '",strat,"' not valid)")
+  cat(errMess)
+  #  logfile(errMess,file)
+  #  logfile("Program terminated",file)
+  stop(errMess)
+}
+
+invalidAggregationStop = function(agg){
+  errMess = paste0("Error: invalid aggregation name (aggregation '",agg,"' not valid)")
   cat(errMess)
   #  logfile(errMess,file)
   #  logfile("Program terminated",file)
@@ -949,7 +963,12 @@ attribute.info.check<-function(attSel=NULL,  # vector of selected attributes (st
   attInfo$varType=vapply(attSel,FUN = get.attribute.varType,FUN.VALUE=character(1),USE.NAMES = FALSE) #drop use of names as comes ordered anyway
 
   attInfo$aggType=vapply(attSel,FUN = get.attribute.aggType,FUN.VALUE=character(1),USE.NAMES = FALSE) #drop use of names as comes ordered anyway
-  
+  # check if valid aggregation period
+  i = which(!attInfo$aggType%in%names(aggNameLong))
+  if (length(i)>0){
+    stop(paste0('Atttribute ',attSel[i],' has invalid aggregation period ',attInfo$aggType[i]))
+  }
+
   #ASSIGN TARGET TYPE (IF P USE "FRAC", IF T USE "DIFF")
   attInfo$targetType=targetType
   
@@ -974,9 +993,6 @@ attribute.info.check<-function(attSel=NULL,  # vector of selected attributes (st
       attInfo$primMult[indPrim] <- lambda.mult[i]
     }
   }
-
-  #CHECK FOR INVALID MODEL CHOICE - returns a logical for each attribute
-  # attInfo$modelInvalid=vapply(attSel,FUN=check.attribute.model.combo,FUN.VALUE=logical(1),USE.NAMES=FALSE,modelTag=modelTag)
 
   return(attInfo)
 }
@@ -1028,7 +1044,7 @@ get.att.ind<-function(attInfo=NULL,
 
 
 
-update.att.Info<-function(attInfo=NULL,
+update_att_Info<-function(attInfo=NULL,
                           attInd=NULL,
                           modelTag=NULL,
                           simVar=NULL

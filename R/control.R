@@ -41,6 +41,8 @@
 #'                   These options can be used to change stochastic model types, overwrite default model parameter bounds, change default optimisation arguments, and set penalty attributes to be used in optimisation.
 #'                   Please refer to the function \code{writeControlFile} in order to create an \code{controlFile} JSON file.
 #' }
+#' @param targetTol a number; Acceptable tolerance between target and simulated attributes. Error larger than \code{targetTol} for a single replicate/target produces a warning.
+#' @param cores a number; Number of core sued for parallel processing.
 #' @return The function returns a list containing the time series data generated. The list can contain multiple replicates (named as \code{Rep1}, \code{Rep2} etc.) equal to the \code{numReplicates} function argument.
 #'         Each replicate can contain multiple targets (named as \code{Target1}, \code{Target2} etc.) based on the specified exposure space (\code{expSpace}). The \code{expSpace} and \code{controlFile} are also returned as part of this output list.
 #' @seealso \code{createExpSpace}, \code{writeControlFile}, \code{viewModels}
@@ -83,9 +85,9 @@
 #' #----------------------------------------------------------------------
 #' \dontrun{
 #' # create an exposure space
-#' attPerturb <- c("P_ann_tot_m", "P_ann_nWet_m", "P_ann_R10_m")
-#' attHold <- c("P_Feb_tot_m", "P_SON_dyWet_m", "P_JJA_avgWSD_m", "P_MAM_tot_m",
-#' "P_DJF_avgDSD_m", "Temp_ann_rng_m", "Temp_ann_avg_m")
+#' attPerturb <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m")
+#' attHold <- c("P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m",
+#' "P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m")
 #' attPerturbType = "regGrid"
 #' attPerturbSamp = c(2, 1, 1)
 #' attPerturbMin = c(0.8, 1, 1)
@@ -106,7 +108,7 @@
 #'                                    }
 #' # Example 4: Simple Scaling with multi-site data
 #' #-----------------------------------------------------------------------
-#' attPerturb <- c("P_ann_tot_m","P_ann_seasRatio")
+#' attPerturb <- c("P_day_all_tot_m","P_day_all_seasRatio")
 #' attPerturbType = "regGrid"
 #' attPerturbSamp = c(3, 3)
 #' attPerturbMin = c(0.8, 1.2)
@@ -126,9 +128,9 @@
 #' # Example 5: Multi-site stochastic simulation
 #' #-----------------------------------------------------------------------
 #' \dontrun{
-#' attPerturb <- c("P_ann_tot_m")
-#' attHold <- c("P_ann_wettest6monSeasRatio","P_ann_wettest6monPeakDay",
-#' "P_ann_P99","P_ann_avgWSD_m", "P_ann_nWetT0.999_m")
+#' attPerturb <- c("P_day_all_tot_m")
+#' attHold <- c("P_day_all_wettest6monSeasRatio","P_day_all_wettest6monPeakDay",
+#' "P_day_all_P99","P_day_all_avgWSD_m", "P_day_all_nWetT0.999_m")
 #' attPerturbType = "regGrid"
 #' # consider unperturbed climates in this example
 #' attPerturbSamp = attPerturbMin = attPerturbMax = c(1)
@@ -142,8 +144,8 @@
 #' data(barossaDat)
 #' # specify the penalty settings in a list
 #' controlFileList <- list()
-#' controlFileList[["penaltyAttributes"]] <- c("P_ann_tot_m",
-#' "P_ann_wettest6monSeasRatio","P_ann_wettest6monPeakDay")
+#' controlFileList[["penaltyAttributes"]] <- c("P_day_all_tot_m",
+#' "P_ann_wettest6monSeasRatio","P_day_all_wettest6monPeakDay")
 #' controlFileList[["penaltyWeights"]] <- c(0.5,0.5,0.5)
 #' # specify the alternate model selections
 #' controlFileList[["modelType"]] <- list()
@@ -162,7 +164,8 @@
 #' sim <- generateScenarios(reference = barossa_obs, expSpace = expSpace,
 #'                          controlFile = paste0(tempdir(), "controlFile.json"),seed=1)}
 #' @export
-
+#' @importFrom foreach foreach %:% %dopar%
+#' 
 # generateScenarios <- function(reference,                # data frame of observed data with column names compulsary [$year, $month, $day, $P,] additional [$Temp, $RH, $PET, $uz, $Rs] (or a subset of these)
 #                               expSpace,           # the space contains multiple targets
 #                               simLengthNyrs = NULL,      # desired length of simulation in years
@@ -283,9 +286,11 @@ generateScenarios <- function(reference,                # data frame of observed
                               simLengthNyrs = NULL,      # desired length of simulation in years
                               numReplicates = 1,  # reps
                               seedID = NULL,      # seed - user may set this to reproduce a previous simulation
+                              cores=1,              # number of cores for parallel computing
                               controlFile = NULL,   # NULL = default stochastic model options, "scaling" = simple scaling, json file = stochastic model options
-                              tol=0.05,
-                              cores=1) {
+                              targetTol=0.05        # tolerance between targets and simulated attributes. prints warning when diff > targetTol
+                              ) 
+  {    
   
   # Number of targets
   nTarget <- dim(expSpace$targetMat)[1]
@@ -472,8 +477,8 @@ generateScenarios <- function(reference,                # data frame of observed
           }
           
           targDiff = abs(allSim[[iRep]][[iTarg]]$targetSim - expTarg$targetMat) 
-          if (any(targDiff > tol)){
-            warning(paste0('error in target atts for ', var,' stoch rep ', iRep, ' for target ',iTarg, ' greater than tol\n'))
+          if (any(targDiff > targetTol)){
+            warning(paste0('error in target atts for ', var,' stoch rep ', iRep, ' for target ',iTarg, ' = ', targDiff, ' greater than tolerance of ', targetTol, '\n'))
           }
           
         }
@@ -620,18 +625,6 @@ add_scaling_info = function(obs,attSel,modelInfo){
   return(modelInfo)
 }
 
-#' Produces time series of hydroclimatic variables for an exposure target.
-#'
-#' \code{generateScenario} is the base function used by \code{generateScenarios}.
-#' The function produces time series of hydroclimatic variables using requested climate attributes that correspond to a single target in the exposure space.
-#' The function argument definitions are detailed in the documentation of \code{generateScenarios}; please refer to that documentation using \code{?generateScenarios}.
-#' @inheritParams generateScenarios
-#' @param expTarg a named vector; the attributes at the target location in the exposure space
-#' \code{generateScenario} is intended to be used to adapt the functionality of \code{generateScenarios} for use in a parallel computing environment.
-#' @seealso \code{generateScenarios}
-#' @export
-#' @import GA
-
 generateScenario <- function(reference,       # list observed data with column names compulsary [$times, $P,] additional [$Temp, $RH, $PET, $uz, $Rs] (or a subset of these)
                              expTarg,
                              simLengthNyrs = NULL,
@@ -733,7 +726,7 @@ generateScenario <- function(reference,       # list observed data with column n
       if(mod==1) progress("Updating model info...",file)
       defaultMods=list(minBound=NULL,maxBound=NULL,fixedPars=NULL)
       modPars=utils::modifyList(defaultMods,modelInfoMod[[modelTag[mod]]])
-      modelInfo[[modelTag[mod]]]=update.model.info(modelTag=modelTag[mod],
+      modelInfo[[modelTag[mod]]]=update_model_info(modelTag=modelTag[mod],
                                                    modelInfo=modelInfo[[modelTag[mod]]],
                                                    fixedPars=modPars$fixedPars,
                                                    minUserBound=modPars$minBound,
@@ -761,7 +754,7 @@ generateScenario <- function(reference,       # list observed data with column n
     
   }
 
-  modelTag=update.simPriority(modelInfo=modelInfo)
+  modelTag=update_simPriority(modelInfo=modelInfo)
   simVar=sapply(X=modelInfo[modelTag],FUN=return.simVar,USE.NAMES=TRUE)       #?CREATE MODEL MASTER INFO - HIGHER LEVEL?
 
   attInfo=attribute.info.check(attSel=attSel,attPrim=attPrim, lambda.mult = optimArgs$lambda.mult, targetType = expTarg$targetType)
@@ -771,7 +764,7 @@ generateScenario <- function(reference,       # list observed data with column n
   if(modelTag[1]%in%c("Simple-ann","Simple-seas")){simVar=attInfo$varType}
   attInd=get.att.ind(attInfo=attInfo,simVar=simVar)
 
-  attInfo=update.att.Info(attInfo=attInfo,attInd=attInd,modelTag=modelTag,simVar=simVar) #add extra level for easier model mangmt
+  attInfo=update_att_Info(attInfo=attInfo,attInd=attInd,modelTag=modelTag,simVar=simVar) #add extra level for easier model mangmt
 
   #GET DATES DATA (and indexes for harmonic periods)
   banner("INDEXING DATES",file)
@@ -1537,6 +1530,7 @@ simulateTargetCor = function(optimArgs=NULL,
 #' }
 #' @param systemArgs a list; containing the input arguments to \code{systemModel}.
 #' @param metrics a string vector; the names of the performance metrics the \code{systemModel} function returns.
+#' @param varNames a string vector; containing the names of the climate variables that are extracted from sim and used in system model. If \code{NULL}, then \code{varNames} determined from attribute names in \code{sim$expSpace}.
 #' @details The \code{runSystemModel} function code is structured to be simple and may be used as an example to create scripts that use scenarios
 #' generated using \code{generateScenarios} to run system models in other programming languages. Type \code{runSystemModel} to view the function code.
 #' The function \code{tankWrapper} in this package may be used as an example to create user defined functions for the \code{systemModel} argument.
@@ -1588,8 +1582,8 @@ simulateTargetCor = function(optimArgs=NULL,
 runSystemModel <- function(sim,                  # output from scenario generator
                            systemModel,          # system model function with arguments
                            systemArgs,           # arguments of the system model
-                           metrics,
-                           varNames=NULL# names of performance metrics returned
+                           metrics,              # names of performance metrics returned
+                           varNames=NULL         # vector of variable names 
 ){
 
   # unpacking sim
@@ -1669,7 +1663,7 @@ runSystemModel <- function(sim,                  # output from scenario generato
                            strShort=strShort)
 
       # run the systemModel
-      if ('targetRepInfo' %in% formalArgs(systemModel)){
+      if ('targetRepInfo' %in% methods::formalArgs(systemModel)){
         perfTemp <- systemModel(data = scenarioData, systemArgs = systemArgs, metrics = metrics, targetRepInfo=targetRepInfo)
       } else {
         perfTemp <- systemModel(data = scenarioData, systemArgs = systemArgs, metrics = metrics)

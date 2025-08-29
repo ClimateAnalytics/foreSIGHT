@@ -50,6 +50,13 @@ evaluate_system_metrics = function(sim,clim,systemModel,systemArgs,metrics,obs_m
   
 }
 
+#' Draws a boxplot with the whiskers at specified probability limits 
+#'
+#' \code{boxplot_prob} Draws a boxplot with the whiskers at the probability limits, provided by \code{whiskersProb}.
+#' @param xin a vector, matrix or dataframe; data to be plotted
+#' @param whiskersProb a vector of length 2; min and max probability limits
+#' @param at a vector; specifying x coordinates for boxes
+#' @return The function returns a boxplot. 
 #' @export
 boxplot_prob =function(xin,whiskersProb=c(0.025,0.975),at=NULL,...){
   # Draws a boxplot with the whiskers at the probability limits, provided by whiskersProb
@@ -57,7 +64,7 @@ boxplot_prob =function(xin,whiskersProb=c(0.025,0.975),at=NULL,...){
   # whiskers Prob values are probabilities for the lower and upper whisker (respectively)
   
   x = data.frame(xin)
-  x.stats=boxplot(x,plot=FALSE)
+  x.stats=graphics::boxplot(x,plot=FALSE)
   
   if ( is.data.frame(x) || is.matrix(x)) {
     x.stats$out = c()
@@ -65,11 +72,11 @@ boxplot_prob =function(xin,whiskersProb=c(0.025,0.975),at=NULL,...){
     y=x
     for (j in 1:ncol(x)) {
       y=sort(x[,j])
-      if (length(na.omit(y))!=0) {
-        x.stats$stats[1,j]=quantile(y,prob=whiskersProb[1])
-        x.stats$stats[5,j]=quantile(y,prob=whiskersProb[2])
+      if (length(stats::na.omit(y))!=0) {
+        x.stats$stats[1,j]=stats::quantile(y,prob=whiskersProb[1])
+        x.stats$stats[5,j]=stats::quantile(y,prob=whiskersProb[2])
       }
-      for (i in 1:length(na.omit(y))){
+      for (i in 1:length(stats::na.omit(y))){
         if (y[i]<x.stats$stats[1,j]|y[i]>x.stats$stats[5,j]){
           
           x.stats$out = c(x.stats$out,y[i])
@@ -83,11 +90,11 @@ boxplot_prob =function(xin,whiskersProb=c(0.025,0.975),at=NULL,...){
     x.stats$out = c()
     x.stats$group = c()
     y=sort(x)
-    if (length(na.omit(y))!=0) {
-      x.stats$stats[1,1]=quantile(y,prob=whiskersProb[1])
-      x.stats$stats[5,1]=quantile(y,prob=whiskersProb[2])
+    if (length(stats::na.omit(y))!=0) {
+      x.stats$stats[1,1]=stats::quantile(y,prob=whiskersProb[1])
+      x.stats$stats[5,1]=stats::quantile(y,prob=whiskersProb[2])
     }
-    for (i in 1:length(na.omit(y))){
+    for (i in 1:length(stats::na.omit(y))){
       if (y[i]<x.stats$stats[1]|y[i]>x.stats$stats[5]){
         
         x.stats$out = c(x.stats$out,y[i])
@@ -101,7 +108,7 @@ boxplot_prob =function(xin,whiskersProb=c(0.025,0.975),at=NULL,...){
     return()
   }
   
-  bxp(z=x.stats,at=at,...)
+  graphics::bxp(z=x.stats,at=at,...)
   
 }
 

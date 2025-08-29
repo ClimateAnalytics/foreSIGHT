@@ -111,24 +111,24 @@ saveTarget<-function(data=NULL,       # data[[i]]  ->    $P, $Temp $attSim $targ
 #   return(fnam)
 # }
 
-#WRITING TO CSV
-writeToCSV<-function(data=NULL,
-                     dates=NULL,
-                     fnam=NULL,
-                     simVar=NULL,
-                     modelTag=NULL
-){
-  
-  #ADD CSV TO FILENAME
-  filename=paste(fnam,".csv",sep="")
-  
-  #MAKE OUTPUTTED DATAFRAME
-  outDat=makeOutputDataframe(data=data,dates=dates,simVar=simVar,modelTag=modelTag)
-  
-  #WRITE OUTPUT CSV
-  utils::write.table(outDat,file=filename,row.names=FALSE,quote = FALSE,sep=",")
-  
-}
+# #WRITING TO CSV
+# writeToCSV<-function(data=NULL,
+#                      dates=NULL,
+#                      fnam=NULL,
+#                      simVar=NULL,
+#                      modelTag=NULL
+# ){
+#   
+#   #ADD CSV TO FILENAME
+#   filename=paste(fnam,".csv",sep="")
+#   
+#   #MAKE OUTPUTTED DATAFRAME
+#   outDat=makeOutputDataframe(data=data,dates=dates,simVar=simVar,modelTag=modelTag)
+#   
+#   #WRITE OUTPUT CSV
+#   utils::write.table(outDat,file=filename,row.names=FALSE,quote = FALSE,sep=",")
+#   
+# }
 
 # saveTargets<-function(data=NULL,       #data[[i]]$P, $Temp $attSim $targetSim
 #                       dates=NULL,      #data frame dates info mm,dd,yy
