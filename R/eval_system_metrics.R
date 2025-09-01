@@ -1,5 +1,21 @@
+#################################################################################
+#' Calculates system metrics for and observed and baseline stochastic climates 
+#'  
+#' \code{evaluate_system_metrics} runs observed climate and baseline 
+#' (unperturbed) stochastic climates through a system model and calculates system metrics for each. 
+#' This is used to perform evaluation of stochastic climates using the 'virtual observation' approach.
+#' @param sim list; a simulation containing the scenarios generated using the function \code{generateScenarios}.
+#' @param clim a list; reference climate \cr
+#' @param systemModel a function; The function runs the system model using climate data in a list as input.
+#' The function is expected to be created by the user for specific system models. 
+#' @param systemArgs a list; containing the input arguments to \code{systemModel}.
+#' @param metrics a string vector; the names of the performance metrics the \code{systemModel} function returns.
+#' @param varNames a string vector; containing the names of the climate variables that are extracted from sim and used in system model. If \code{NULL}, then \code{varNames} determined from attribute names in \code{sim$expSpace}.
+#' @returns a list containing \code{systemPerf_base} and \code{systemPerf_obsClim}, with performance metrics for baseline stochastic climate and observed climate, respectively. 
+#' @examples 
+#' # XXXXXXXXXX
 #' @export
-evaluate_system_metrics = function(sim,clim,systemModel,systemArgs,metrics,obs_metrics=NULL,varNames=NULL){
+evaluate_system_metrics = function(sim,clim,systemModel,systemArgs,metrics,varNames=NULL){
   
   expSpace = sim$expSpace
   
@@ -50,13 +66,15 @@ evaluate_system_metrics = function(sim,clim,systemModel,systemArgs,metrics,obs_m
   
 }
 
+#################################################################################
 #' Draws a boxplot with the whiskers at specified probability limits 
 #'
 #' \code{boxplot_prob} Draws a boxplot with the whiskers at the probability limits, provided by \code{whiskersProb}.
 #' @param xin a vector, matrix or dataframe; data to be plotted
 #' @param whiskersProb a vector of length 2; min and max probability limits
 #' @param at a vector; specifying x coordinates for boxes
-#' @return The function returns a boxplot. 
+#' @param ... ; other arguments for \code{bxp}
+#' @return The function returns a boxplot figure. 
 #' @export
 boxplot_prob =function(xin,whiskersProb=c(0.025,0.975),at=NULL,...){
   # Draws a boxplot with the whiskers at the probability limits, provided by whiskersProb
