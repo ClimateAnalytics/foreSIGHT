@@ -1,6 +1,6 @@
 ######################
 
-systemModel_calcAtts <- function(data,          # data.frame with columns: year, month, day, *var1*, *var2* etc.
+systemModel_calcAtts <- function(data,          # list with climate data and times
                                  systemArgs,    # list containing the arguments of simulateSystem
                                  metrics) {     # names of performance metrics (with units of the metrics)
   
@@ -20,10 +20,15 @@ systemModel_calcAtts <- function(data,          # data.frame with columns: year,
 }
 
 #################################################################
+# calculate changes in attributes over all targets and replicates 
+calcPerformanceAttributes = function(clim,      # reference climate
+                                     sim,       # simulated climates from generateScenarios()
+                                     attSel,    # attributes to calculate
+                                     vSel=NULL, # variable name for selection site/aggregation
+                                     cSel=NULL)  # how to summarize multisite data - select site number or 'mean' for average 
+  {
 
-#' @export
-calcPerformanceAttributes = function(clim,sim,attSel,vSel=NULL,cSel=NULL){
-
+  # convert multiste data to single time series
   if (!is.null(cSel)){
     if (!is.null(vSel)){
       if (cSel=='mean'){
@@ -32,8 +37,7 @@ calcPerformanceAttributes = function(clim,sim,attSel,vSel=NULL,cSel=NULL){
         clim[[vSel]] = clim[[vSel]][,cSel]
       }      
     } else {
-      print('must enter vSel')
-      return()
+      stop('must enter vSel')
     }
 
   }
@@ -53,14 +57,36 @@ calcPerformanceAttributes = function(clim,sim,attSel,vSel=NULL,cSel=NULL){
 
 ##################################################
 
+#' Plots changes in attributes for a specified perturbed attribute
+#'
+#' \code{plotPerformanceAttributesOAT} plots OAT changes in attributes based on simulated climate object, for a given perturbed attribute.
+#' 
+#' @param clim list; reference climate data. \cr 
+#' @param sim list; perturbed climate from \code{generateScenarios()} \cr 
+#' @param attPerturb string; name of perturbed attribute \cr
+#' @param attEval string; name of attribute that will be evaluated \cr
+#' @param vSel string; variable name for selection site/aggregation \cr
+#' @param cSel integer or string 'mean'; how to summarize multisite data - select site number or 'mean' for average \cr 
+#' @param ylim numeric vector of length 2; min and max y limits for plotting \cr
+#' @param cex.main number; size for title \cr
+#' @param cex.xaxis number; size for x-axis \cr
+#' @param cex.yaxis number; size for y-axis \cr
+#' @return The function returns a single plot showing changes in attribute \code{attEval} for changes in perturbed attribute \code{attPerturb} \cr  
+#' @examples 
+#' # XXXXXXXXXX
 #' @export
-plotPerformanceAttributesOAT = function(clim,sim,attPerturb,attEval,Perf=NULL,vSel=NULL,cSel=NULL,
+plotPerformanceAttributesOAT = function(clim,
+                                        sim,
+                                        attPerturb,
+                                        attEval,
+#                                        Perf=NULL,
+                                        vSel=NULL,cSel=NULL,
                                         ylim=NULL,
                                         cex.main=0.8,cex.xaxis=0.5,cex.yaxis=0.5){
 
-  if (is.null(Perf)){
-    Perf = calcPerformanceAttributes(clim=clim,sim=sim,attSel=attEval,vSel=vSel,cSel=cSel)
-  }
+#  if (is.null(Perf)){
+   Perf = calcPerformanceAttributes(clim=clim,sim=sim,attSel=attEval,vSel=vSel,cSel=cSel)
+#  }
 
   for (att in names(Perf)){
     o = plotPerformanceOAT(Perf, sim, metric=att,attSel=attPerturb,returnPlotData=T)
@@ -73,11 +99,17 @@ plotPerformanceAttributesOAT = function(clim,sim,attPerturb,attEval,Perf=NULL,vS
 }
 
 ##################################################
-
-plotPerformanceOAT.baseR = function(plotData,sim,metric,attSel,
-                                    targetVal,
-                                    ylim=NULL,baseSettings=list(),
-                                    cex.main=0.8,cex.xaxis=0.5,cex.yaxis=0.5){
+# function called from plotPerformanceAttributesOAT()
+# code for plotting changes in attributes for a given perturbed attribute
+plotPerformanceOAT.baseR = function(plotData,      # list containing changes in attributes (calculated from plotPerformanceOAT)
+                                    sim,           # sim object from generateScenarios()
+                                    metric,        # attribute name
+                                    attSel,        # perturbed attribute
+                                    targetVal,     # target value of attribute
+                                    ylim=NULL,     # y limit
+                                    baseSettings=list(),  # list containing 'bias_base_thresh' for threshold for bias in baseline performance (%), and 'slope_thresh' for threshold for slope of relationship between perturbed and plotted attribute
+                                    cex.main=0.8,cex.xaxis=0.5,cex.yaxis=0.5) # font size for title and axis labels
+  {
   
   if(is.null(baseSettings$bias_base_thresh)){baseSettings$bias_base_thresh = 20}
   if(is.null(baseSettings$slope_thresh)){baseSettings$slope_thresh = 1.5}
@@ -88,6 +120,7 @@ plotPerformanceOAT.baseR = function(plotData,sim,metric,attSel,
   colTied = 'cyan'; ltyTied = 2; lwdTied = 3
   colPert = 'blue'; ltyPert = 2; lwdPert = 3
   colZero = 'black'; ltyZero = 3; lwdZero=0.5 
+  colPoorPerformance = 'red'
   lwd=1
   
   # # determine target values associated with OAT perturbations  
@@ -143,12 +176,12 @@ plotPerformanceOAT.baseR = function(plotData,sim,metric,attSel,
   
   bias_base = med[x==0]
   bias_base_hi = abs(bias_base) > baseSettings$bias_base_thresh
-  if (bias_base_hi){graphics::points(x=0,bias_base,col='red',pch=4,cex=2,lwd=2)}
+  if (bias_base_hi){graphics::points(x=0,bias_base,col=colPoorPerformance,pch=4,cex=2,lwd=2)}
   
   mod = stats::lm(med~x)
   slope = mod$coefficients[2] 
   inflated_response = abs(slope)>baseSettings$slope_thresh  
-  if (inflated_response){graphics::lines(x,med,col='red',lwd=2)}
+  if (inflated_response){graphics::lines(x,med,col=colPoorPerformance,lwd=2)}
   
   title_str = metric
   if (bias_base_hi){title_str=paste0(title_str,' B')}
