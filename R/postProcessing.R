@@ -190,6 +190,19 @@ pp.annShuffle = function(P,times,annAR1coeff,seed=1,iyy=NULL,return.indices=F){
 
 ######################################################
 
+#' Post-processing to apply changes in temporal structure of annual precipitation. 
+#'
+#' \code{shuffle_sim} changes the temporal structure of annual climate to match 
+#' a target change in a parturbed attribute
+#' @param sim a list; simulated climate object from \code{generateScenarios} 
+#' @param clim a list; reference climate
+#' @param attPerturb a string; name of attribute to be perturbed 
+#' @param targetVals a vector of numbers; targets for perturbed attributes 
+#' @param targetType a vector of strings; type of change in target attributes (either 'frac' or 'diff')
+#' @param seed an integer; random number seed
+#' @param annAR1coeffList a vector of numbers; the range of values for annual AR(1) parameters used in grid search
+#' @param cSel an integer or string; for multi-site data, can either cvalculate perturbed attributes on a single site (integer) or the mean climate over all sites (\code{cSel='mean'}). 
+#' @return A list with simulated perturbed climates. Same format as output from \code{generateScenarios}.
 #' @export
 shuffle_sim = function(sim,
                        clim,
