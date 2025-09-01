@@ -16,6 +16,9 @@
 #' @param ylim a vector of 2 values; the minimum and maximum limits of the y-axis (performance) scale.
 #' @param plim a vector of 2 values; probability limits for performance metric plots 
 #' @param noPlot a logical; whether or not to show plot (or just return ggplot object). \code{noPlot=TRUE} does not show plot.    
+#' @param attSel a string vector; selected perturbed attribute to plot    
+#' @param climData data.frame; the values of attributes from other sources like climate models. This data will be plotted as "hairs" on the bottom of the plot.
+#' @param returnPlotData logical; for internal use only  
 #' @details The plots show the mean value of performance across replicates. The ranges between the minimum and maximum values of performance across replicates are shaded.
 #' The function is intended for use with simulations containing attributes perturbed on an "OAT" grid. If the perturbations are on a "regGrid", this function will subset 
 #' OAT perturbations, if available, to create the plots. The function creates separate plots for perturbations in attributes of temperature and other variables.
@@ -460,7 +463,7 @@ OATPlot <- function(plotData, col = NULL, ylimits = NULL, climData=NULL) {
     # 2. Reshape the data to long format: one row per value per attribute
     rugData <- climData %>%
       dplyr::select(dplyr::all_of(attNames)) %>%
-      tidyr::pivot_longer(cols = everything(), names_to = "attribute", values_to = "value")
+      tidyr::pivot_longer(cols = dplyr::everything(), names_to = "attribute", values_to = "value")
     
     # Ensure 'attribute' in rugData is a factor with levels matching plot facets
     rugData$attribute <- factor(rugData$attribute, levels = unique(plotDataMean$attribute))
@@ -468,7 +471,7 @@ OATPlot <- function(plotData, col = NULL, ylimits = NULL, climData=NULL) {
     # Add rug plots (distribution "hairs") to bottom of each facet using matching input data
     p1 <- p1 + geom_rug(
       data = rugData,
-      aes(x = value),
+      aes(x = .data$value),
       sides = "b",
       col = col,
       inherit.aes = FALSE
