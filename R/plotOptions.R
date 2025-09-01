@@ -204,7 +204,7 @@ plotOptions <- function(performanceOpt1,               # system model performanc
     p1 <- filledContourPlot(plotData=perfPlotData,
                                    colLim = colLim,
                                    colMap = colMap,
-                            nContour = nContour,
+                                   nContour = nContour,
                                    perfThresh = NULL,
                                    perfThreshLabel = perfThreshLabel,
                                    climData = climData)
