@@ -1003,59 +1003,59 @@ addThresholdLines <- function(p1, plotDataMean, perfThresh, perfThreshLabel, xyA
 }
 
 
-plotPerfQuiltPlot <- function(plotData, nx, ny, colLim = NULL, colBar = TRUE, perfThresh = NULL, climData = NULL){
-
-  xyAtts <- colnames(plotData)[1:2]
-  xyAttDefs <- mapply(tagBlender, xyAtts, USE.NAMES = FALSE)
-
-  if (is.null(colLim)) {
-    tempMat <- plotData
-    names(tempMat) <- c("x", "y", "z")
-    tempMatAvg <- stats::aggregate(.~x+y, tempMat, mean)
-    colLim = c(min(tempMatAvg[ ,3]), max(tempMatAvg[ ,3]))
-    rm(tempMat, tempMatAvg)
-  }
-
-  varNames <- sapply(strsplit(xyAtts, "_"), `[[`, 1)
-  varUnits <- getVarUnits(varNames)
-  xyLabels <- paste0(xyAttDefs, " (", varUnits, ")")
-
-
-  graphics::par(mar=c(3.8,3.8,1,1),oma=c(5,0.3,0.3,0.3), mgp = c(0,0.5,0))
-  fields::quilt.plot(x = plotData[ ,1], y = plotData[ ,2], z = plotData[ ,3], nx = nx ,ny = ny,
-                     add.legend = FALSE, nlevel = perfSpace_nlevel, col = foreSIGHT.colmap(perfSpace_nlevel),
-                     xlim = c(min(plotData[ ,1]), max(plotData[ ,1])), ylim = c(min(plotData[ ,2]), max(plotData[ ,2])),
-                     zlim = colLim, xlab = "", ylab =)
-  graphics::box(col = "black")
-
-  graphics::mtext(side=1,text=xyLabels[1],line=1.8)
-  graphics::mtext(side=2,text=xyLabels[2],line=1.8)
-
-  if (perfSpace_contours) {
-    # get image for contours
-    look <- fields::as.image(plotData[ ,3], ind = cbind(plotData[ ,1], plotData[ ,2]), nx = nx, ny = ny)
-    graphics::contour(add = TRUE, x = look$x, y = look$y, z = look$z, method="edge", labcex = 1, nlevels = nContour)
-  }
-
-  if (!is.null(perfThresh)) {
-    graphics::contour(add = TRUE, x = look$x, y = look$y, z = look$z, lty=threshLty, lwd = threshLwd, col = perfSpace_threshCol, drawlabels = FALSE, levels = perfThresh)
-    graphics::legend("topright", inset = c(0.005, 0.005), legend=paste0("Performance\nThreshold (", perfThresh, ")"),
-           col=perfSpace_threshCol, lwd=threshLwd, lty=threshLty, cex=1, bty="n")
-  }
-
-  if (!is.null(climData)) {
-    if (sum(colnames(climData) %in% xyAtts) == 2) {
-      graphics::points(x = climData[[xyAtts[1]]], y = climData[[xyAtts[2]]], pch = perfSpace_climDataPch, col = perfSpace_climDataCol, bg = perfSpace_climDataBg)
-    } else {
-      warning(paste0("climData is not plotted since it does not contain ", paste(xyAtts[(colnames(climData) %in% xyAtts)], sep = ","), "."))
-    }
-  }
-
-  if(colBar){
-    fields::image.plot(legend.only = TRUE, zlim = colLim, col = foreSIGHT.colmap(perfSpace_nlevel),
-                       horizontal = TRUE, smallplot=c(0.2,0.9,0.0001,0.02))
-  }
-  #graphics::mtext(tag_text, side=1, line=1.5, adj=1.0, cex=0.8, col=tag_textCol, outer=TRUE)
-
-}
-
+# plotPerfQuiltPlot <- function(plotData, nx, ny, colLim = NULL, colBar = TRUE, perfThresh = NULL, climData = NULL){
+# 
+#   xyAtts <- colnames(plotData)[1:2]
+#   xyAttDefs <- mapply(tagBlender, xyAtts, USE.NAMES = FALSE)
+# 
+#   if (is.null(colLim)) {
+#     tempMat <- plotData
+#     names(tempMat) <- c("x", "y", "z")
+#     tempMatAvg <- stats::aggregate(.~x+y, tempMat, mean)
+#     colLim = c(min(tempMatAvg[ ,3]), max(tempMatAvg[ ,3]))
+#     rm(tempMat, tempMatAvg)
+#   }
+# 
+#   varNames <- sapply(strsplit(xyAtts, "_"), `[[`, 1)
+#   varUnits <- getVarUnits(varNames)
+#   xyLabels <- paste0(xyAttDefs, " (", varUnits, ")")
+# 
+# 
+#   graphics::par(mar=c(3.8,3.8,1,1),oma=c(5,0.3,0.3,0.3), mgp = c(0,0.5,0))
+#   fields::quilt.plot(x = plotData[ ,1], y = plotData[ ,2], z = plotData[ ,3], nx = nx ,ny = ny,
+#                      add.legend = FALSE, nlevel = perfSpace_nlevel, col = foreSIGHT.colmap(perfSpace_nlevel),
+#                      xlim = c(min(plotData[ ,1]), max(plotData[ ,1])), ylim = c(min(plotData[ ,2]), max(plotData[ ,2])),
+#                      zlim = colLim, xlab = "", ylab =)
+#   graphics::box(col = "black")
+# 
+#   graphics::mtext(side=1,text=xyLabels[1],line=1.8)
+#   graphics::mtext(side=2,text=xyLabels[2],line=1.8)
+# 
+#   if (perfSpace_contours) {
+#     # get image for contours
+#     look <- fields::as.image(plotData[ ,3], ind = cbind(plotData[ ,1], plotData[ ,2]), nx = nx, ny = ny)
+#     graphics::contour(add = TRUE, x = look$x, y = look$y, z = look$z, method="edge", labcex = 1, nlevels = nContour)
+#   }
+# 
+#   if (!is.null(perfThresh)) {
+#     graphics::contour(add = TRUE, x = look$x, y = look$y, z = look$z, lty=threshLty, lwd = threshLwd, col = perfSpace_threshCol, drawlabels = FALSE, levels = perfThresh)
+#     graphics::legend("topright", inset = c(0.005, 0.005), legend=paste0("Performance\nThreshold (", perfThresh, ")"),
+#            col=perfSpace_threshCol, lwd=threshLwd, lty=threshLty, cex=1, bty="n")
+#   }
+# 
+#   if (!is.null(climData)) {
+#     if (sum(colnames(climData) %in% xyAtts) == 2) {
+#       graphics::points(x = climData[[xyAtts[1]]], y = climData[[xyAtts[2]]], pch = perfSpace_climDataPch, col = perfSpace_climDataCol, bg = perfSpace_climDataBg)
+#     } else {
+#       warning(paste0("climData is not plotted since it does not contain ", paste(xyAtts[(colnames(climData) %in% xyAtts)], sep = ","), "."))
+#     }
+#   }
+# 
+#   if(colBar){
+#     fields::image.plot(legend.only = TRUE, zlim = colLim, col = foreSIGHT.colmap(perfSpace_nlevel),
+#                        horizontal = TRUE, smallplot=c(0.2,0.9,0.0001,0.02))
+#   }
+#   #graphics::mtext(tag_text, side=1, line=1.5, adj=1.0, cex=0.8, col=tag_textCol, outer=TRUE)
+# 
+# }
+# 
