@@ -174,9 +174,9 @@ aggregate_data = function(data=NULL,times,timeStep,aggPeriod){
     
     d3 = d2 %>%
       dplyr::mutate(timePeriod = lubridate::floor_date(times, aggNameLong[[aggPeriod]])) %>%
-      dplyr::group_by(timePeriod) %>%
+      dplyr::group_by(.data$timePeriod) %>%
       dplyr::summarise(sum = sum(data)) %>%
-      dplyr::right_join(d1,by = dplyr::join_by(timePeriod))
+      dplyr::right_join(d1,by = dplyr::join_by(.data$timePeriod))
 
     out = list(times=d3$timePeriod,
                data=d3$sum,
