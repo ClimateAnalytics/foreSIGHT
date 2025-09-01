@@ -7,15 +7,14 @@
 modCalibrator(obs = NULL, modelTag = NULL, window = NULL)
 }
 \arguments{
-\item{obs}{A dataframe of observed climate data in the form \emph{Year Month
-Day P Temp}.}
+\item{obs}{A list of observed climate data}
 
 \item{modelTag}{A character vector of which stochastic models to use to
 create each climate variable. Supported tags are shown in under details
 below.}
 
 \item{window}{moving average window to calibrate daily gamma parameters for
-the modelTag \code{"P-har-WGEN"}.}
+the modelTag \code{"P-har-wgen"}.}
 }
 \description{
 Calibrates weather generator models specified using modelTag.
@@ -28,20 +27,18 @@ vector of any of the following supported models:
 \item \code{"P-seas-wgen"} a 16 parameter seasonal rainfall model
 (phase angles must be specified via modelInfoMod=list("P-har12-wgen-FS"=fixedPars=c(x,x,x,x))
 \item \code{"P-har-wgen"} a harmonic rainfall model
-\item \code{"Temp-har-wgen"} a harmonic temperature model not conditional on rainfall
-\item \code{"Temp-har-wgen-wd"} a harmonic temperature model dependent on wet or
+\item \code{"Temp-har-wgenO"} a harmonic temperature model not conditional on rainfall
+\item \code{"Temp-harWD-wgenO"} a harmonic temperature model dependent on wet or
 dry day
-\item \code{"Temp-har-wgen-wdsd"} a harmonic temperature model
-where standard deviation parameters are dependent on wet or dry day
-\item \code{"PET-har-wgen"}a harmonic potential evapotranspiration model
-\item \code{"PET-har-wgen-wd"} a harmonic potential evapotranspiration model
+\item \code{"PET-har-wgenO"} a harmonic potential evapotranspiration model
+\item \code{"PET-har-wgenWD"} a harmonic potential evapotranspiration model
 dependent on wet or dry day
-\item \code{"Radn-har-wgen"} a harmonic solar radiation model (MJ/m2) }
+\item \code{"Radn-har-wgenO"} a harmonic solar radiation model (MJ/m2) }
 }
 \examples{
 
 data(tankDat)                               #Load tank data (tank_obs)
-modelTag=c("P-ann-wgen","Temp-har-wgen")  #Select a rainfall and a temperature generator
+modelTag=c("P-ann-wgen","Temp-har-wgenO")  #Select a rainfall and a temperature generator
 out<- modCalibrator(obs = tank_obs,         #Calibrate models
                     modelTag = modelTag)
 }

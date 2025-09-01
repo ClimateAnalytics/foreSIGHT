@@ -9,8 +9,13 @@ plotPerformanceOAT(
   sim,
   metric = NULL,
   topReps = NULL,
+  climData = NULL,
   col = NULL,
-  ylim = NULL
+  ylim = NULL,
+  noPlot = T,
+  plim = c(0.05, 0.95),
+  attSel = NULL,
+  returnPlotData = F
 )
 }
 \arguments{
@@ -25,9 +30,19 @@ The summary may be obtained using the function \code{getSimSummary}}
 \item{topReps}{an integer (default = NULL); the number of "top" replicates to be used. The "top" replicates will be identified for each target based on the simulation fitness. 
 The average performance across \code{topReps} replicates will be plotted.}
 
+\item{climData}{data.frame; the values of attributes from other sources like climate models. This data will be plotted as "hairs" on the bottom of the plot.}
+
 \item{col}{a colour; the colour of the lines. If \code{NULL}, the a default colour is used.}
 
 \item{ylim}{a vector of 2 values; the minimum and maximum limits of the y-axis (performance) scale.}
+
+\item{noPlot}{a logical; whether or not to show plot (or just return ggplot object). \code{noPlot=TRUE} does not show plot.}
+
+\item{plim}{a vector of 2 values; probability limits for performance metric plots}
+
+\item{attSel}{a string vector; selected perturbed attribute to plot}
+
+\item{returnPlotData}{logical; for internal use only}
 }
 \value{
 The plot of the performance space and the ggplot object.

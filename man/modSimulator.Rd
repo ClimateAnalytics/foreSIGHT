@@ -5,8 +5,8 @@
 \title{modSimulator}
 \usage{
 modSimulator(
-  datStart = NULL,
-  datFinish = NULL,
+  datStart,
+  datFinish,
   modelTag = NULL,
   parS = NULL,
   seed = NULL,

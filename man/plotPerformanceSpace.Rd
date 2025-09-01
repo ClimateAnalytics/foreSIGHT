@@ -18,8 +18,9 @@ plotPerformanceSpace(
   colMap = NULL,
   colLim = NULL,
   contourBreaks = NULL,
-  axesPercentLabel = FALSE,
-  type = "heat.plot",
+  nContour = perfSpace_nContour,
+  axesPercentLabel = "fraction",
+  type = "filled.contour",
   noPlot = F
 )
 }
@@ -64,7 +65,9 @@ Please refer data provided with the package that may be loaded using \code{data(
 
 \item{contourBreaks}{a vector; specifies breaks in the performance metric}
 
-\item{axesPercentLabel}{a logical flag; if TRUE x and y axes to be displayed in terms of percentage change instead of fraction}
+\item{nContour}{a number; specifies number of contours in the performance metric (if contourBreaks not specified)}
+
+\item{axesPercentLabel}{a string; indicates display format for x and y axes. To display as a fraction, use "fraction", to display as a percentage change use "percentage.change", and to display as a percentage increase or decrease use "percentage.total".}
 
 \item{type}{a string; indicates type of plot as "heat.plot" (default) or "filled.contour"}
 

@@ -15,6 +15,8 @@ plotOptions(
   opt1Label = "Option 1",
   opt2Label = "Option 2",
   titleText = paste0(opt2Label, " - ", opt1Label),
+  type = "filled.contour",
+  nContour = perfSpace_nContour,
   perfThresh = NULL,
   perfThreshLabel = "Threshold",
   attSlices = NULL,
@@ -51,6 +53,10 @@ number of replicates will be identified for each target and the average performa
 \item{opt2Label}{a string; the text to label \code{performanceOpt2}.}
 
 \item{titleText}{a string; text for the title of the plot. The default is \code{paste0(opt2Label, " - ", opt1Label)}.}
+
+\item{type}{a string; indicates type of plot as "heat.plot" (default) or "filled.contour"}
+
+\item{nContour}{a number; specifies number of contours in the performance metric (if contourBreaks not specified)}
 
 \item{perfThresh}{a number; the minimum or maximum threshold value of the performance metric. A line will be drawn to mark this threshold value in the performance space.}
 

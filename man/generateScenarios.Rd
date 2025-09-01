@@ -10,7 +10,9 @@ generateScenarios(
   simLengthNyrs = NULL,
   numReplicates = 1,
   seedID = NULL,
-  controlFile = NULL
+  cores = 1,
+  controlFile = NULL,
+  targetTol = 0.05
 )
 }
 \arguments{
@@ -34,6 +36,8 @@ If \code{NULL} (the default), the generated simulation will be as long as \code{
 If \code{seedID} is \code{NULL} (which is the default), the function will use a random seed for stochastic time series generation.
 The seed used will be specified in the output. This argument is intended for use in cases that aim to reproduce an existing simulation.}
 
+\item{cores}{a number; Number of core sued for parallel processing.}
+
 \item{controlFile}{a string; to specify the model/optimisation options used for simulating time series data. The valid values are:
 \itemize{
 \item \code{NULL}: the simulation uses the foreSIGHT default stochastic model settings.
@@ -44,6 +48,8 @@ The seed used will be specified in the output. This argument is intended for use
                   These options can be used to change stochastic model types, overwrite default model parameter bounds, change default optimisation arguments, and set penalty attributes to be used in optimisation.
                   Please refer to the function \code{writeControlFile} in order to create an \code{controlFile} JSON file.
 }}
+
+\item{targetTol}{a number; Acceptable tolerance between target and simulated attributes. Error larger than \code{targetTol} for a single replicate/target produces a warning.}
 }
 \value{
 The function returns a list containing the time series data generated. The list can contain multiple replicates (named as \code{Rep1}, \code{Rep2} etc.) equal to the \code{numReplicates} function argument.
@@ -55,7 +61,7 @@ The function returns a list containing the time series data generated. The list 
 \examples{
 # Example 1: Simple scaling
 #-----------------------------------------------------------------------
-attPerturb<-c("P_ann_tot_m","Temp_ann_avg_m")
+attPerturb<-c("P_day_all_tot","Temp_day_all_avg")
 attPerturbType = "regGrid"
 attPerturbSamp = c(2, 2)
 attPerturbMin = c(0.8, -1)
@@ -72,7 +78,7 @@ simScaling <- generateScenarios(reference = tank_obs,
 
 # Example 2: Seasonal scaling
 #-----------------------------------------------------------------------
-attPerturb<-c("P_ann_tot_m","P_ann_seasRatio")
+attPerturb<-c("P_day_all_tot","P_day_all_seasRatio")
 attPerturbType = "regGrid"
 attPerturbSamp = c(2, 2)
 attPerturbMin = c(0.8, 0.9)
@@ -91,9 +97,9 @@ seasScaling <- generateScenarios(reference = tank_obs,
 #----------------------------------------------------------------------
 \dontrun{
 # create an exposure space
-attPerturb <- c("P_ann_tot_m", "P_ann_nWet_m", "P_ann_R10_m")
-attHold <- c("P_Feb_tot_m", "P_SON_dyWet_m", "P_JJA_avgWSD_m", "P_MAM_tot_m",
-"P_DJF_avgDSD_m", "Temp_ann_rng_m", "Temp_ann_avg_m")
+attPerturb <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m")
+attHold <- c("P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m",
+"P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m")
 attPerturbType = "regGrid"
 attPerturbSamp = c(2, 1, 1)
 attPerturbMin = c(0.8, 1, 1)
@@ -114,7 +120,7 @@ simStochastic <- generateScenarios(reference = tank_obs,
                                    }
 # Example 4: Simple Scaling with multi-site data
 #-----------------------------------------------------------------------
-attPerturb <- c("P_ann_tot_m","P_ann_seasRatio")
+attPerturb <- c("P_day_all_tot_m","P_day_all_seasRatio")
 attPerturbType = "regGrid"
 attPerturbSamp = c(3, 3)
 attPerturbMin = c(0.8, 1.2)
@@ -134,9 +140,9 @@ simScaling <- generateScenarios(reference = barossa_obs,
 # Example 5: Multi-site stochastic simulation
 #-----------------------------------------------------------------------
 \dontrun{
-attPerturb <- c("P_ann_tot_m")
-attHold <- c("P_ann_wettest6monSeasRatio","P_ann_wettest6monPeakDay",
-"P_ann_P99","P_ann_avgWSD_m", "P_ann_nWetT0.999_m")
+attPerturb <- c("P_day_all_tot_m")
+attHold <- c("P_day_all_wettest6monSeasRatio","P_day_all_wettest6monPeakDay",
+"P_day_all_P99","P_day_all_avgWSD_m", "P_day_all_nWetT0.999_m")
 attPerturbType = "regGrid"
 # consider unperturbed climates in this example
 attPerturbSamp = attPerturbMin = attPerturbMax = c(1)
@@ -150,8 +156,8 @@ expSpace <- createExpSpace(attPerturb = attPerturb,
 data(barossaDat)
 # specify the penalty settings in a list
 controlFileList <- list()
-controlFileList[["penaltyAttributes"]] <- c("P_ann_tot_m",
-"P_ann_wettest6monSeasRatio","P_ann_wettest6monPeakDay")
+controlFileList[["penaltyAttributes"]] <- c("P_day_all_tot_m",
+"P_ann_wettest6monSeasRatio","P_day_all_wettest6monPeakDay")
 controlFileList[["penaltyWeights"]] <- c(0.5,0.5,0.5)
 # specify the alternate model selections
 controlFileList[["modelType"]] <- list()

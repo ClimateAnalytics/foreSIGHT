@@ -4,7 +4,7 @@
 \alias{runSystemModel}
 \title{Runs a system model and outputs the system performance}
 \usage{
-runSystemModel(sim, systemModel, systemArgs, metrics)
+runSystemModel(sim, systemModel, systemArgs, metrics, varNames = NULL)
 }
 \arguments{
 \item{sim}{list; a simulation containing the scenarios generated using the function \code{generateScenarios}.}
@@ -22,6 +22,8 @@ names also contain the units of the metric. See \code{viewTankMetrics()} for exa
 \item{systemArgs}{a list; containing the input arguments to \code{systemModel}.}
 
 \item{metrics}{a string vector; the names of the performance metrics the \code{systemModel} function returns.}
+
+\item{varNames}{a string vector; containing the names of the climate variables that are extracted from sim and used in system model. If \code{NULL}, then \code{varNames} determined from attribute names in \code{sim$expSpace}.}
 }
 \value{
 The function returns a list containing the performance metrics calculated by the \code{systemModel}. Each element of the list corresponds to a performance metric and is named using the \code{metrics} argument.

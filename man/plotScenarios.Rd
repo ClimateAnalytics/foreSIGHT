@@ -4,25 +4,10 @@
 \alias{plotScenarios}
 \title{Creates summary plots of the biases in the scenarios}
 \usage{
-plotScenarios(
-  sim,
-  simName = NULL,
-  writeToFile = FALSE,
-  fileName = "plotScenarios.pdf",
-  colMapRange = "default",
-  plotAbs = T
-)
+plotScenarios(sim, colMapRange = "default", plotAbs = T)
 }
 \arguments{
 \item{sim}{a list; contains a stochastic simulation or the summary of a stochastic simulation created using the function \code{generateScenarios}}
-
-\item{simName}{a string; defaults to \code{NULL}). User-specified name of the simulation that will used as the heading in the
-saved pdf file to identify the simulation later. If \code{simName} is \code{NULL}, a random name will be assigned for the simulation.}
-
-\item{writeToFile}{logical; defaults to \code{FALSE}. Specifies whether the plots should be saved to a pdf file.
-If set to true, the heatmaps will be saved to a pdf file that would also contain summary pages that show the attributes, models, and optimisation settings used to create \code{sim}.}
-
-\item{fileName}{a string; defaults to \code{"plotScenarios.pdf"}. Specifies the name of the pdf file to be written, if the file exists it will be overwritten.}
 
 \item{colMapRange}{a string; may be set to the character \code{"default"} or \code{"full"} or to a numeric vector of length 2.
 The argument specifies the range of data spanned in the colormap of the heatmap.
@@ -35,7 +20,6 @@ If a numeric vector is specified, the colourmap limits are set to the first (min
 }
 \value{
 The function returns two R plots showing the biases in the targets of the scenarios generated using the function \code{generateScenarios}.
-The figures may be saved to a pdf file by setting the \code{writeToFile} argument to \code{TRUE}.
 }
 \description{
 \code{plotScenarios} uses a simulation performed using the function \code{generateScenarios} as input and creates heatmaps that show
@@ -55,11 +39,11 @@ generated using \code{getSimSummary}
 }
 \examples{
 \dontrun{
-# the examples are nnot run since the run times are too long for CRAN
+# the examples are not run since the run times are too long for CRAN
 # create an exposure space
-attPerturb <- c("P_ann_tot_m", "P_ann_nWet_m", "P_ann_R10_m")
-attHold <- c("P_Feb_tot_m", "P_SON_dyWet_m", "P_JJA_avgWSD_m", "P_MAM_tot_m",
-"P_DJF_avgDSD_m", "Temp_ann_rng_m", "Temp_ann_avg_m")
+attPerturb <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m")
+attHold <- c("P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m",
+"P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m")
 attPerturbType = "regGrid"
 attPerturbSamp = c(2, 1, 1)
 attPerturbMin = c(0.9, 1, 1)
@@ -80,7 +64,6 @@ sim <- generateScenarios(reference = tank_obs,
                          numReplicates = 2)
 # plots heatmaps showing biases in simulated targets
 plotScenarios(sim)
-# to save the figures to a pdf file set writeToFile = TRUE
 # using an example stochastic simulation summary provided with the package
 data("egSimSummary")
 plotScenarios(egSimSummary)

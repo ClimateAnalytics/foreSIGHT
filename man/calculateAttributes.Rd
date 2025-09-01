@@ -34,17 +34,18 @@ For multi-site data, names are combinations of attribute and site names.
 }
 \examples{
 #----------------------------------------------------------------------
-# Example 1: Single-site data.frame input
+# Example 1: Single-site  input
 # load 'tank' example climate data available in the package
 data("tankDat")
 # specify rainfall and temperature attributes to calculate
-attSel <- c("P_ann_tot_m", "P_ann_nWet_m", "P_ann_R10_m", "Temp_ann_rng_m", "Temp_ann_avg_m")
+attSel <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m", 
+            "Temp_day_all_rng_m", "Temp_day_all_avg_m")
 tank_obs_atts <- calculateAttributes(tank_obs, attSel = attSel)
 #----------------------------------------------------------------------
-# Example 2: Multi-site list input
+# Example 2: Multi-site  input
 # load 'Barossa' example climate data available in the package
 data("barossaDat")
 # specify rainfall attributes to calculate
-attSel <- c("P_ann_tot_m", "P_ann_nWet_m", "P_ann_P99")
+attSel <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_P99")
 barossa_obs_atts <- calculateAttributes(tank_obs, attSel = attSel)
 }

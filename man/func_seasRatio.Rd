@@ -9,7 +9,7 @@ func_seasRatio(data, attArgs)
 \arguments{
 \item{data}{is a vector, representing a time series}
 
-\item{attArgs}{is a list, with attArgs$indexWet corresponding to wet season and attArgs$indexDry dry season}
+\item{attArgs}{is a list, with attArgs$indexSeas corresponding to season of interest}
 }
 \description{
 Calculates seasonality ratio
