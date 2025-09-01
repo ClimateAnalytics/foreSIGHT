@@ -478,7 +478,8 @@ generateScenarios <- function(reference,                # data frame of observed
           
           targDiff = abs(allSim[[iRep]][[iTarg]]$targetSim - expTarg$targetMat) 
           if (any(targDiff > targetTol)){
-            warning(paste0('error in target atts for ', var,' stoch rep ', iRep, ' for target ',iTarg, ' = ', targDiff, ' greater than tolerance of ', targetTol, '\n'))
+            #warning(paste0('error in target atts for ', var,' stoch rep ', iRep, ' for target ',iTarg, ' = ', targDiff, ' greater than tolerance of ', targetTol, '\n'))
+            warning(paste0('error in target atts for ', var,' stoch rep ', iRep, ' for target ',iTarg, ' greater than tolerance of ', targetTol, '\n'))
           }
           
         }
@@ -704,11 +705,11 @@ generateScenario <- function(reference,       # list observed data with column n
   progress("Model and attribute combinations OK",file)
 
   #CHECK FOR INPUTS
-  banner("CHECK FOR DATAFRAME INPUT",file)
-  progress("Checking dataframe input...",file)
+  banner("CHECK FOR INPUT",file)
+  progress("Checking input...",file)
   inputcheck<-input_process_check(obs,file,simLengthNyrs)
   obs=inputcheck                                      # USE NEW APPENDED/CHECKED DATA
-  progress("Dataframe input OK",file)
+  progress("Data input OK",file)
 
   #GET ADDITIONAL MODEL INFO, ATT INFO & SORT (make into separate script/functions)
   nMod=length(modelTag)
@@ -956,6 +957,7 @@ generateScenario <- function(reference,       # list observed data with column n
                               parLoc=parLoc,
                               parSim=NULL,
                               setSeed=seedID,
+                              iRepTarg=iRepTarg,
                               file=file,
                               obs=obs,
                               spatialArgs=spatialArgs)
@@ -995,6 +997,7 @@ generateScenario <- function(reference,       # list observed data with column n
                               parLoc=parLoc,
                               parSim=NULL,
                               setSeed=seedID,
+                              iRepTarg=iRepTarg,
                               file=file,
                               obs=obs,
                               spatialArgs=spatialArgs3)
@@ -1037,6 +1040,7 @@ simulateTargetMarg = function(optimArgs=NULL,
                               parLoc=NULL,
                               parSim=NULL,
                               setSeed=NULL,
+                              iRepTarg=NULL,
                               file=NULL,
                               obs=NULL,
                               spatialArgs=NULL){
