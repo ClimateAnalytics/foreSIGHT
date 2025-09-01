@@ -241,11 +241,11 @@
 #' \item{standard deviation of biases across all the replicates}
 #' }
 #' @param sim a list; contains a stochastic simulation or the summary of a stochastic simulation created using the function \code{generateScenarios}
-#' @param simName a string; defaults to \code{NULL}). User-specified name of the simulation that will used as the heading in the
-#' saved pdf file to identify the simulation later. If \code{simName} is \code{NULL}, a random name will be assigned for the simulation.
-#' @param writeToFile logical; defaults to \code{FALSE}. Specifies whether the plots should be saved to a pdf file.
-#' If set to true, the heatmaps will be saved to a pdf file that would also contain summary pages that show the attributes, models, and optimisation settings used to create \code{sim}.
-#' @param fileName a string; defaults to \code{"plotScenarios.pdf"}. Specifies the name of the pdf file to be written, if the file exists it will be overwritten.
+## @param simName a string; defaults to \code{NULL}). User-specified name of the simulation that will used as the heading in the
+## saved pdf file to identify the simulation later. If \code{simName} is \code{NULL}, a random name will be assigned for the simulation.
+## @param writeToFile logical; defaults to \code{FALSE}. Specifies whether the plots should be saved to a pdf file.
+## If set to true, the heatmaps will be saved to a pdf file that would also contain summary pages that show the attributes, models, and optimisation settings used to create \code{sim}.
+## @param fileName a string; defaults to \code{"plotScenarios.pdf"}. Specifies the name of the pdf file to be written, if the file exists it will be overwritten.
 #' @param colMapRange a string; may be set to the character \code{"default"} or \code{"full"} or to a numeric vector of length 2.
 #' The argument specifies the range of data spanned in the colormap of the heatmap.
 #' If set to \code{"default"}, the colourmap limits of attributes that are in units of percentage is set to 0\% to 10\%,
@@ -256,15 +256,14 @@
 #' @details The argument \code{sim} may be a full stochastic simulation generated using the function \code{generateScenarrios} or the summary of the stochastic simulation
 #' generated using \code{getSimSummary}
 #' @return The function returns two R plots showing the biases in the targets of the scenarios generated using the function \code{generateScenarios}.
-#' The figures may be saved to a pdf file by setting the \code{writeToFile} argument to \code{TRUE}.
 #' @seealso \code{createExpSpace}, \code{generateScenarions}, \code{getSimSummary}
 #' @examples
 #' \dontrun{
-#' # the examples are nnot run since the run times are too long for CRAN
+#' # the examples are not run since the run times are too long for CRAN
 #' # create an exposure space
-#' attPerturb <- c("P_ann_tot_m", "P_ann_nWet_m", "P_ann_R10_m")
-#' attHold <- c("P_Feb_tot_m", "P_SON_dyWet_m", "P_JJA_avgWSD_m", "P_MAM_tot_m",
-#' "P_DJF_avgDSD_m", "Temp_ann_rng_m", "Temp_ann_avg_m")
+#' attPerturb <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m")
+#' attHold <- c("P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m",
+#' "P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m")
 #' attPerturbType = "regGrid"
 #' attPerturbSamp = c(2, 1, 1)
 #' attPerturbMin = c(0.9, 1, 1)
@@ -285,7 +284,6 @@
 #'                          numReplicates = 2)
 #' # plots heatmaps showing biases in simulated targets
 #' plotScenarios(sim)
-#' # to save the figures to a pdf file set writeToFile = TRUE
 #' # using an example stochastic simulation summary provided with the package
 #' data("egSimSummary")
 #' plotScenarios(egSimSummary)
@@ -293,9 +291,9 @@
 #' @export
 
 plotScenarios <- function(sim,
-                          simName = NULL,
-                          writeToFile = FALSE,
-                          fileName = "plotScenarios.pdf",
+#                          simName = NULL,
+#                          writeToFile = FALSE,
+#                          fileName = "plotScenarios.pdf",
                           colMapRange = "default",
                           plotAbs = T
                           ) {
@@ -336,14 +334,11 @@ plotScenarios <- function(sim,
     dataV[[v]] <- data
     }
 
-
-
     plots[[dataField[f]]] <- plotTrafficHeatmap(dataV,
                        plotName[f],
                        attNameList = simTraffic[["attName"]],
                        markPrimList = simTraffic[["markPrim"]],
                        perturbedList = simTraffic[["perturbed"]],
-                       writeToFile=writeToFile,
                        colMapRange=colMapRange)
   }
 
@@ -352,62 +347,62 @@ plotScenarios <- function(sim,
   nTarg <- dim(simTraffic[["mean"]][[1]])[1]
   nAtt <- length(unlist(simTraffic[["attName"]])) # not completely accurate
 
-  if (writeToFile) {
-    if (file.exists(fileName)) {
-      cat(paste0("\nThe file ", fileName, " will be overwritten.\n"))
-      file.remove(fileName)
-    }
-    #pdf(file = fileName, width = 8.27, height = 11.69, paper = "a4")
-    grDevices::pdf(file = fileName, width = 11.69, height = 8.27, paper = "a4r")
-    frontPageScenarios(sim, simName)
-    advancedPageScenarios(sim)
-
-    # *****
-    # ADD function to add a table of targets here, i.e., what does Target1 mean
-    # *****
-
-    for (i in 1:nPg) {
-      # if (nTarg < nAtt) {
-      #   nrow = NULL
-      #   ncol = length(plots[["mean"]][[i]])
-      # } else {
-        nrow = length(plots[["mean"]][[i]])
-        ncol = NULL
-        if (nrow > 1) {
-          prop <- (dim(simTraffic[["mean"]][[1]])[2])/(dim(simTraffic[["mean"]][[2]])[2])
-          if (prop >= 4) {
-            multiplier <- 0.5 - ((prop - 4)*0.06)
-            if (multiplier < 0) multiplier <- 0.1
-          } else if (prop == 1) {
-            multiplier <- 0.975
-          } else {
-            multiplier <- 1 - (0.135*prop)
-          }
-          rel_heights <- c(prop*multiplier, 1)
-        } else {
-          rel_heights <- 1
-        }
-      # }
-      print(cowplot::plot_grid(plotlist = plots[["mean"]][[i]],
-                         align = "v",
-                         nrow = nrow,
-                         ncol = ncol,
-                         rel_heights = rel_heights))
-      # print(plots[["mean"]][[i]])
-    }
-    for (i in 1:nPg) {
-      print(cowplot::plot_grid(plotlist = plots[["SD"]][[i]],
-                         align = "v",
-                         nrow = nrow,
-                         ncol = ncol,
-                         rel_heights = rel_heights))
-                         #rel_heights = c(8,2)
-      # print(plots[["SD"]][[i]])
-    }
-    grDevices::dev.off()
-    cat(paste0("\nFigures are saved to file: ", fileName, "."))
-  } else {
-    if (dim(simTraffic[["mean"]][[1]])[1] > 100) cat("The scenarios may contain too many targets to be examined in an R plot. Please call plotScenarios with writeToFile = TRUE to save the figures in a pdf file.")
+  # if (writeToFile) {
+  #   if (file.exists(fileName)) {
+  #     cat(paste0("\nThe file ", fileName, " will be overwritten.\n"))
+  #     file.remove(fileName)
+  #   }
+  #   #pdf(file = fileName, width = 8.27, height = 11.69, paper = "a4")
+  #   grDevices::pdf(file = fileName, width = 11.69, height = 8.27, paper = "a4r")
+  #   frontPageScenarios(sim, simName)
+  #   advancedPageScenarios(sim)
+  # 
+  #   # *****
+  #   # ADD function to add a table of targets here, i.e., what does Target1 mean
+  #   # *****
+  # 
+  #   for (i in 1:nPg) {
+  #     # if (nTarg < nAtt) {
+  #     #   nrow = NULL
+  #     #   ncol = length(plots[["mean"]][[i]])
+  #     # } else {
+  #       nrow = length(plots[["mean"]][[i]])
+  #       ncol = NULL
+  #       if (nrow > 1) {
+  #         prop <- (dim(simTraffic[["mean"]][[1]])[2])/(dim(simTraffic[["mean"]][[2]])[2])
+  #         if (prop >= 4) {
+  #           multiplier <- 0.5 - ((prop - 4)*0.06)
+  #           if (multiplier < 0) multiplier <- 0.1
+  #         } else if (prop == 1) {
+  #           multiplier <- 0.975
+  #         } else {
+  #           multiplier <- 1 - (0.135*prop)
+  #         }
+  #         rel_heights <- c(prop*multiplier, 1)
+  #       } else {
+  #         rel_heights <- 1
+  #       }
+  #     # }
+  #     print(cowplot::plot_grid(plotlist = plots[["mean"]][[i]],
+  #                        align = "v",
+  #                        nrow = nrow,
+  #                        ncol = ncol,
+  #                        rel_heights = rel_heights))
+  #     # print(plots[["mean"]][[i]])
+  #   }
+  #   for (i in 1:nPg) {
+  #     print(cowplot::plot_grid(plotlist = plots[["SD"]][[i]],
+  #                        align = "v",
+  #                        nrow = nrow,
+  #                        ncol = ncol,
+  #                        rel_heights = rel_heights))
+  #                        #rel_heights = c(8,2)
+  #     # print(plots[["SD"]][[i]])
+  #   }
+  #   grDevices::dev.off()
+  #   cat(paste0("\nFigures are saved to file: ", fileName, "."))
+  # } else {
+  #   if (dim(simTraffic[["mean"]][[1]])[1] > 100) cat("The scenarios may contain too many targets to be examined in an R plot. Please call plotScenarios with writeToFile = TRUE to save the figures in a pdf file.")
     # print(plots[["mean"]][[1]])
     # print(plots[["SD"]][[1]])
     # if (nTarg < nAtt) {
@@ -444,7 +439,7 @@ plotScenarios <- function(sim,
                        nrow = nrow,
                        ncol = ncol,
                        rel_heights = rel_heights))
-  }
+  # }
   #return(invisible())
   return(invisible(plots))
   }
