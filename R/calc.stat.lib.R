@@ -1,11 +1,11 @@
 #STATS COMPILER LIBARY
 #library(moments)   #get skewness calculator
 
-#FORTRAN FUNCS
-R10calc <- function(x) {
-  temp=get.nwet(data=x,threshold=10)
-  return(temp)
-  }
+# #FORTRAN FUNCS
+# R10calc <- function(x) {
+#   temp=get.nwet(data=x,threshold=10)
+#   return(temp)
+#   }
 # R10calc <- function(x) {
 #   n=length(x)
 #   out <- .Fortran("R10calc",
@@ -120,8 +120,8 @@ GSLcalc<-function(x){
 
 
 
-# BASIC FORMAT & PLOTTING FUNCTIONS
-d3=function(x){format(x,digits=3)} # FORMAT FUNCTION, SHORTEN TO 3 DIGITS
+# # BASIC FORMAT & PLOTTING FUNCTIONS
+# d3=function(x){format(x,digits=3)} # FORMAT FUNCTION, SHORTEN TO 3 DIGITS
 
 
 #Pad string in front
@@ -133,48 +133,48 @@ str<-function(x,n,pad=" "){
   }
   temp
 }
-#Pad string at end
-str.end<-function(x,n,pad=" "){
-  temp<-as.character(x)
-  nlen<-nchar(temp)
-  if(nlen<n){
-    for(i in 1:(n-nlen)){temp<-paste(temp,pad,sep="")}
-  }
-  temp
-}
+# #Pad string at end
+# str.end<-function(x,n,pad=" "){
+#   temp<-as.character(x)
+#   nlen<-nchar(temp)
+#   if(nlen<n){
+#     for(i in 1:(n-nlen)){temp<-paste(temp,pad,sep="")}
+#   }
+#   temp
+# }
 
-# FUNCTION TO ADD BOXPLOT WITH PROBLIMS
-boxplot_func=function(z,at.pt=NULL,decile.low="10%",decile.high="90%",col=NULL,medcol=NULL,boxwex=0.7){
-  boxplot.info <- graphics::boxplot(z, plot=FALSE,na.action=T);deciles <- stats::quantile(z, probs=seq(0,1,0.05),na.rm=T)
-  boxplot.info$stats[1] <- deciles[decile.low]; boxplot.info$stats[5] <- deciles[decile.high]
-  graphics::bxp(boxplot.info,at=at.pt,add=T,col=col,na.action=T,range=0,boxwex=boxwex,outline=F,medcol=medcol,yaxt='n',boxfill=col)
-}
+# # FUNCTION TO ADD BOXPLOT WITH PROBLIMS
+# boxplot_func=function(z,at.pt=NULL,decile.low="10%",decile.high="90%",col=NULL,medcol=NULL,boxwex=0.7){
+#   boxplot.info <- graphics::boxplot(z, plot=FALSE,na.action=T);deciles <- stats::quantile(z, probs=seq(0,1,0.05),na.rm=T)
+#   boxplot.info$stats[1] <- deciles[decile.low]; boxplot.info$stats[5] <- deciles[decile.high]
+#   graphics::bxp(boxplot.info,at=at.pt,add=T,col=col,na.action=T,range=0,boxwex=boxwex,outline=F,medcol=medcol,yaxt='n',boxfill=col)
+# }
 
-# FUNCTION TO ALLOW TRANSPARENCY OF COLOUR
-add.alpha <- function(COLORS, ALPHA){
-  if(missing(ALPHA)) stop("provide a value for alpha between 0 and 1")
-  RGB <- grDevices::col2rgb(COLORS, alpha=TRUE)
-  RGB[4,] <- round(RGB[4,]*ALPHA)
-  NEW.COLORS <- grDevices::rgb(RGB[1,], RGB[2,], RGB[3,], RGB[4,], maxColorValue = 255)
-  return(NEW.COLORS)
-}
+# # FUNCTION TO ALLOW TRANSPARENCY OF COLOUR
+# add.alpha <- function(COLORS, ALPHA){
+#   if(missing(ALPHA)) stop("provide a value for alpha between 0 and 1")
+#   RGB <- grDevices::col2rgb(COLORS, alpha=TRUE)
+#   RGB[4,] <- round(RGB[4,]*ALPHA)
+#   NEW.COLORS <- grDevices::rgb(RGB[1,], RGB[2,], RGB[3,], RGB[4,], maxColorValue = 255)
+#   return(NEW.COLORS)
+# }
 
-#outersect
-outersect=function(x,y){
-  sort(c(setdiff(x,y),setdiff(y,x)))
-}
+# #outersect
+# outersect=function(x,y){
+#   sort(c(setdiff(x,y),setdiff(y,x)))
+# }
 
 #################
 
-insert_NAs_breaks = function(data,indx){
-  data.new = data[indx$val]
-  if (length(indx$breaks)>1){
-    for(i in 0:(length(indx$breaks)-1)) {
-      data.new <- append(data.new, NA, after=(indx$breaks[i+1]+i))
-    }
-  }  
-  return(data.new)
-}
+# insert_NAs_breaks = function(data,indx){
+#   data.new = data[indx$val]
+#   if (length(indx$breaks)>1){
+#     for(i in 0:(length(indx$breaks)-1)) {
+#       data.new <- append(data.new, NA, after=(indx$breaks[i+1]+i))
+#     }
+#   }  
+#   return(data.new)
+# }
 
 ################
 
@@ -281,14 +281,14 @@ extractor=function(func=NULL,data=NULL,indx=NULL,attArgs=NULL,...){ # returns a 
   return(extractor.out)
 }
 
-extractor.reps=function(func=NULL,data=NULL,indx=NULL,nReps=NULL,...){  # returns a vector
-  temp=rep(0,nReps)
-  for(rep in 1:nReps){
-    dummy=data[,rep]
-    temp[rep]=extractor(func=func,data=dummy,indx=indx,...)
-  }
-  return(temp)
-}
+# extractor.reps=function(func=NULL,data=NULL,indx=NULL,nReps=NULL,...){  # returns a vector
+#   temp=rep(0,nReps)
+#   for(rep in 1:nReps){
+#     dummy=data[,rep]
+#     temp[rep]=extractor(func=func,data=dummy,indx=indx,...)
+#   }
+#   return(temp)
+# }
 
 #EXTRACTOR FOR MULTIPLE PERIODS (TEMPORARY FUNCTION here)
 extractor.summaryMean<-function(func=NULL,
@@ -396,41 +396,41 @@ extractor.summaryMax<-function(func=NULL,
   return(m.series)
 }
 
-#MULTIPLE EXTRACTOR
-extractor.multPeriod<-function(func=NULL,
-                              data=NULL,
-                              indx=NULL,...){
-  nperiod=length(indx)
-  tmp=rep(NA,nperiod)
-  for(p in 1:nperiod){
-    tmp[p]=extractor(func=func,data=data,indx=indx[[p]],...)
-  }
-  return(tmp)
-}
+# #MULTIPLE EXTRACTOR
+# extractor.multPeriod<-function(func=NULL,
+#                               data=NULL,
+#                               indx=NULL,...){
+#   nperiod=length(indx)
+#   tmp=rep(NA,nperiod)
+#   for(p in 1:nperiod){
+#     tmp[p]=extractor(func=func,data=data,indx=indx[[p]],...)
+#   }
+#   return(tmp)
+# }
 
 
-#EXTRACTOR COEFFICIENT OF VARIATION
-extractor.cv<-function(func=NULL,
-                       data=NULL,
-                       indx=NULL,
-                       ...
-
-){
-  nperiod=length(indx)
-  tmp=extractor.multPeriod(func=func,data=data,indx=indx,nperiod=nperiod,...)
-  sdTmp = stats::sd(tmp,na.rm=TRUE)
-  meanTmp = base::mean(tmp,na.rm=TRUE)
-  if (meanTmp==0){
-    if (sdTmp==0){
-      cv = 0.
-    } else {
-      cv =999.
-    }
-  } else {
-    cv=sdTmp/meanTmp 
-  }
-  return(cv)
-}
+# #EXTRACTOR COEFFICIENT OF VARIATION
+# extractor.cv<-function(func=NULL,
+#                        data=NULL,
+#                        indx=NULL,
+#                        ...
+# 
+# ){
+#   nperiod=length(indx)
+#   tmp=extractor.multPeriod(func=func,data=data,indx=indx,nperiod=nperiod,...)
+#   sdTmp = stats::sd(tmp,na.rm=TRUE)
+#   meanTmp = base::mean(tmp,na.rm=TRUE)
+#   if (meanTmp==0){
+#     if (sdTmp==0){
+#       cv = 0.
+#     } else {
+#       cv =999.
+#     }
+#   } else {
+#     cv=sdTmp/meanTmp 
+#   }
+#   return(cv)
+# }
 
 #test
 #test seasons
@@ -441,14 +441,14 @@ extractor.cv<-function(func=NULL,
 # extractor.multPeriod(func=get.avg.tot,data=tmp$P,indx=datInd$i.mm,nperiod=12,nblocks=datInd$nyr)
 # extractor.cv(func=get.avg.tot,data=tmp$P,indx=datInd$i.mm,nperiod=12,nblocks=datInd$nyr)
 
-#FUNCTIONS WILL PULL OUT INFORMATION FROM INPUT VECTOR
-get.perc.above.thresh=function(data=NULL,
-                               threshold=NULL){
-  temp=length(which(data>threshold))
-  if(identical(temp,integer(0))){temp=0}
-  temp=temp/length(data)*100 #get percent of record above threshold
-  return(temp)
-}
+# #FUNCTIONS WILL PULL OUT INFORMATION FROM INPUT VECTOR
+# get.perc.above.thresh=function(data=NULL,
+#                                threshold=NULL){
+#   temp=length(which(data>threshold))
+#   if(identical(temp,integer(0))){temp=0}
+#   temp=temp/length(data)*100 #get percent of record above threshold
+#   return(temp)
+# }
 
 #FUNCTION TO DETERMINE NUMBER OF INSTANCES ABOVE A THRESHOLD - nwet
 get.nwet=function(data=NULL,threshold=NULL){
@@ -465,11 +465,11 @@ get.below=function(data=NULL,threshold=NULL){
   return(temp)
 }
 
-#FUNCTION TO EXTRACT ALL AMOUNTS ABOVE A THRESHOLD
-get.wet.amounts=function(data=NULL,threshold=NULL){
-  temp=data[which(data>threshold)]
-  return(temp)
-}
+# #FUNCTION TO EXTRACT ALL AMOUNTS ABOVE A THRESHOLD
+# get.wet.amounts=function(data=NULL,threshold=NULL){
+#   temp=data[which(data>threshold)]
+#   return(temp)
+# }
 
 #FUNCTION TO GET AVERAGE ABOVE A THRESHOLD
 get.wet.average=function(data=NULL,threshold=NULL){
@@ -482,65 +482,65 @@ get.wet.average=function(data=NULL,threshold=NULL){
   return(temp)
 }
 
-#FUNCTION TO GET STANDARD DEVIATION ABOVE A THRESHOLD
-get.wet.sd=function(data=NULL,threshold=NULL){
-  ind=which(data>threshold)
-  if(identical(length(ind),integer(0))){
-    temp=0                          #if no wet days
-  }else{
-    temp=stats::sd(data[ind],na.rm=T)
-  }
-  return(temp)
-}
+# #FUNCTION TO GET STANDARD DEVIATION ABOVE A THRESHOLD
+# get.wet.sd=function(data=NULL,threshold=NULL){
+#   ind=which(data>threshold)
+#   if(identical(length(ind),integer(0))){
+#     temp=0                          #if no wet days
+#   }else{
+#     temp=stats::sd(data[ind],na.rm=T)
+#   }
+#   return(temp)
+# }
 
-#FUNCTIONS TO GET TOTALS ABOVE A THRESHOLD
-get.wet.tot=function(data=NULL,threshold=NULL){
-  ind=which(data>threshold)
-  if(identical(length(ind),integer(0))){
-    temp=0                          #if no wet days
-  }else{
-    temp=sum(data[ind],na.rm=T)
-  }
-  return(temp)
-}
+# #FUNCTIONS TO GET TOTALS ABOVE A THRESHOLD
+# get.wet.tot=function(data=NULL,threshold=NULL){
+#   ind=which(data>threshold)
+#   if(identical(length(ind),integer(0))){
+#     temp=0                          #if no wet days
+#   }else{
+#     temp=sum(data[ind],na.rm=T)
+#   }
+#   return(temp)
+# }
 
-#FUNCTIONS TO GET TOTALS
-get.tot=function(data=NULL){
-  temp=sum(data,na.rm=T)
-  return(temp)
-}
+# #FUNCTIONS TO GET TOTALS
+# get.tot=function(data=NULL){
+#   temp=sum(data,na.rm=T)
+#   return(temp)
+# }
 
-#GET AVERAGE TOT
-get.avg.tot=function(data=NULL,nblocks=NULL){
-  temp=get.tot(data)/nblocks
-  return(temp)
-}
+# #GET AVERAGE TOT
+# get.avg.tot=function(data=NULL,nblocks=NULL){
+#   temp=get.tot(data)/nblocks
+#   return(temp)
+# }
 
-#FUNCTION TO GET MAXIMA ABOVE A THRESHOLD
-get.wet.max=function(data=NULL,threshold=NULL){
-  ind=which(data>threshold)
-  if(identical(length(ind),integer(0))){
-    temp=0                          #if no wet days
-  }else{
-    temp=max(data[ind],na.rm=T)
-  }
-  return(temp)
-}
+# #FUNCTION TO GET MAXIMA ABOVE A THRESHOLD
+# get.wet.max=function(data=NULL,threshold=NULL){
+#   ind=which(data>threshold)
+#   if(identical(length(ind),integer(0))){
+#     temp=0                          #if no wet days
+#   }else{
+#     temp=max(data[ind],na.rm=T)
+#   }
+#   return(temp)
+# }
 
-get.median.wet=function(data=NULL,threshold=NULL){
-  ind=which(data>threshold)
-  if(identical(length(ind),integer(0))){
-    temp=0                          #if no wet days
-  }else{
-    temp=stats::median(data[ind],na.rm=T)
-  }
-  return(temp)
-}
+# get.median.wet=function(data=NULL,threshold=NULL){
+#   ind=which(data>threshold)
+#   if(identical(length(ind),integer(0))){
+#     temp=0                          #if no wet days
+#   }else{
+#     temp=stats::median(data[ind],na.rm=T)
+#   }
+#   return(temp)
+# }
 
-get.medians=function(data=NULL){
-  temp=stats::median(data,na.rm=T)
-  return(temp)
-}
+# get.medians=function(data=NULL){
+#   temp=stats::median(data,na.rm=T)
+#   return(temp)
+# }
 
 get.quantile=function(data=NULL,  #vector
                       quant=NULL  #quantile (between 0.001-0.999)
@@ -559,74 +559,90 @@ get.quantile.rng=function(data=NULL,  #vector
 }
 
 
-get.quantile.wet=function(data=NULL,  #vector
-                          quant=NULL,  #quantile (between 0.001-0.999)
-                          threshold=NULL  #wet day threshold
-){
-  data[which(data<=threshold)]=NA
-  temp=stats::quantile(x=data,probs=quant,na.rm=TRUE,names = FALSE)
-  return(temp)
-}
+# get.quantile.wet=function(data=NULL,  #vector
+#                           quant=NULL,  #quantile (between 0.001-0.999)
+#                           threshold=NULL  #wet day threshold
+# ){
+#   data[which(data<=threshold)]=NA
+#   temp=stats::quantile(x=data,probs=quant,na.rm=TRUE,names = FALSE)
+#   return(temp)
+# }
 
-#Culley 2020 function for amplitude
-get.amplitude=function(data=NULL,
-                          datInd=NULL){
-  #First, get monthly totals
-  nperiod=12
-  monthlyTotal=rep(NA,nperiod)
-  for(h in 1:nperiod){
-    monthlyTotal[h]=sum(data[datInd$i.mm[[h]]],na.rm=TRUE)/datInd$nyr
-  }
-  #Fit harmonic to totals
-  harmonicParams<-fit.harmonic.opts(nperiod=nperiod,v.stat=monthlyTotal)
+# #Culley 2020 function for amplitude
+# get.amplitude=function(data=NULL,
+#                           datInd=NULL){
+#   #First, get monthly totals
+#   nperiod=12
+#   monthlyTotal=rep(NA,nperiod)
+#   for(h in 1:nperiod){
+#     monthlyTotal[h]=sum(data[datInd$i.mm[[h]]],na.rm=TRUE)/datInd$nyr
+#   }
+#   #Fit harmonic to totals
+#   harmonicParams<-fit.harmonic.opts(nperiod=nperiod,v.stat=monthlyTotal)
+# 
+#   amplitude=harmonicParams$amp
+#   return(amplitude)
+# 
+# }
 
-  amplitude=harmonicParams$amp
-  return(amplitude)
+# # skewness functions from moments package
+# skewness = function(x, na.rm = FALSE) 
+# {
+#   if (is.matrix(x)) 
+#     apply(x, 2, skewness, na.rm = na.rm)
+#   else if (is.vector(x)) {
+#     if (na.rm) 
+#       x <- x[!is.na(x)]
+#     n <- length(x)
+#     (sum((x - mean(x))^3)/n)/(sum((x - mean(x))^2)/n)^(3/2)
+#   }
+#   else if (is.data.frame(x)) 
+#     sapply(x, skewness, na.rm = na.rm)
+#   else skewness(as.vector(x), na.rm = na.rm)
+# }
+# 
+# #skewness on wet days
+# get.wet.skewness=function(data=NULL,threshold=NULL){
+#   temp=data[which(data>threshold)]
+#   temp=skewness(x=temp)
+#   return(temp)
+# }
 
-}
 
-#skewness on wet days
-get.wet.skewness=function(data=NULL,threshold=NULL){
-  temp=data[which(data>threshold)]
-  temp=moments::skewness(x=temp)
-  return(temp)
-}
+# #dry spell calculator - adapted from D.Guo
+# get.cdd<-function(data=NULL,       # w-dry status or rain vector
+#                   i.yy=NULL,       # year indices
+#                   nyr=NULL         # no. years
+#                   ){
+#   CDD <- matrix(NA,nyr,1)
+# 
+#   for(i in 1:nyr){
+#     chunk=data[i.yy[[i]]]  #chop out wd series
+#     Dss <- cumul_zeros(chunk) # a function to count all the lengths of continuous 0's (included in later script)
+#     Dss <- Dss[(which(Dss==0)-1)]
+#     CDD[i] <- mean(Dss[Dss!=0]) # calculate the average length of dry-spells for each year
+#   }
+#   avgCDD <- mean(CDD)
+#   return(avgCDD)
+# }
 
-
-#dry spell calculator - adapted from D.Guo
-get.cdd<-function(data=NULL,       # w-dry status or rain vector
-                  i.yy=NULL,       # year indices
-                  nyr=NULL         # no. years
-                  ){
-  CDD <- matrix(NA,nyr,1)
-
-  for(i in 1:nyr){
-    chunk=data[i.yy[[i]]]  #chop out wd series
-    Dss <- cumul_zeros(chunk) # a function to count all the lengths of continuous 0's (included in later script)
-    Dss <- Dss[(which(Dss==0)-1)]
-    CDD[i] <- mean(Dss[Dss!=0]) # calculate the average length of dry-spells for each year
-  }
-  avgCDD <- mean(CDD)
-  return(avgCDD)
-}
-
-# Danlu func
-# this function is to count the number of continuous 0's within a period (for calculating average length of dry spells CDD)
-cumul_zeros <- function(x)  {
-  x <- !x
-  rl <- rle(x)
-  len <- rl$lengths
-  v <- rl$values
-  cumLen <- cumsum(len)
-  z <- x
-  # replace the 0 at the end of each zero-block in z by the
-  # negative of the length of the preceding 1-block....
-  iDrops <- c(0, diff(v)) < 0
-  z[ cumLen[ iDrops ] ] <- -len[ c(iDrops[-1],FALSE) ]
-  # ... to ensure that the cumsum below does the right thing.
-  # We zap the cumsum with x so only the cumsums for the 1-blocks survive:
-  x*cumsum(z)
-}
+# # Danlu func
+# # this function is to count the number of continuous 0's within a period (for calculating average length of dry spells CDD)
+# cumul_zeros <- function(x)  {
+#   x <- !x
+#   rl <- rle(x)
+#   len <- rl$lengths
+#   v <- rl$values
+#   cumLen <- cumsum(len)
+#   z <- x
+#   # replace the 0 at the end of each zero-block in z by the
+#   # negative of the length of the preceding 1-block....
+#   iDrops <- c(0, diff(v)) < 0
+#   z[ cumLen[ iDrops ] ] <- -len[ c(iDrops[-1],FALSE) ]
+#   # ... to ensure that the cumsum below does the right thing.
+#   # We zap the cumsum with x so only the cumsums for the 1-blocks survive:
+#   x*cumsum(z)
+# }
 
 # note this function doesn't properly deal with missing data - ideally any spells with missing data should be omitted
 get.spell.lengths<-function(data=NULL,  # vector of rain
@@ -662,13 +678,13 @@ get.spell.lengths.max<-function(data=NULL,  # vector of rain
 # get.spell.lengths(data=series,thresh=0.01,type="dry")
 # mean(get.spell.lengths(data=series,thresh=0.01,type="wet"),na.rm=TRUE)
 
-p<-function(...){paste(...,sep="")}   # PASTE FUNCTION
+p=function(...){paste(...,sep="")}   # PASTE FUNCTION
 
-get.tag.varType<-function(attrib=NULL, # attribute name
-                          sep="-"){
-  varType=strsplit(x = attrib,split=sep)[[1]][1]
-  return(varType)
-}
+# get.tag.varType<-function(attrib=NULL, # attribute name
+#                           sep="-"){
+#   varType=strsplit(x = attrib,split=sep)[[1]][1]
+#   return(varType)
+# }
 
 #categorise func
 categ.fun=function(perf.lim=c(5,10), # performance limits (<=5% good, <=10& fair, >10% poor)
