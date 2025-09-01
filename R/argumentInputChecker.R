@@ -3,16 +3,16 @@
 ################################
 
 # CONTAINS
-  # get.varType() - grabs first part of string, sep specifiable
-  # argument_check()- check duplicate attribute/model tags + check requests for two model types of one variable + checking other master control arguments
+# get.varType() - grabs first part of string, sep specifiable
+# argument_check()- check duplicate attribute/model tags + check requests for two model types of one variable + checking other master control arguments
 
 #---------------------------------------------------------------------------
-#FUNCTIONS
+# FUNCTIONS
 
-#Function to split string and extract first component
-get.varType<-function(attrib=NULL, # attribute name
-                      sep="_"){
-  varType=strsplit(x = attrib,split=sep)[[1]][1]
+# Function to split string and extract first component
+get.varType <- function(attrib = NULL, # attribute name
+                        sep = "_") {
+  varType <- strsplit(x = attrib, split = sep)[[1]][1]
   return(varType)
 }
 
@@ -24,19 +24,18 @@ check_attributes <- function(attHold = NULL,
                              attPerturbBy = NULL,
                              attPerturbMin = NULL,
                              attPerturbMax = NULL) {
-
   # 1. Checks on the names of attributes specified
   #------------------------------------------------------------------
   attSel <- c(attPerturb, attHold)
-  if(is.null(attPerturb)){
-    stop("No attributes nominated for perturbation")
-  }
+  # if(is.null(attPerturb)){
+  #   stop("No attributes nominated for perturbation")
+  # }
 
-  if(is.null(attHold)){
+  if (is.null(attHold)) {
     message("Note: There are no attributes held at historical levels")
   }
 
-  if (anyDuplicated(attSel)!=0) {
+  if (anyDuplicated(attSel) != 0) {
     stop("There are multiple entries of the same attribute")
   }
 
@@ -58,16 +57,18 @@ check_attributes <- function(attHold = NULL,
   # 2. Checks on arguments used for creating the sample space
   #------------------------------------------------------------------
   if (!is.null(attTargetsFile)) {
-    if (!is.character(attTargetsFile)) { stop("attTargetsFile should be the path of the csv file with targets")}
+    if (!is.character(attTargetsFile)) {
+      stop("attTargetsFile should be the path of the csv file with targets")
+    }
   }
 
-  if(is.character(attTargetsFile)) {
+  if (is.character(attTargetsFile)) {
     # READING FROM FILE
     targetMat <- utils::read.table(file = attTargetsFile, sep = ",", header = TRUE)
     att_frmFile <- names(targetMat)
 
     for (i in 1:length(att_frmFile)) {
-      if(sum(att_frmFile[i] %in% attSel)==0){
+      if (sum(att_frmFile[i] %in% attSel) == 0) {
         stop("There is a mismatch in attributes specified in attPerturb & attHold and attTargetsFile")
       }
     }
@@ -75,9 +76,7 @@ check_attributes <- function(attHold = NULL,
     if (length(att_frmFile) != length(attSel)) {
       stop("Ensure that targets for attPerturb & attHold are specified in attTargetsFile")
     }
-
   } else {
-
     if (!is.null(attPerturbSamp)) {
       if (length(attPerturb) != length(attPerturbSamp)) {
         stop("attPerturbSamp should be specified for each attribute in attPerturb")
@@ -115,30 +114,27 @@ check_attributes <- function(attHold = NULL,
     if (!all(attPerturbMin <= attPerturbMax)) {
       stop("attPerturbMin should be less than or equal to attPerturbMax")
     }
-
   }
 
   return(invisible(NULL))
-
 }
 
 # Function to check supplied arguments
 # Anjana: Revisit argument checks to create a small common function to make the checking if-conditions more compact
-check_duplicates_mismatch<-function(obs=NULL,
-                         attSel=NULL,
-                         attPrim=NULL,
-                         attHold=NULL,
-                         attPerturb=NULL,
-                         modelTag=NULL,
-                         optimArgs=NULL,
-                         file
-                         ){
-
+check_duplicates_mismatch <- function(obs = NULL,
+                                      attSel = NULL,
+                                      attPrim = NULL,
+                                      attHold = NULL,
+                                      attPerturb = NULL,
+                                      modelTag = NULL,
+                                      optimArgs = NULL,
+                                      file) {
   # variables in the input data
   names <- names(obs)
-  #names<-names[names!="year"];names<-names[names!="month"];names<-names[names!="day"]
-  names<-names[names!="times"];names<-names[names!="timeStep"]
-  
+  # names<-names[names!="year"];names<-names[names!="month"];names<-names[names!="day"]
+  names <- names[names != "times"]
+  names <- names[names != "timeStep"]
+
   # Anjana - commented after createExpSpace
   # # Perturbed attributes should exist
   # if(is.null(attPerturb)){
@@ -148,17 +144,16 @@ check_duplicates_mismatch<-function(obs=NULL,
   # }
 
   # Simple scaling : no attHeld, no attPrim, single perturbed attribute per variable
-  if (modelTag[1]%in%c("Simple-ann","Simple-seas")) {
-
-    if(length(attHold)!=0) {
-      logfile("Error: Invalid - Scaling cannot hold attributes constant",file)
-      logfile("Program terminated",file)
+  if (modelTag[1] %in% c("Simple-ann", "Simple-seas")) {
+    if (length(attHold) != 0) {
+      logfile("Error: Invalid - Scaling cannot hold attributes constant", file)
+      logfile("Program terminated", file)
       stop("Scaling cannot hold attributes constant")
     }
 
-    if(length(attPrim)!=0) {
-      logfile("Error: Scaling uses no primary attributes",file)
-      logfile("Program terminated",file)
+    if (length(attPrim) != 0) {
+      logfile("Error: Scaling uses no primary attributes", file)
+      logfile("Program terminated", file)
       stop("Scaling uses no primary attributes")
     }
 
@@ -170,11 +165,10 @@ check_duplicates_mismatch<-function(obs=NULL,
     # }
 
 
-  # Checks for stochastic models
+    # Checks for stochastic models
   } else {
-
-    if(is.null(attHold)){
-      warn("No attributes held at historical levels",file)
+    if (is.null(attHold)) {
+      warn("No attributes held at historical levels", file)
     }
 
     # Anjana - commented after createExpSpace
@@ -185,20 +179,20 @@ check_duplicates_mismatch<-function(obs=NULL,
     #   stop("There are multiple entries of the same attribute")
     # }
 
-    if (anyDuplicated(attPrim)!=0) {
-      logfile("Error: There are multiple entries of the same primary attribute",file)
-      logfile("Program terminated",file)
+    if (anyDuplicated(attPrim) != 0) {
+      logfile("Error: There are multiple entries of the same primary attribute", file)
+      logfile("Program terminated", file)
       stop("There are multiple entries of the same primary attribute")
     }
 
-    modelTaglist = get_modelTags(modelInfoList=modelInfoList)
-    
+    modelTaglist <- get_modelTags(modelInfoList = modelInfoList)
+
     # Check that modelTag and attribute names are recognized
-    for(i in 1:length(modelTag)){
-      if(sum(modelTag[i] %in% modelTaglist)==0){
-        logfile("Error: modelTag unrecognised",file)
-        logfile("Program terminated",file)
-        stop(paste0("modelTag ",i," unrecognised"))
+    for (i in 1:length(modelTag)) {
+      if (sum(modelTag[i] %in% modelTaglist) == 0) {
+        logfile("Error: modelTag unrecognised", file)
+        logfile("Program terminated", file)
+        stop(paste0("modelTag ", i, " unrecognised"))
       }
     }
 
@@ -213,24 +207,23 @@ check_duplicates_mismatch<-function(obs=NULL,
     #   }
     # }
 
-    #CHECKS FOR TWO REQUESTED MODEL TYPES
-    modelVars<-sapply(modelTag,get.varType,USE.NAMES=FALSE,sep="-")
+    # CHECKS FOR TWO REQUESTED MODEL TYPES
+    modelVars <- sapply(modelTag, get.varType, USE.NAMES = FALSE, sep = "-")
 
-    if (anyDuplicated(modelVars)!=0) {
-      logfile("Error: There are multiple entries of a model type for one variable",file)
-      logfile("Program terminated",file)
+    if (anyDuplicated(modelVars) != 0) {
+      logfile("Error: There are multiple entries of a model type for one variable", file)
+      logfile("Program terminated", file)
       stop("There are multiple entries of a model type for one variable")
     }
 
     # Checks for columns of data without model tags.
-    if (length(which((names %in% modelVars)==FALSE))>0) {
+    if (length(which((names %in% modelVars) == FALSE)) > 0) {
       message("reference contains more variables than the specified attributes or models. Stochastic series will only be produced for the specified settings.")
-      #warn("There is a mismatch between provided model types and supplied variables. Stochastic series will only be produced for supplied model tags",file)
-      #array<-c("year","month","day",modelVars)
-      array<-c("times","timeStep")
-      obs=obs[array]
+      # warn("There is a mismatch between provided model types and supplied variables. Stochastic series will only be produced for supplied model tags",file)
+      # array<-c("year","month","day",modelVars)
+      array <- c("times", "timeStep")
+      obs <- obs[array]
     }
-
   }
 
   # Anjana - commented after createExpSpace
@@ -243,9 +236,9 @@ check_duplicates_mismatch<-function(obs=NULL,
   #   }
   # }
 
-  if (anyDuplicated(modelTag)!=0) {
-    logfile("Error: There are multiple entries of the same model tag",file)
-    logfile("Program terminated",file)
+  if (anyDuplicated(modelTag) != 0) {
+    logfile("Error: There are multiple entries of the same model tag", file)
+    logfile("Program terminated", file)
     stop("There are multiple entries of the same model tag")
   }
 
@@ -253,35 +246,35 @@ check_duplicates_mismatch<-function(obs=NULL,
   # CHECKS FOR LAMBDA VALUES
 
   # attPrim should exist in attSel
-  if(!is.null(attPrim)){
-    for (i in 1:length(attPrim)){
-      if(sum(attPrim[i] %in% attSel)==0){
-        logfile(paste0("contolFile: penaltyAttribute [",i,"] does not exist in the expSpace"), file)
-        logfile("Program terminated",file)
-        stop(paste0("contolFile: penaltyAttribute [",i,"] does not exist in the expSpace"))
+  if (!is.null(attPrim)) {
+    for (i in 1:length(attPrim)) {
+      if (sum(attPrim[i] %in% attSel) == 0) {
+        logfile(paste0("contolFile: penaltyAttribute [", i, "] does not exist in the expSpace"), file)
+        logfile("Program terminated", file)
+        stop(paste0("contolFile: penaltyAttribute [", i, "] does not exist in the expSpace"))
       }
     }
   }
 
-  if((length(attPrim!=0)) & (length(attPrim)!=length(which(optimArgs$lambda.mult>0)))) {
-    warn("contolFile: There are specified penaltyAttributes with a lambda value of zero",file)
+  if ((length(attPrim != 0)) & (length(attPrim) != length(which(optimArgs$lambda.mult > 0)))) {
+    warn("contolFile: There are specified penaltyAttributes with a lambda value of zero", file)
   }
 
-  if(length(attPrim)>length(optimArgs$lambda.mult)){        # NO. OF ATTPRIM IS GREATER THAN LAMBDA VECTOR
-    warn("There are more specified penaltyAttributes than lambda values",file)
-    logfile("Error: check number of supplied lambda values",file)
-    logfile("Program terminated",file)
+  if (length(attPrim) > length(optimArgs$lambda.mult)) { # NO. OF ATTPRIM IS GREATER THAN LAMBDA VECTOR
+    warn("There are more specified penaltyAttributes than lambda values", file)
+    logfile("Error: check number of supplied lambda values", file)
+    logfile("Program terminated", file)
     stop("Ensure a lambda value is entered for each Primary attribute")
-  }else{
-    note=paste0("Lambda(",attPrim,"): ",optimArgs$lambda.mult,collapse = ", ")
-    progress(note,file)
-    logfile(note,file)
+  } else {
+    note <- paste0("Lambda(", attPrim, "): ", optimArgs$lambda.mult, collapse = ", ")
+    progress(note, file)
+    logfile(note, file)
   }
 
-  if((optimArgs$optimizer=='RGN')&(optimArgs$obj.func!='WSS')){
-    warn("Cannot use optimizer RGN with objective function other than WSS",file)
-    logfile("Error: change optimizer or obj.func",file)
-    logfile("Program terminated",file)
+  if ((optimArgs$optimizer == "RGN") & (optimArgs$obj.func != "WSS")) {
+    warn("Cannot use optimizer RGN with objective function other than WSS", file)
+    logfile("Error: change optimizer or obj.func", file)
+    logfile("Program terminated", file)
     stop("Ensure optimizer RGN is only used with WSS objective function")
   }
 
@@ -319,55 +312,50 @@ check_duplicates_mismatch<-function(obs=NULL,
   #   }
 
   return(invisible())
-
 }
 
 #############################################
 ##  LOGIC CHECKS FOR ATTRIBUTE/MODEL TAGS  ##
 #############################################
 
-#CONTAINS
+# CONTAINS
 # argument_logic_check()
-#checks for simple scaling attributes
-#checks for matching variable, attribute and model lists
+# checks for simple scaling attributes
+# checks for matching variable, attribute and model lists
 
-check_models_attributes<-function(names=NULL,
-                                  attSel=NULL,
-                                  attPrim=NULL,
-                                  modelTag=NULL,
-                                  file
-){
+check_models_attributes <- function(names = NULL,
+                                    attSel = NULL,
+                                    attPrim = NULL,
+                                    modelTag = NULL,
+                                    file) {
+  nam <- names[-c(1:3)]
 
-  nam<-names[-c(1:3)]
-
-  modelVars<-sapply(modelTag,get.varType,USE.NAMES=FALSE,sep="-")
+  modelVars <- sapply(modelTag, get.varType, USE.NAMES = FALSE, sep = "-")
 
   # Can't do rain dependent Temp or PET with no P
-  if (sum("P" %in% modelVars)==0) {
-    if(sum("Temp-har-wgen-wd" %in% modelTag)==1) {
-      logfile("Error: Cannot simulate stochastic wet/dry dependent temperature without a rainfall model",file)
+  if (sum("P" %in% modelVars) == 0) {
+    if (sum("Temp-har-wgen-wd" %in% modelTag) == 1) {
+      logfile("Error: Cannot simulate stochastic wet/dry dependent temperature without a rainfall model", file)
       stop("Cannot simulate stochastic wet/dry dependent temperature without a rainfall model")
-    } else if(sum("PET-har-wgen-wd" %in% modelTag)==1) {
-      logfile("Error: Cannot simulate stochastic wet/dry dependent PET without a rainfall model",file)
+    } else if (sum("PET-har-wgen-wd" %in% modelTag) == 1) {
+      logfile("Error: Cannot simulate stochastic wet/dry dependent PET without a rainfall model", file)
       stop("Cannot simulate stochastic wet/dry dependent PET without a rainfall model")
     }
-
   }
 
-#  if (modelTag[1]=="Simple-ann") {
+  #  if (modelTag[1]=="Simple-ann") {
 
-    # DM: this is now checked in control.R
-    # validAtts <- get.attribute.info(modelTag = "Simple-ann")
-    # if(sum(attSel %in% validAtts)!=length(attSel)) {
-    #   logfile("Error: Simple scaling cannot perturb selected attributes",file)
-    #   logfile("Program terminated",file)
-    #   stop("Simple scaling cannot perturb selected attributes. Choose a stochastic model")
-    # }
+  # DM: this is now checked in control.R
+  # validAtts <- get.attribute.info(modelTag = "Simple-ann")
+  # if(sum(attSel %in% validAtts)!=length(attSel)) {
+  #   logfile("Error: Simple scaling cannot perturb selected attributes",file)
+  #   logfile("Program terminated",file)
+  #   stop("Simple scaling cannot perturb selected attributes. Choose a stochastic model")
+  # }
 
-#  } else {
+  #  } else {
 
-  if (!(modelTag[1])%in%c('Simple-ann','Simple-seas')){
-
+  if (!(modelTag[1]) %in% c("Simple-ann", "Simple-seas")) {
     # ##### DM: this is now handled in attribute.calculator.setup()
     # validAtts=("temp")
     # for(i in 1:length(modelVars)) {
@@ -382,30 +370,27 @@ check_models_attributes<-function(names=NULL,
     #   stop("Model combinations cannot perturb or hold selected attributes. Change attPerturb or attHold selection.")
     # }
 
-    progress("You have selected the following penalty attributes:",file)
+    progress("You have selected the following penalty attributes:", file)
     # cat("     ")
     # cat(attPrim,sep=", ")
     # cat("\n")
     # cat("\n")
-    logfile(attPrim,file)
-    progress("These attributes will be perturbed with model types:",file)
+    logfile(attPrim, file)
+    progress("These attributes will be perturbed with model types:", file)
     # cat("     ")
     # cat(modelTag,sep=", ")
     # cat("\n")
     # cat("\n")
-    logfile(modelTag,file)
-    progress("The scenarios will include the following attributes in the objective function:",file)
+    logfile(modelTag, file)
+    progress("The scenarios will include the following attributes in the objective function:", file)
     # cat("     ")
     # cat(attSel,sep=", ")
     # cat("\n")
     # cat("\n")
-    logfile(attSel,file)
-
+    logfile(attSel, file)
   }
 
   return(invisible())
 
-  #model assessor
-
-
+  # model assessor
 }

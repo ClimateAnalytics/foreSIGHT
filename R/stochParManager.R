@@ -1,7 +1,7 @@
 #  ################################
 # #### STOCHASTIC PAR MANAGER ####
 # ################################
-# 
+#
 # #CONTAINS
 #   #get.multi.model.info() - get modle info for multiple modelTags
 #   #par.manager() - based on model tag converts input vector of pars into pdd, pwd, alpha & beta vectors of nperiod length
@@ -13,23 +13,23 @@
 #   #whichPars
 #   #update.simPriority() -update modelTag via simPriority
 # #-------------------------------------------------------------------------------------------------------------
-#Get info for multiple models
- get.multi.model.info<-function(modelTag=NULL){
-   nMod=length(modelTag)
-   if(nMod==1){
-     modelInfo=list()
-     modelInfo[[modelTag[1]]]=get.model.info(modelTag[1])                     #even if 1 model still stored in list format
-   }else{
-     modelInfo=lapply(X = modelTag,FUN=get.model.info)
-     names(modelInfo) = modelTag
-   }
-   return(modelInfo)
- }
+# Get info for multiple models
+get.multi.model.info <- function(modelTag = NULL) {
+  nMod <- length(modelTag)
+  if (nMod == 1) {
+    modelInfo <- list()
+    modelInfo[[modelTag[1]]] <- get.model.info(modelTag[1]) # even if 1 model still stored in list format
+  } else {
+    modelInfo <- lapply(X = modelTag, FUN = get.model.info)
+    names(modelInfo) <- modelTag
+  }
+  return(modelInfo)
+}
 
 
-#UPDATE MODEL INFO IF FIXED PARAMETERS
- update_model_info<-function(modelTag=NULL, modelInfo=NULL,fixedPars=NULL,minUserBound=NULL,maxUserBound=NULL,file=NULL){
-  #check if model info correct
+# UPDATE MODEL INFO IF FIXED PARAMETERS
+update_model_info <- function(modelTag = NULL, modelInfo = NULL, fixedPars = NULL, minUserBound = NULL, maxUserBound = NULL, file = NULL) {
+  # check if model info correct
   # if((modelTag =="P-har12-wgen-FS")){  #only for FS currently
   #   #Check if the correct number of fixed parameters is supplied
   #   if(length(fixedPars)!=4){
@@ -37,7 +37,7 @@
   #     logfile("Program terminated",file)
   #     stop("Incorrect number of fixed parameters values provided in fixedPar (4 needed)")
   #   }
-  # 
+  #
   #   temp_modelInfo=get.model.info(modelTag="P-har12-wgen")
   #   modelInfo$parNam=temp_modelInfo$parNam
   #   modelInfo$npars=temp_modelInfo$npars
@@ -47,7 +47,7 @@
   #                   modelInfo$minBound[3:4],fixedPars[2],
   #                   modelInfo$minBound[5:6],fixedPars[3],
   #                   modelInfo$minBound[7:8],fixedPars[4])
-  # 
+  #
   #   make_maxBound=c(modelInfo$maxBound[1:2],fixedPars[1],
   #                   modelInfo$maxBound[3:4],fixedPars[2],
   #                   modelInfo$maxBound[5:6],fixedPars[3],
@@ -56,31 +56,30 @@
   #   modelInfo$maxBound=make_maxBound
   # }
 
-  #USER SPECIFIED BOUNDS CASE
-  if((!is.null(minUserBound)) & (!is.null(maxUserBound))){  #
-    #Check if the correct number of fixed parameters is supplied
-    if((length(minUserBound)!=modelInfo$npars)|(length(maxUserBound)!=modelInfo$npars)){
-      dummy=paste0("Error: Incorrect length of supplied bounds ", modelInfo$npars, " needed")
-      logfile(dummy,file)
-      logfile("Program terminated",file)
+  # USER SPECIFIED BOUNDS CASE
+  if ((!is.null(minUserBound)) & (!is.null(maxUserBound))) { #
+    # Check if the correct number of fixed parameters is supplied
+    if ((length(minUserBound) != modelInfo$npars) | (length(maxUserBound) != modelInfo$npars)) {
+      dummy <- paste0("Error: Incorrect length of supplied bounds ", modelInfo$npars, " needed")
+      logfile(dummy, file)
+      logfile("Program terminated", file)
       stop(dummy)
-    } else{
-      modelInfo$minBound=minUserBound
-      modelInfo$maxBound=maxUserBound
+    } else {
+      modelInfo$minBound <- minUserBound
+      modelInfo$maxBound <- maxUserBound
     }
-
   }
 
-  #Otherwise do nothing
+  # Otherwise do nothing
   return(modelInfo)
 }
 
 # # Anjana : function for ar1 parameter calculation (moved up from modelSequencer.R)
 # #-----------------------------------------------------------------------
-# 
+#
 # #Culley 2019 new loop to add ar(1)
 # add_ar1Param <- function(modelTag, modelInfo, datInd) {
-# 
+#
 #   for(mod in 1:length(modelTag)){
 #     if(modelTag[mod]=="P-har-wgen"){
 #       # hard coded parameters
@@ -122,40 +121,40 @@
 # # modelTag="P-ann-wgen"
 # # modelInfo=get.model.info(modelTag)
 # # update_model_info(modelTag=modelTag, modelInfo=modelInfo,fixedPars=NULL,minUserBound=NULL,maxUserBound=NULL)
-# 
-#RETURN VARIOUS PARS
-return.simPriority<-function(modelInfo=NULL){
+#
+# RETURN VARIOUS PARS
+return.simPriority <- function(modelInfo = NULL) {
   return(modelInfo$simPriority)
 }
-return.simVar<-function(modelInfo=NULL){
+return.simVar <- function(modelInfo = NULL) {
   return(modelInfo$simVar)
 }
 
-return.simAgg<-function(modelInfo=NULL){
+return.simAgg <- function(modelInfo = NULL) {
   return(modelInfo$simAgg)
 }
 
 # parManager <- function(parS, modelEnv) {
 #   UseMethod("parManager", parS)
 # }
-# 
+#
 # #PARAMETER MANAGER FOR WGEN STYLE RAIN SIMULATOR
 #   #NPERIOD, I.PP , DATIND INFO
 #   #IF NEEDED (E.G. HARMONIC)
 # parManager.wgen <- function(parS = NULL,        # pars to split
 #                             modelEnv = NULL    # modelEnv that stores modelInfo, modelTag & datInd
 #   ){
-# 
+#
 #   modelInfo <- modelEnv$modelInfo
 #   datInd <- modelEnv$datInd
-# 
+#
 #   if (length(parS) != modelInfo$npars) {
 #     stop("Error: The number of parameters passed to the par manager does not match the number of parameters of the selected model")
 #   }
-# 
+#
 #   #IF NO HARMONIC OR PARAMETER FIXING APPLIED IN MODEL VERSION
 #   if(is.na(modelInfo$ncycle) & is.na(modelInfo$fixedPars)){
-# 
+#
 #     if(modelInfo$nperiod == 1) {
 #       #stop("Error: nperiod is not equal to 1, rep to create parameters of length `ndays` in the par manager will not work")
 #     #check length(pars == modelInfo$npars)   # if it fails put in a warning
@@ -171,16 +170,16 @@ return.simAgg<-function(modelInfo=NULL){
 #       beta <- assignSeasPars(parS[13], parS[14], parS[15], parS[16], datInd[["i.ss"]])
 #     }
 #   }
-# 
+#
 #   #if harmonics are required and no pars fixed - fit them
 #    if(!is.na(modelInfo$ncycle) & is.na(modelInfo$fixedPars)){
-# 
-# 
+#
+#
 #      pdd<-vector(mode="numeric",datInd$ndays) #Initialise vectors
 #      pwd<-vector(mode="numeric",datInd$ndays)
 #      alpha<-vector(mode="numeric",datInd$ndays)
 #      beta<-vector(mode="numeric",datInd$ndays)
-# 
+#
 #      #Culley 2019 the below code includes leap years
 #      # for (i in 1:datInd$nyr){                 #There are probably more speedups here, but this is my leap year solution. It moves through each year, and either takes 365 or 366 points from a harmonic.
 #      #   pdd[datInd$i.yy[[i]]]<-harmonicFunc(x=seq(1:length(datInd$i.yy[[i]])),mean=parS[1],amp=parS[2],phase.ang = parS[3],k=1,nperiod=length(datInd$i.yy[[i]]))
@@ -188,38 +187,38 @@ return.simAgg<-function(modelInfo=NULL){
 #      #   alpha[datInd$i.yy[[i]]]<-harmonicFunc(x=seq(1:length(datInd$i.yy[[i]])),mean=parS[7],amp=parS[8],phase.ang = parS[9],k=1,nperiod=length(datInd$i.yy[[i]]))
 #      #   beta[datInd$i.yy[[i]]]<-harmonicFunc(x=seq(1:length(datInd$i.yy[[i]])),mean=parS[10],amp=parS[11],phase.ang = parS[12],k=1,nperiod=length(datInd$i.yy[[i]]))
 #      # }
-# 
+#
 #      #Culley 2019 these parameter generators ignore leap years, so for long time series will become out of sync.
 #        pdd<-harmonicFunc(x=seq(1:datInd$ndays),mean=parS[1],amp=parS[2],phase.ang = parS[3],k=1,nperiod=365)
 #        pwd<-harmonicFunc(x=seq(1:datInd$ndays),mean=parS[4],amp=parS[5],phase.ang = parS[6],k=1,nperiod=365)
 #        alpha<-harmonicFunc(x=seq(1:datInd$ndays),mean=parS[7],amp=parS[8],phase.ang = parS[9],k=1,nperiod=365)
 #        beta<-harmonicFunc(x=seq(1:datInd$ndays),mean=parS[10],amp=parS[11],phase.ang = parS[12],k=1,nperiod=365)
-# 
-#        monAR1_coeff = monAR1_coeff = NULL 
+#
+#        monAR1_coeff = monAR1_coeff = NULL
 #        if (!is.null(modelInfo$AR1type)){
 #          if (modelInfo$AR1type=='monthly'){
 #            monAR1_coeff = parS[13]
 #            monAR1_multRange = parS[14]
 #          }
 #        }
-#  
-#        
-#        
-#        
+#
+#
+#
+#
 #      #Culley 2019 setting 0-1 limits for pdd,pwd.
 #      pdd[pdd>1] = 1.
 #      pdd[pdd<0] = 0.
-# 
+#
 #      pwd[pwd>1] = 1.
 #      pwd[pwd<0] = 0.
-# 
+#
 #      #Culley 2019 non negative limits for alpha,beta
 #      alpha[alpha<.Machine$double.xmin] = .Machine$double.xmin
 #      beta[beta<.Machine$double.xmin] = .Machine$double.xmin
-# 
+#
 #    }
-# 
-#   annAR1_coeff = annAR1_multRange = NULL 
+#
+#   annAR1_coeff = annAR1_multRange = NULL
 #   if (!is.null(modelInfo$AR1type)){
 #     if (modelInfo$AR1type=='annual'){
 #       #      annAR1_coeff = parS[13]
@@ -228,16 +227,16 @@ return.simAgg<-function(modelInfo=NULL){
 #       annAR1_multRange = parS[modelInfo$npar]
 #     }
 #   }
-#   
-#   annSD_fac = NULL 
+#
+#   annSD_fac = NULL
 #   if (!is.null(modelInfo$SD)){
 #     if (modelInfo$SD=='fac'){
 #       annSD_fac = parS[modelInfo$npar]
 #     }
 #   }
-#   
-#   
-# 
+#
+#
+#
 #    #out is to - CALCULATE PAR VECTORS (PDD,PWD,ALPA,BETA)
 #   out=list(pdd=pdd,
 #            pwd=pwd,
@@ -248,7 +247,7 @@ return.simAgg<-function(modelInfo=NULL){
 #            annSD_fac=annSD_fac)
 #    return(out)
 # }
-# 
+#
 
 
 assignSeasPars <- function(par1, par2, par3, par4, seasInd) {
@@ -265,33 +264,37 @@ assignSeasPars <- function(par1, par2, par3, par4, seasInd) {
 # #################################
 # functions used in SWG parameter manager
 
-assignSeasonalParameters = function(parNamesSWG,parS,datInd,parTS=list()){
-  for (par in parNamesSWG){
-    parTS[[par]] = assignSeasPars(parS[paste0(par,'.SON')], 
-                                  parS[paste0(par,'.DJF')], 
-                                  parS[paste0(par,'.MAM')], 
-                                  parS[paste0(par,'.JJA')], 
-                                  datInd[["i.ss"]])  
-  } 
+assignSeasonalParameters <- function(parNamesSWG, parS, datInd, parTS = list()) {
+  for (par in parNamesSWG) {
+    parTS[[par]] <- assignSeasPars(
+      parS[paste0(par, ".SON")],
+      parS[paste0(par, ".DJF")],
+      parS[paste0(par, ".MAM")],
+      parS[paste0(par, ".JJA")],
+      datInd[["i.ss"]]
+    )
+  }
   return(parTS)
 }
 
 
-assignHarmonicDailyParameters = function(parNamesSWG,parS,datInd,parTS=list()){
-  for (par in parNamesSWG){
-    parTS[[par]] = harmonicFunc(x=seq(1:datInd$nTimes),
-                                mean=parS[paste0(par,'.m')],
-                                amp=parS[paste0(par,'.amp')],
-                                phase.ang = parS[paste0(par,'.ang')],
-                                k=1,nperiod=365)
-  } 
+assignHarmonicDailyParameters <- function(parNamesSWG, parS, datInd, parTS = list()) {
+  for (par in parNamesSWG) {
+    parTS[[par]] <- harmonicFunc(
+      x = seq(1:datInd$nTimes),
+      mean = parS[paste0(par, ".m")],
+      amp = parS[paste0(par, ".amp")],
+      phase.ang = parS[paste0(par, ".ang")],
+      k = 1, nperiod = 365
+    )
+  }
   return(parTS)
 }
 
-assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
-  for (par in parNamesSWG){
-    parTS[[par]] = rep(parS[par],datInd$nTimes)
-  } 
+assignAnnualParameters <- function(parNamesSWG, parS, datInd, parTS = list()) {
+  for (par in parNamesSWG) {
+    parTS[[par]] <- rep(parS[par], datInd$nTimes)
+  }
   return(parTS)
 }
 
@@ -299,33 +302,33 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 # #################################
 
 
-# 
+#
 # # Parameter manager for latent model WGEN
 # #-------------------------------------------------------------------------------------------------------------
-# 
+#
 # parManager.latent <- function(parS = NULL,          # pars to split
 #                               modelEnv = NULL       # modelEnv that stores modelInfo, modelTag & datInd
 # ) {
-# 
+#
 #   modelInfo <- modelEnv$modelInfo
 # #  datInd <- modelEnv$datInd
-# 
-#   
+#
+#
 #     timeStep = '1 day'
-# 
+#
 #   datInd = modelEnv$datInd[[aggNameShort[[timeStep]]]]
-#   
+#
 #   if (length(parS) != modelInfo$npars) {
 #     stop("Error: The number of parameters passed to the par manager does not match the number of parameters of the selected model")
 #   }
-# 
+#
 #   # IF NO HARMONIC OR PARAMETER FIXING APPLIED IN MODEL VERSION
 #   if(is.na(modelInfo$ncycle) & is.na(modelInfo$fixedPars)){
-# 
+#
 #     # if(modelInfo$nperiod != 1) {
 #     #   stop("Error: nperiod is not equal to 1, rep to create parameters of length `ndays` in the par manager will not work")
 #     # }
-# 
+#
 #     if(modelInfo$nperiod == 1) {
 #       #stop("Error: nperiod is not equal to 1, rep to create parameters of length `ndays` in the par manager will not work")
 #       #check length(pars == modelInfo$npars)   # if it fails put in a warning
@@ -340,40 +343,40 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #       mu <- assignSeasPars(parS[9], parS[10], parS[11], parS[12], datInd[["i.ss"]])
 #       lambda <- assignSeasPars(parS[13], parS[14], parS[15], parS[16], datInd[["i.ss"]])
 #     }
-#   
+#
 #   }
-# 
+#
 #   # if harmonics are required and no pars fixed - fit them
 #   if(!is.na(modelInfo$ncycle) & is.na(modelInfo$fixedPars)){
-# 
+#
 #     alpha <- vector(mode = "numeric", datInd$nTimes) # Initialise vectors - required? check if it makes a difference for computational time
 #     sigma <- vector(mode = "numeric", datInd$nTimes)
 #     mu <- vector(mode = "numeric", datInd$nTimes)
 #     lambda <- vector(mode = "numeric", datInd$nTimes)
-# 
+#
 #     # Culley 2019 these parameter generators ignore leap years, so for long time series will become out of sync.
 #     alpha <- harmonicFunc(x = seq(1:datInd$nTimes), mean=parS[1], amp=parS[2], phase.ang = parS[3], k = 1, nperiod = 365)
 #     sigma <- harmonicFunc(x = seq(1:datInd$nTimes), mean=parS[4], amp=parS[5], phase.ang = parS[6], k = 1, nperiod = 365)
 #     mu <- harmonicFunc(x = seq(1:datInd$nTimes), mean=parS[7], amp=parS[8], phase.ang = parS[9], k = 1, nperiod = 365)
 #     lambda <- harmonicFunc(x = seq(1:datInd$nTimes), mean=parS[10], amp=parS[11], phase.ang = parS[12], k = 1, nperiod = 365)
-# 
-#     
+#
+#
 #     # set limits on parameters after get point values from the harmonic function
 #     alpha <- pmax(alpha, -1)
 #     alpha <- pmin(alpha, 1)
 #     sigma <- pmax(sigma, 0)
-# 
+#
 #   }
-# 
-#   monAR1_coeff = monAR1_multRange = NULL 
+#
+#   monAR1_coeff = monAR1_multRange = NULL
 #   if (!is.null(modelInfo$AR1type)){
 #     if (modelInfo$AR1type=='monthly'){
 #       monAR1_coeff = parS[13]
 #       monAR1_multRange = parS[14]
 #     }
 #   }
-#   
-#   annAR1_coeff = annAR1_multRange = NULL 
+#
+#   annAR1_coeff = annAR1_multRange = NULL
 #   if (!is.null(modelInfo$AR1type)){
 #     if (modelInfo$AR1type=='annual'){
 # #      annAR1_coeff = parS[13]
@@ -382,28 +385,28 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #       annAR1_multRange = parS[modelInfo$npar]
 #     }
 #   }
-#   
-#   annSOI_coeff = NULL 
+#
+#   annSOI_coeff = NULL
 #   if (!is.null(modelInfo$covariate)){
 #     if (modelInfo$covariate=='SOI'){
 #       annSOI_coeff = parS[13]
 #     }
 #   }
-#   
-#   mu_annSOI = NULL 
+#
+#   mu_annSOI = NULL
 #   if (!is.null(modelInfo$covariate)){
 #     if (modelInfo$covariate=='SOI_par'){
 #       mu_annSOI = parS[13]
 #     }
 #   }
-#   
-#   annSD_fac = NULL 
+#
+#   annSD_fac = NULL
 #   if (!is.null(modelInfo$SD)){
 #     if (modelInfo$SD=='fac'){
 #       annSD_fac = parS[modelInfo$npar]
 #     }
 #   }
-#   
+#
 #   out=list(alpha = alpha,
 #            sigma = sigma,
 #            mu = mu,
@@ -412,13 +415,13 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #            annAR1_coeff = annAR1_coeff, annAR1_multRange = annAR1_multRange,
 #            annSOI_coeff = annSOI_coeff, mu_annSOI = mu_annSOI,
 #            annSD_fac=annSD_fac)
-#  
+#
 #   return(out)
 # }
-# 
+#
 # #-------------------------------------------------------------------------------------------------------------
-# 
-# 
+#
+#
 # # init.calib<- function(modelTag=NULL,  #model identifier
 # #                       modelInfo=NULL, #model information based on model identifier
 # #                       data=NULL,      #observed data (data frame) to be used in calibration
@@ -531,20 +534,20 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 # #   probs=list(pwd=(n.wd/nw),pdd=(1-(n.dw/nd)))
 # #   return(probs)
 # # }
-# 
-# 
+#
+#
 # #parMangement for TS generation
 # simHarTS.parmanager<-function(parS=NULL,   #par vector to be divided up (cors, wet (mean par, sd pars), dry (mean pars,sd pars))
 #                               modelTag=NULL,
 #                               modelInfo=NULL,
 #                               initCalibPars=NULL
 # ){
-# 
+#
 #   #position calculator function for harmonic pars
 #   posCalc<-function(npos,nAssocSeries,ncycle){st.pos=(npos-1+nAssocSeries)*(2*ncycle+1)+2}
-# 
+#
 #   Hmean=list(); Hsd=list()
-# 
+#
 #   #if harmonics are required, no pars fixed & conditional on wd status - fit them
 #   if(!is.na(modelInfo$ncycle) & is.na(modelInfo$fixedPars)){
 #     if(modelInfo$nAssocSeries ==0){  #If series residual generated alone
@@ -553,10 +556,10 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #     }else{
 #       #INSERT WARNING
 #       #put on to-do list
-# 
+#
 #       stop("Missing capcity to generate correl residuals")
 #     }
-# 
+#
 #     if(modelInfo$WDcondition == TRUE){
 #       if(modelInfo$wdCycle == "sCycle"){
 #         #MAKE H MEANS WET AND DRY THE SAME
@@ -567,14 +570,14 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #                              phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
 #                              k=modelInfo$ncycle,
 #                              nperiod=modelInfo$nperiod)
-# 
+#
 #         Hmean$D=harmonicFunc(x=seq(1,modelInfo$nperiod),
 #                              mean=parS[st.parset],
 #                              amp=parS[(st.parset+1):(st.parset+modelInfo$ncycle)],
 #                              phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
 #                              k=modelInfo$ncycle,
 #                              nperiod=modelInfo$nperiod)
-# 
+#
 #         #MAKE H SD WET AND DRY CONDITIONAL
 #         st.parset=posCalc(npos=2,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)         # start position in vector for this parameter set
 #         Hsd$W=harmonicFunc(x=seq(1,modelInfo$nperiod),
@@ -583,7 +586,7 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #                            phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
 #                            k=modelInfo$ncycle,
 #                            nperiod=modelInfo$nperiod)
-# 
+#
 #         st.parset=posCalc(npos=3,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)          # start position in vector for this parameter set
 #         Hsd$D=harmonicFunc(x=seq(1,modelInfo$nperiod),
 #                            mean=parS[st.parset],
@@ -591,7 +594,7 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #                            phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
 #                            k=modelInfo$ncycle,
 #                            nperiod=modelInfo$nperiod)
-# 
+#
 #       }else{
 #         st.parset=posCalc(npos=1,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)     # start position in vector for this parameter set
 #         Hmean$W=harmonicFunc(x=seq(1,modelInfo$nperiod),
@@ -600,7 +603,7 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #                              phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
 #                              k=modelInfo$ncycle,
 #                              nperiod=modelInfo$nperiod)
-# 
+#
 #         st.parset=posCalc(npos=2,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)         # start position in vector for this parameter set
 #         Hsd$W=harmonicFunc(x=seq(1,modelInfo$nperiod),
 #                            mean=parS[st.parset],
@@ -608,7 +611,7 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #                            phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
 #                            k=modelInfo$ncycle,
 #                            nperiod=modelInfo$nperiod)
-# 
+#
 #         st.parset=posCalc(npos=3,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)         # start position in vector for this parameter set
 #         Hmean$D=harmonicFunc(x=seq(1,modelInfo$nperiod),
 #                              mean=parS[st.parset],
@@ -616,7 +619,7 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #                              phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
 #                              k=modelInfo$ncycle,
 #                              nperiod=modelInfo$nperiod)
-# 
+#
 #         st.parset=posCalc(npos=4,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)          # start position in vector for this parameter set
 #         Hsd$D=harmonicFunc(x=seq(1,modelInfo$nperiod),
 #                            mean=parS[st.parset],
@@ -625,7 +628,7 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #                            k=modelInfo$ncycle,
 #                            nperiod=modelInfo$nperiod)
 #       }
-# 
+#
 #     }else{
 #       #NOT CONDITIONAL ON WET-DRY
 #       st.parset=posCalc(npos=1,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)     # start position in vector for this parameter set
@@ -635,7 +638,7 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #                             phase.ang=parS[(st.parset+modelInfo$ncycle+1):((st.parset+2*modelInfo$ncycle))],
 #                             k=modelInfo$ncycle,
 #                             nperiod=modelInfo$nperiod)
-# 
+#
 #       st.parset=posCalc(npos=2,nAssocSeries=modelInfo$nAssocSeries,ncycle=modelInfo$ncycle)         # start position in vector for this parameter set
 #       Hsd$WD=harmonicFunc(x=seq(1,modelInfo$nperiod),
 #                           mean=parS[st.parset],
@@ -647,8 +650,8 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #   }else{
 #     stop("Fixed parameter functionality yet to come")
 #   }
-# 
-# 
+#
+#
 #   #CONDITIONS WHERE SOME PARS ARE FIXED
 #   #FIXED SEASONALITY OR OCCURANCE OR ...
 #   #INITICALIBPARS
@@ -656,7 +659,7 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #   # if modelInfo$fixedPars="phase.angle"...
 #   #if(!is.na(modelInfo$ncycle) & (modelInfo$fixedPars == "phase.angle")){}
 #   # if modelInfo$fixedPars=
-# 
+#
 #   #out is to - CALCULATE PAR VECTORS (corr_1,corr_0,Hmean,Hsd)
 #   out=list(cor1=cor1,
 #            cor0=cor0,
@@ -664,13 +667,13 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #            Hsd=Hsd
 #   )
 #   return(out)
-# 
+#
 # }
-# 
+#
 # #tester
 # #simHarTS.parmanager(parS=seq(1,13),modelTag="Temp-har26-wgen",modelInfo=modelInfo,initCalibPars=NULL)
-# 
-#WHICHPARS
+#
+# WHICHPARS
 # whichPars<-function(simVar=NULL,
 #                     modelInfo=NULL
 # ){
@@ -686,27 +689,23 @@ assignAnnualParameters = function(parNamesSWG,parS,datInd,parTS=list()){
 #   return(parLoc)
 # }
 
-whichPars<-function(modelInfo=NULL
-){
-  parLoc=list()
-  pos.start=1
-  modelTag = names(modelInfo)
-  for(mod in modelTag){
-    dummyA=modelInfo[[mod]]$npars
-    pos.end=(dummyA-1) + pos.start
-    tmp=c(pos.start,pos.end)
-    parLoc[[mod]]=tmp         # store in list
-    pos.start=pos.end + 1     # update pos.start ready for next model
+whichPars <- function(modelInfo = NULL) {
+  parLoc <- list()
+  pos.start <- 1
+  modelTag <- names(modelInfo)
+  for (mod in modelTag) {
+    dummyA <- modelInfo[[mod]]$npars
+    pos.end <- (dummyA - 1) + pos.start
+    tmp <- c(pos.start, pos.end)
+    parLoc[[mod]] <- tmp # store in list
+    pos.start <- pos.end + 1 # update pos.start ready for next model
   }
   return(parLoc)
 }
 
-#Update modelTag order
-update_simPriority<-function(modelInfo=NULL){
-  simPriority=sort(sapply(X=modelInfo,FUN=return.simPriority,USE.NAMES=TRUE)) #get simulation priority of each model
-  modelTag=names(simPriority)                                                 # Force simVar="P" to come first via sorting by $simPrority
+# Update modelTag order
+update_simPriority <- function(modelInfo = NULL) {
+  simPriority <- sort(sapply(X = modelInfo, FUN = return.simPriority, USE.NAMES = TRUE)) # get simulation priority of each model
+  modelTag <- names(simPriority) # Force simVar="P" to come first via sorting by $simPrority
   return(modelTag)
 }
-
-
-

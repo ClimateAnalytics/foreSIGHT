@@ -2,11 +2,11 @@
 ##      SIM CITY      ##
 ########################
 
-#CONTAINS
-  #modSimulator() -
-  #argument_check_simulator() - inputs (modelTag=NULL,datStart=NULL,datFinish=NULL,parS=NULL)
+# CONTAINS
+# modSimulator() -
+# argument_check_simulator() - inputs (modelTag=NULL,datStart=NULL,datFinish=NULL,parS=NULL)
 #------------------------------------------------
-#FUNCTIONS
+# FUNCTIONS
 #' modSimulator
 #'
 #' Simulates using weather generator models specified using modelTag.
@@ -41,60 +41,60 @@
 #' @param IOmode A string that specifies the input-output mode for the time
 #' series = "verbose", "dev" or "suppress".
 #' @examples
-#'
 #' \dontrun{
-#' data(tankDat); obs=tank_obs                     #Get observed data
-#' modelTag=c("P-har-wgen","Temp-har-wgen")    #Select models
-#' pars=modCalibrator(obs=obs,modelTag=modelTag)   #Calibrate models
-#' sim=modSimulator(datStart="1970-01-01",         #Simulate!
-#'                  datFinish="1999-12-31",
-#'                  modelTag=modelTag,
-#'                  parS=pars,
-#'                  seed=123,
-#'                  file=paste0("tester.csv"),
-#'                  IOmode="verbose")
-#' plot(sim$P[1:365])                             #Plot first year of rainfall
+#' data(tankDat)
+#' obs <- tank_obs # Get observed data
+#' modelTag <- c("P-har-wgen", "Temp-har-wgen") # Select models
+#' pars <- modCalibrator(obs = obs, modelTag = modelTag) # Calibrate models
+#' sim <- modSimulator(
+#'   datStart = "1970-01-01", # Simulate!
+#'   datFinish = "1999-12-31",
+#'   modelTag = modelTag,
+#'   parS = pars,
+#'   seed = 123,
+#'   file = paste0("tester.csv"),
+#'   IOmode = "verbose"
+#' )
+#' plot(sim$P[1:365]) # Plot first year of rainfall
 #' }
 #' @export
-modSimulator<-function(datStart,
-                       datFinish,
-                       modelTag=NULL,
-                       parS=NULL,      #list that matches modelTag names
-                       seed=NULL,
-                       file=NULL,
-                       IOmode="suppress"
-                        ){
+modSimulator <- function(datStart,
+                         datFinish,
+                         modelTag = NULL,
+                         parS = NULL, # list that matches modelTag names
+                         seed = NULL,
+                         file = NULL,
+                         IOmode = "suppress") {
+  # DO CHECKS - need date checks and model tag checks, par checks
+  argument_check_simulator(modelTag = modelTag, datStart = datStart, datFinish = datFinish, parS = parS)
 
-  #DO CHECKS - need date checks and model tag checks, par checks
-  argument_check_simulator(modelTag=modelTag,datStart=datStart,datFinish=datFinish,parS=parS)
+  # GET ADDITIONAL MODEL INFO, SIMVARS etc
+  modelInfo <- get.multi.model.info(modelTag = modelTag)
+  modelTag <- update_simPriority(modelInfo = modelInfo)
+  simVar <- sapply(X = modelInfo[modelTag], FUN = return.simVar, USE.NAMES = TRUE) # ?CREATE MODEL MASTER INFO - HIGHER LEVEL?
 
-  #GET ADDITIONAL MODEL INFO, SIMVARS etc
-  modelInfo=get.multi.model.info(modelTag=modelTag)
-  modelTag=update_simPriority(modelInfo=modelInfo)
-  simVar=sapply(X=modelInfo[modelTag],FUN=return.simVar,USE.NAMES=TRUE)       #?CREATE MODEL MASTER INFO - HIGHER LEVEL?
+  # Manage dates
+  #  dates=makeDates(datStart=datStart,datFinish=datFinish)  #produces dates data.frame (year, month, day)
+  dates <- seq(as.Date(datStart), as.Date(datFinish), by = "days")
+  datInd <- mod.get.date.ind(obs = list(times = dates), modelTag = modelTag, modelInfo = modelInfo) # Get datInd for all modelTags
 
-  #Manage dates
-#  dates=makeDates(datStart=datStart,datFinish=datFinish)  #produces dates data.frame (year, month, day)
-  dates = seq(as.Date(datStart),as.Date(datFinish),by='days')
-  datInd=mod.get.date.ind(obs=list(times=dates),modelTag=modelTag,modelInfo=modelInfo) #Get datInd for all modelTags
+  # datInd = setup_datInd_agg(simAgg=obs$aggPeriod,times,timeStep,nperiod=1)
 
-  #datInd = setup_datInd_agg(simAgg=obs$aggPeriod,times,timeStep,nperiod=1)
-  
   # for(i in 1:length(modelTag)){
   #   if(!is.null(modelInfoList[[modelTag[i]]]$timeStep)){
   #     datInd[[modelTag[i]]]=setup_datInd_agg(simAgg=modelInfoList[[modelTag[i]]]$timeStep,times=dates,timeStep=modelInfoList[[modelTag[i]]]$timeStep,nperiod=modelInfo[[modelTag[i]]]$nperiod)
   #   }
   # }
-  
-  #Culley 2019 new loop to add ar(1)
+
+  # Culley 2019 new loop to add ar(1)
   # set.seed(seed)
   # for(mod in 1:length(modelTag)){
   #   if(modelTag[mod]=="P-har-wgen"){
-  # 
+  #
   #     # hard coded parameters
   #     ar1ParMult=0.001 # correlation between MULTIPLIER of monthly toals (not same as correlation between monthly totals) was 0.97
   #     multRange=0.8 # i.e. 0.1 is +/10%, so multiplier 95% limit is 0.9 to 1.1
-  # 
+  #
   #     # translated param values needed for AR1
   #     multiplierMean=1
   #     sdJumpDistr=multRange/1.96*sqrt(1-ar1ParMult^2)
@@ -114,7 +114,7 @@ modSimulator<-function(datStart,
   #     modelInfo[[modelTag[mod]]]$ar1=NULL
   #   }
   # }
-  #Culley 2019 new seed generator, but this takes longer
+  # Culley 2019 new seed generator, but this takes longer
   # seeds<-list()
   # ndays<-datInd[[modelTag[1]]]$ndays
   # set.seed(seed)
@@ -122,12 +122,12 @@ modSimulator<-function(datStart,
   # seeds$rainamount<-runif((ndays),0,1)
   # seeds$residuals<-stats::rnorm(n=(ndays),mean=0,sd=1)
 
-  #LOOP OVER EACH STOCHASTIC MODEL NOMINATED
-  out=list()
+  # LOOP OVER EACH STOCHASTIC MODEL NOMINATED
+  out <- list()
 
-  for(mod in 1:length(modelTag)){
-    randomVector <- stats::runif(n=datInd[[modelTag[mod]]]$nTimes) # Random vector to be passed into weather generator to reduce runtime
-    #IF CONDITIONED ON DRY-WET STATUS, populate wdStatus
+  for (mod in 1:length(modelTag)) {
+    randomVector <- stats::runif(n = datInd[[modelTag[mod]]]$nTimes) # Random vector to be passed into weather generator to reduce runtime
+    # IF CONDITIONED ON DRY-WET STATUS, populate wdStatus
     # switch(simVar[mod], #
     #        "P" = {wdStatus=NULL},
     #        "Temp" = {if(modelInfo[[modelTag[mod]]]$WDcondition==TRUE){
@@ -138,21 +138,21 @@ modSimulator<-function(datStart,
     #                 },
     #        {wdStatus=NULL}  #default
     # )
-    
-    if (simVar[mod]=='P'){
-      wdStatus=NULL
+
+    if (simVar[mod] == "P") {
+      wdStatus <- NULL
     } else {
-      if(modelInfo[[mod]]$WDcondition==TRUE){
-        wdStatus=out[["P"]]>modelInfo[[mod]]$WDthresh
-      }else{
-        wdStatus=NULL
+      if (modelInfo[[mod]]$WDcondition == TRUE) {
+        wdStatus <- out[["P"]] > modelInfo[[mod]]$WDthresh
+      } else {
+        wdStatus <- NULL
       }
     }
-    
-    auxInfo = list(wdStatus=wdStatus)
-    
-    #GRAB PARS RELATED TO modelTag
-    parSel=as.double(parS[[modelTag[mod]]])
+
+    auxInfo <- list(wdStatus = wdStatus)
+
+    # GRAB PARS RELATED TO modelTag
+    parSel <- as.double(parS[[modelTag[mod]]])
 
     # write data to model environment
     #----------------------------------
@@ -164,7 +164,7 @@ modSimulator<-function(datStart,
     #-----------------------------------
 
     # browser()
-    # 
+    #
     # out[[simVar[mod]]]=switch_simulator(type=modelInfo[[modelTag[mod]]]$simVar,
     #                                     parS=parSel,
     #                                     modelEnv = foreSIGHT_modelEnv,
@@ -172,29 +172,30 @@ modSimulator<-function(datStart,
     #                                                       seed=seed),
     #                                     wdSeries=wdStatus,
     #                                     resid_ts=NULL)
-    
-    
-    timeStep = modelInfo$timeStep
-    
-    out[[simVar[mod]]]=simClim(parS=parSel,              #RAIN SELECTED
-                                   modelTag = modelTag[mod],
-                                   modelInfo=modelInfo[[mod]],
-                                   datInd=datInd[[modelTag[mod]]],
-                                   randomTerm = list(seed=seed,randomVector=randomVector),
-                                   auxInfo=auxInfo)
-    
-  }  #end model loop
 
-  out$times = dates
-  
-  #simDat=makeOutputDataframe(data=out,dates=dates,simVar=simVar,modelTag=modelTag[1])
 
-  #WRITE TO FILE
+    timeStep <- modelInfo$timeStep
+
+    out[[simVar[mod]]] <- simClim(
+      parS = parSel, # RAIN SELECTED
+      modelTag = modelTag[mod],
+      modelInfo = modelInfo[[mod]],
+      datInd = datInd[[modelTag[mod]]],
+      randomTerm = list(seed = seed, randomVector = randomVector),
+      auxInfo = auxInfo
+    )
+  } # end model loop
+
+  out$times <- dates
+
+  # simDat=makeOutputDataframe(data=out,dates=dates,simVar=simVar,modelTag=modelTag[1])
+
+  # WRITE TO FILE
   # if(IOmode!="suppress"){
   #   utils::write.table(simDat,file=file,row.names=FALSE,quote = FALSE,sep=",")
   # }
 
-  #return(simDat)
+  # return(simDat)
   return(out)
 }
 # data(tankDat); obs=tank_obs
@@ -223,51 +224,48 @@ modSimulator<-function(datStart,
 # dev.off()
 
 #----------------------------------------------------------------------------------
-#Argument checker for modSimulator
-argument_check_simulator<-function(modelTag=NULL,
-                                   datStart=NULL,
-                                   datFinish=NULL,
-                                   parS=NULL){
+# Argument checker for modSimulator
+argument_check_simulator <- function(modelTag = NULL,
+                                     datStart = NULL,
+                                     datFinish = NULL,
+                                     parS = NULL) {
+  modelTaglist <- names(modelInfoList)
 
-  modelTaglist = names(modelInfoList)
-  
-  #CHECKS FOR MODELTAGS
+  # CHECKS FOR MODELTAGS
   # if (modelTag[1]=="Simple-ann") { stop("Simple scaling does not require calibration - invalid request")}
-  if (anyDuplicated(modelTag)!=0) {stop("There are multiple entries of the same model tag")}
-  for(i in 1:length(modelTag)){
-    if(sum(modelTag[i] %in% modelTaglist)==0){
-      stop(paste0("modelTag ",i," unrecognised"))
+  if (anyDuplicated(modelTag) != 0) {
+    stop("There are multiple entries of the same model tag")
+  }
+  for (i in 1:length(modelTag)) {
+    if (sum(modelTag[i] %in% modelTaglist) == 0) {
+      stop(paste0("modelTag ", i, " unrecognised"))
     }
   }
 
-  #Check parameters are specified
-  if(is.null(parS)){
+  # Check parameters are specified
+  if (is.null(parS)) {
     stop("No model parameters specified via parS argument. Parameters are required for each modelTag.")
   }
 
-  #Check that each model has parameters specified in a list
-  modelPar=ls(parS)             #names of models in par list
-  for(i in 1:length(modelTag)){
-    if(sum(modelTag[i] %in% modelPar)==0){
-      stop(paste0("modelTag ",i,", parameters missing. No parameters supplied in 'pars' list"))
+  # Check that each model has parameters specified in a list
+  modelPar <- ls(parS) # names of models in par list
+  for (i in 1:length(modelTag)) {
+    if (sum(modelTag[i] %in% modelPar) == 0) {
+      stop(paste0("modelTag ", i, ", parameters missing. No parameters supplied in 'pars' list"))
     }
   }
 
-  #CHECK length of parameter vectors
-  modelInfo=get.multi.model.info(modelTag=modelTag)
-  for(i in 1:length(modelTag)){
-    #check parS length is equaivalent
-    if(length(parS[[modelTag[i]]])!=modelInfo[[modelTag[i]]]$npars){
-      stop(paste0("Parameters missing for modelTag: ",modelTag[i],".\nMismatch in length of supplied parameter vector pars$",modelTag[i],".\nModel requires:", paste(modelInfo[[modelTag[i]]]$parNam,collapse=" ")))
+  # CHECK length of parameter vectors
+  modelInfo <- get.multi.model.info(modelTag = modelTag)
+  for (i in 1:length(modelTag)) {
+    # check parS length is equaivalent
+    if (length(parS[[modelTag[i]]]) != modelInfo[[modelTag[i]]]$npars) {
+      stop(paste0("Parameters missing for modelTag: ", modelTag[i], ".\nMismatch in length of supplied parameter vector pars$", modelTag[i], ".\nModel requires:", paste(modelInfo[[modelTag[i]]]$parNam, collapse = " ")))
     }
   }
 
-  #Check dates
-  if(datStart>datFinish){
+  # Check dates
+  if (datStart > datFinish) {
     stop("Check supplied dates. datFinish must occur after datStart. Must use recognised date format: '1990-10-01', '01/10/1990', etc ")
   }
-
 }
-
-
-

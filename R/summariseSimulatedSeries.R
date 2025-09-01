@@ -3,21 +3,21 @@
 #################################
 
 
-#CONTAINS
-  # plotSummary()
-  # exposureSummary()
+# CONTAINS
+# plotSummary()
+# exposureSummary()
 
-#NOT ALL VARS WILL NEED ALL PLOTS
+# NOT ALL VARS WILL NEED ALL PLOTS
 # SOME JOINT PLOTTING WLL BE REQUIRED
-#START WITH TRAFFIC LIGHT PLOTTING
-#MORE DETAILED PLOTTING
-#SOME TABLES?
+# START WITH TRAFFIC LIGHT PLOTTING
+# MORE DETAILED PLOTTING
+# SOME TABLES?
 
 
-#DAILY AMOUNTS TAKEN IN BRACKET
-#metricTagList=c("dyAll","tot","totCorrel","dyCorrel","dyWet","nWet")
-#plus - SOMETHING FOR EXTREMES OTHER THAN MAXIMA
-#something for w/d-spells
+# DAILY AMOUNTS TAKEN IN BRACKET
+# metricTagList=c("dyAll","tot","totCorrel","dyCorrel","dyWet","nWet")
+# plus - SOMETHING FOR EXTREMES OTHER THAN MAXIMA
+# something for w/d-spells
 
 # Anjana: this function does not appear to be used anywhere
 # plotSummary<-function(obs=NULL,
@@ -202,7 +202,7 @@
 # }
 
 # Anjana: changed devPlotSummary to plotTargDiagnostics
-#===========================================================================================
+# ===========================================================================================
 # Function that works on a single target - check if it is better to change input arguments
 # There can be three functions
 # 1. Function that works on the full simulation to create summary traffic light plots
@@ -218,10 +218,10 @@
 #                The plots are R plots by default. "writeToFile" can be set to TRUE to write the plots to a PDF with a front page information
 # C) Simulation of a single target and replicate. The plots would contain only a single replicate
 #                The function creates R plots by default. "writeToFile" can be set to TRUE to save plots in a PDF file.
-#========================= NOTE =============================================================
+# ========================= NOTE =============================================================
 # The base plotting code has to be the same for forward and inverse methods
 # So, ensure that the inverse elements are not propagated to the lowest level of the call tree
-#============================================================================================
+# ============================================================================================
 
 # Anjana: Creating heatmaps using "Diff" directly needs more work
 # It would probably need to be split into two heatmaps plotted side-by-side with different cmap scales since the units of "Temp" are diff from the other variables
@@ -262,26 +262,32 @@
 #' # the examples are not run since the run times are too long for CRAN
 #' # create an exposure space
 #' attPerturb <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m")
-#' attHold <- c("P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m",
-#' "P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m")
-#' attPerturbType = "regGrid"
-#' attPerturbSamp = c(2, 1, 1)
-#' attPerturbMin = c(0.9, 1, 1)
-#' attPerturbMax = c(1.1, 1, 1)
-#' expSpace <- createExpSpace(attPerturb = attPerturb,
-#'                            attPerturbSamp = attPerturbSamp,
-#'                            attPerturbMin = attPerturbMin,
-#'                            attPerturbMax = attPerturbMax,
-#'                            attPerturbType = attPerturbType,
-#'                            attHold = attHold,
-#'                            attTargetsFile = NULL)
+#' attHold <- c(
+#'   "P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m",
+#'   "P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m"
+#' )
+#' attPerturbType <- "regGrid"
+#' attPerturbSamp <- c(2, 1, 1)
+#' attPerturbMin <- c(0.9, 1, 1)
+#' attPerturbMax <- c(1.1, 1, 1)
+#' expSpace <- createExpSpace(
+#'   attPerturb = attPerturb,
+#'   attPerturbSamp = attPerturbSamp,
+#'   attPerturbMin = attPerturbMin,
+#'   attPerturbMax = attPerturbMax,
+#'   attPerturbType = attPerturbType,
+#'   attHold = attHold,
+#'   attTargetsFile = NULL
+#' )
 #' # load example data available in foreSIGHT
 #' data(tankDat)
 #' # perform stochastic simulation
-#' sim <- generateScenarios(reference = tank_obs,
-#'                          expSpace = expSpace,
-#'                          simLengthNyrs = 30,
-#'                          numReplicates = 2)
+#' sim <- generateScenarios(
+#'   reference = tank_obs,
+#'   expSpace = expSpace,
+#'   simLengthNyrs = 30,
+#'   numReplicates = 2
+#' )
 #' # plots heatmaps showing biases in simulated targets
 #' plotScenarios(sim)
 #' # using an example stochastic simulation summary provided with the package
@@ -291,16 +297,14 @@
 #' @export
 
 plotScenarios <- function(sim,
-#                          simName = NULL,
-#                          writeToFile = FALSE,
-#                          fileName = "plotScenarios.pdf",
+                          #                          simName = NULL,
+                          #                          writeToFile = FALSE,
+                          #                          fileName = "plotScenarios.pdf",
                           colMapRange = "default",
-                          plotAbs = T
-                          ) {
-
+                          plotAbs = T) {
   if (is.null(sim[["controlFile"]])) {
-      cat("controlFile is missing in the simulation. Are the scenarios generated using simple scaling?\n")
-      stop("plotScenarios cannot be used on simple scaled data")
+    cat("controlFile is missing in the simulation. Are the scenarios generated using simple scaling?\n")
+    stop("plotScenarios cannot be used on simple scaled data")
   }
 
   # get mean diff (set to diff not classified performance) and SD across replicates
@@ -313,33 +317,33 @@ plotScenarios <- function(sim,
   # variable groups (Temp, other Vars)
   vGroups <- length(simTraffic[["mean"]])
 
-  for (f in c(1,2)) {
-
+  for (f in c(1, 2)) {
     dataV <- NULL
     for (v in 1:vGroups) {
       dataIn <- simTraffic[[dataField[f]]][[v]]
       x <- colnames(dataIn)
       y <- rownames(dataIn)
 
-      data <- expand.grid(Attribute=x, Target=y)
+      data <- expand.grid(Attribute = x, Target = y)
       data[[plotName[f]]] <- NA
       for (i in 1:nrow(data)) {
         colN <- as.character(data[i, 1])
         rowN <- as.character(data[i, 2])
         data[i, 3] <- dataIn[rowN, colN]
-        if (plotAbs){
+        if (plotAbs) {
           data[i, 3] <- abs(data[i, 3])
         }
       }
-    dataV[[v]] <- data
+      dataV[[v]] <- data
     }
 
     plots[[dataField[f]]] <- plotTrafficHeatmap(dataV,
-                       plotName[f],
-                       attNameList = simTraffic[["attName"]],
-                       markPrimList = simTraffic[["markPrim"]],
-                       perturbedList = simTraffic[["perturbed"]],
-                       colMapRange=colMapRange)
+      plotName[f],
+      attNameList = simTraffic[["attName"]],
+      markPrimList = simTraffic[["markPrim"]],
+      perturbedList = simTraffic[["perturbed"]],
+      colMapRange = colMapRange
+    )
   }
 
   # no of pages
@@ -356,11 +360,11 @@ plotScenarios <- function(sim,
   #   grDevices::pdf(file = fileName, width = 11.69, height = 8.27, paper = "a4r")
   #   frontPageScenarios(sim, simName)
   #   advancedPageScenarios(sim)
-  # 
+  #
   #   # *****
   #   # ADD function to add a table of targets here, i.e., what does Target1 mean
   #   # *****
-  # 
+  #
   #   for (i in 1:nPg) {
   #     # if (nTarg < nAtt) {
   #     #   nrow = NULL
@@ -403,46 +407,50 @@ plotScenarios <- function(sim,
   #   cat(paste0("\nFigures are saved to file: ", fileName, "."))
   # } else {
   #   if (dim(simTraffic[["mean"]][[1]])[1] > 100) cat("The scenarios may contain too many targets to be examined in an R plot. Please call plotScenarios with writeToFile = TRUE to save the figures in a pdf file.")
-    # print(plots[["mean"]][[1]])
-    # print(plots[["SD"]][[1]])
-    # if (nTarg < nAtt) {
-    #   nrow = NULL
-    #   ncol = length(plots[["mean"]][[1]])
-    # } else {
-      nrow = length(plots[["mean"]][[1]])
-      ncol = NULL
-    # }
-
-      if (nrow > 1) {
-        prop <- (dim(simTraffic[["mean"]][[1]])[2])/(dim(simTraffic[["mean"]][[2]])[2])
-        if (prop >= 4) {
-          multiplier <- 0.5 - ((prop - 4)*0.06)
-          if (multiplier < 0) multiplier <- 0.1
-        } else if (prop == 1) {
-          multiplier <- 0.975
-        } else {
-          multiplier <- 1 - (0.135*prop)
-        }
-        rel_heights <- c(prop*multiplier, 1)
-      } else {
-        rel_heights <- 1
-      }
-
-    print(cowplot::plot_grid(plotlist = plots[["SD"]][[1]],
-                       align = "v",
-                       nrow = nrow,
-                       ncol = ncol,
-                       rel_heights = rel_heights))
-    print(cowplot::plot_grid(plotlist = plots[["mean"]][[1]],
-                       #axis = "l",
-                       align = "v",
-                       nrow = nrow,
-                       ncol = ncol,
-                       rel_heights = rel_heights))
+  # print(plots[["mean"]][[1]])
+  # print(plots[["SD"]][[1]])
+  # if (nTarg < nAtt) {
+  #   nrow = NULL
+  #   ncol = length(plots[["mean"]][[1]])
+  # } else {
+  nrow <- length(plots[["mean"]][[1]])
+  ncol <- NULL
   # }
-  #return(invisible())
-  return(invisible(plots))
+
+  if (nrow > 1) {
+    prop <- (dim(simTraffic[["mean"]][[1]])[2]) / (dim(simTraffic[["mean"]][[2]])[2])
+    if (prop >= 4) {
+      multiplier <- 0.5 - ((prop - 4) * 0.06)
+      if (multiplier < 0) multiplier <- 0.1
+    } else if (prop == 1) {
+      multiplier <- 0.975
+    } else {
+      multiplier <- 1 - (0.135 * prop)
+    }
+    rel_heights <- c(prop * multiplier, 1)
+  } else {
+    rel_heights <- 1
   }
+
+  print(cowplot::plot_grid(
+    plotlist = plots[["SD"]][[1]],
+    align = "v",
+    nrow = nrow,
+    ncol = ncol,
+    rel_heights = rel_heights
+  ))
+  print(cowplot::plot_grid(
+    plotlist = plots[["mean"]][[1]],
+    # axis = "l",
+    align = "v",
+    nrow = nrow,
+    ncol = ncol,
+    rel_heights = rel_heights
+  ))
+  # }
+  # return(invisible())
+  return(invisible(plots))
+}
 
 
 
@@ -455,8 +463,7 @@ plotTrafficHeatmap <- function(targAttList,
                                markPrimList,
                                perturbedList,
                                writeToFile = FALSE,
-                               colMapRange = "default"
-                               ) {
+                               colMapRange = "default") {
   # 1 or 2, tempeparture & other variables
   nMat <- length(targAttList)
   nTarg <- length(unique(targAttList[[1]]$Target))
@@ -479,27 +486,26 @@ plotTrafficHeatmap <- function(targAttList,
   lTitle <- NULL
   colLimits <- NULL
   for (m in 1:nMat) {
-
     targAttMatrix <- targAttList[[m]]
     markPrim <- markPrimList[[m]]
-    if (m ==1 ) {
-      if (is.vector(colMapRange) & length(colMapRange)==2 & is.numeric(colMapRange)){
+    if (m == 1) {
+      if (is.vector(colMapRange) & length(colMapRange) == 2 & is.numeric(colMapRange)) {
         colLimits[[m]] <- colMapRange
       } else if (colMapRange == "full") {
-        colLimits[[m]] <- c(min(targAttMatrix[,3]), max(targAttMatrix[,3]))
-      #if (!is.na(max(targAttMatrix[,3])) & max(targAttMatrix[,3]) < 10) {
-      } else if (colMapRange == "default"){
+        colLimits[[m]] <- c(min(targAttMatrix[, 3]), max(targAttMatrix[, 3]))
+        # if (!is.na(max(targAttMatrix[,3])) & max(targAttMatrix[,3]) < 10) {
+      } else if (colMapRange == "default") {
         colLimits[[m]] <- c(0, trafficLim[["pc.lim"]][2])
       }
     } else {
       if (colMapRange == "full") {
-      # if (!is.na(max(targAttMatrix[,3])) & max(targAttMatrix[,3]) < 0.1) {
-        colLimits[[m]] <- c(min(targAttMatrix[,3]), max(targAttMatrix[,3]))
+        # if (!is.na(max(targAttMatrix[,3])) & max(targAttMatrix[,3]) < 0.1) {
+        colLimits[[m]] <- c(min(targAttMatrix[, 3]), max(targAttMatrix[, 3]))
         # colLimits[[m]] <- c(0, 0.1)
-      } else if (colMapRange == "default"){
+      } else if (colMapRange == "default") {
         colLimits[[m]] <- c(0, trafficLim[["diff.lim"]][2])
-        #colLimits[[m]] <- c(min(targAttMatrix[,3]), max(targAttMatrix[,3]))
-      } else if (is.vector(colMapRange) & length(colMapRange)==2 & is.numeric(colMapRange)){
+        # colLimits[[m]] <- c(min(targAttMatrix[,3]), max(targAttMatrix[,3]))
+      } else if (is.vector(colMapRange) & length(colMapRange) == 2 & is.numeric(colMapRange)) {
         colLimits[[m]] <- colMapRange
       }
     }
@@ -512,30 +518,29 @@ plotTrafficHeatmap <- function(targAttList,
 
     # Create labels using full attribute names
     attDef[[m]] <- paste0(mapply(tagBlender, attNameList[[m]], USE.NAMES = FALSE), " (", heldFlag, ")")
-    nPrim[[m]] <- length(which(markPrim=="*"))
+    nPrim[[m]] <- length(which(markPrim == "*"))
 
     # Identifying points to add hlines betweeen variables
     attVarAll <- unlist(lapply(strsplit(attNameList[[m]], "_"), `[[`, 1))
     attVar <- unique(attVarAll)
     attVarInd_temp <- NULL
-    if(length(attVar) > 1) {
+    if (length(attVar) > 1) {
       for (i in 2:length(attVar)) {
-        tempInd <- which(attVarAll[(nPrim[[m]]+1):length(attVarAll)] == attVar[i])
-        attVarInd_temp[i-1] <- (tempInd[1]+nPrim[[m]])
+        tempInd <- which(attVarAll[(nPrim[[m]] + 1):length(attVarAll)] == attVar[i])
+        attVarInd_temp[i - 1] <- (tempInd[1] + nPrim[[m]])
       }
     }
     attVarInd[[m]] <- attVarInd_temp
     if (attVar[1] == "Temp") {
       lTitle[[m]] <- legendTitleTraffic[["TempType"]]
-    } else  {
+    } else {
       lTitle[[m]] <- legendTitleTraffic[["PType"]]
     }
-
   }
 
   # change size of the text based on the size of the matrix
   if (nTarg > 30 | nAttTotal > 40) {
-    traffic_textSize = 11
+    traffic_textSize <- 11
     traffic_margins <- traffic_tightMargins
   }
   # if (nAtt > 80 | nTarg > 80) {
@@ -544,23 +549,23 @@ plotTrafficHeatmap <- function(targAttList,
   # }
 
   # if there are more than 50 targets - the plots need to be split between pages
-  nTPg <- 50   # no. of targets per page
+  nTPg <- 50 # no. of targets per page
   targAttMatrixList <- list()
   aspectRatio <- list()
   if (writeToFile & nTarg > 50) {
-    nPg <- ceiling(nTarg/nTPg)
+    nPg <- ceiling(nTarg / nTPg)
     # recalculate targets per page for almost equal division
-    nTPg <- ceiling(nTarg/nPg)
+    nTPg <- ceiling(nTarg / nPg)
     allTarg <- unique(targAttList[[1]]$Target)
     aspectRatio <- replicate(nPg, vector("list", nMat), simplify = FALSE)
     targAttMatrixList <- replicate(nPg, vector("list", nMat), simplify = FALSE)
     for (i in 1:nPg) {
-      iTargs <- allTarg[(1+(i-1)*nTPg):(i*nTPg)]
+      iTargs <- allTarg[(1 + (i - 1) * nTPg):(i * nTPg)]
       # loop over Temp & other var
       for (m in 1:nMat) {
         indData <- which(targAttList[[m]]$Target %in% iTargs)
         targAttMatrixList[[i]][[m]] <- targAttList[[m]][indData, ]
-        aspectRatio[[i]][[m]] = sum(!is.na(iTargs))/nAtt[[m]]
+        aspectRatio[[i]][[m]] <- sum(!is.na(iTargs)) / nAtt[[m]]
       }
     }
   } else {
@@ -568,7 +573,7 @@ plotTrafficHeatmap <- function(targAttList,
     aspectRatio <- replicate(nPg, vector("list", nMat), simplify = FALSE)
     targAttMatrixList[[1]] <- targAttList
     for (m in 1:nMat) {
-      aspectRatio[[1]][[m]] = nTarg/(nAtt[[m]])
+      aspectRatio[[1]][[m]] <- nTarg / (nAtt[[m]])
     }
   }
 
@@ -581,58 +586,63 @@ plotTrafficHeatmap <- function(targAttList,
     #               levels=levels(targAttList[[m]]$Attribute))
     # add lines only between atts of different variables
     yInt[[m]] <- factor(c(attNameList[[m]][attVarInd[[m]]]),
-                        levels=levels(targAttList[[m]]$Attribute))
+      levels = levels(targAttList[[m]]$Attribute)
+    )
   }
 
   for (i in 1:nPg) {
-      for (m in 1:nMat){
-        if(field == "Mean") {
-          p1[[i]][[m]] <- ggplot(targAttMatrixList[[i]][[m]], aes(y = factor(.data$Attribute), x = .data$Target)) +
+    for (m in 1:nMat) {
+      if (field == "Mean") {
+        p1[[i]][[m]] <- ggplot(targAttMatrixList[[i]][[m]], aes(y = factor(.data$Attribute), x = .data$Target)) +
           geom_tile(aes(fill = .data$Mean), colour = traffic_tileOutline) +
-          scale_fill_gradientn(colours = traffic.col, limits = colLimits[[m]],
-                               oob = scales::squish,
-                               guide = guide_colorbar(title = lTitle[[m]], title.position = "right", barwidth = 12, barheight = 0.5))
-        } else {
-          p1[[i]][[m]] <- ggplot(targAttMatrixList[[i]][[m]], aes(y = factor(.data$Attribute), x = .data$Target)) +
+          scale_fill_gradientn(
+            colours = traffic.col, limits = colLimits[[m]],
+            oob = scales::squish,
+            guide = guide_colorbar(title = lTitle[[m]], title.position = "right", barwidth = 12, barheight = 0.5)
+          )
+      } else {
+        p1[[i]][[m]] <- ggplot(targAttMatrixList[[i]][[m]], aes(y = factor(.data$Attribute), x = .data$Target)) +
           geom_tile(aes(fill = .data$SD), colour = traffic_tileOutline) +
-          scale_fill_gradientn(colours = traffic.col, limits = colLimits[[m]],
-                               oob = scales::squish,
-                               guide = guide_colorbar(title = lTitle[[m]], title.position = "right", barwidth = 12, barheight = 0.5))
-        }
-      #, limits = c(1, 3), breaks = c(1, 2, 3), labels = c("Good", "Fair", "Poor"))
-      #scale_fill_gradientn(colours = traffic.col, limits = c(1, 3), breaks = c(1, 2, 3), labels = c("Good", "Fair", "Poor")) #+
-      #geom_text(data = labeltext, aes(label = label), vjust = 0.5, hjust = textHjust, angle = 90, color = textCol, size = traffic_textSize*0.352777778)
-    # } else {
-    #   p1[[i]] <- ggplot(targAttMatrixList[[i]], aes(y = factor(Attribute), x = Target)) +
-    #   geom_tile(aes(fill = Variance), colour = traffic_tileOutline) +
-    #   # Need to change this
-    #   scale_fill_gradientn(colours = traffic.col, limits = c(1, 3), breaks = c(1, 2, 3), labels = c("1", "2", "3"))
-    # }
-
-    p1[[i]][[m]] <- p1[[i]][[m]] + geom_hline(yintercept = (as.integer(yInt[[m]])-0.5))
+          scale_fill_gradientn(
+            colours = traffic.col, limits = colLimits[[m]],
+            oob = scales::squish,
+            guide = guide_colorbar(title = lTitle[[m]], title.position = "right", barwidth = 12, barheight = 0.5)
+          )
       }
+      # , limits = c(1, 3), breaks = c(1, 2, 3), labels = c("Good", "Fair", "Poor"))
+      # scale_fill_gradientn(colours = traffic.col, limits = c(1, 3), breaks = c(1, 2, 3), labels = c("Good", "Fair", "Poor")) #+
+      # geom_text(data = labeltext, aes(label = label), vjust = 0.5, hjust = textHjust, angle = 90, color = textCol, size = traffic_textSize*0.352777778)
+      # } else {
+      #   p1[[i]] <- ggplot(targAttMatrixList[[i]], aes(y = factor(Attribute), x = Target)) +
+      #   geom_tile(aes(fill = Variance), colour = traffic_tileOutline) +
+      #   # Need to change this
+      #   scale_fill_gradientn(colours = traffic.col, limits = c(1, 3), breaks = c(1, 2, 3), labels = c("1", "2", "3"))
+      # }
+
+      p1[[i]][[m]] <- p1[[i]][[m]] + geom_hline(yintercept = (as.integer(yInt[[m]]) - 0.5))
+    }
 
     if (nMat == 2) {
       p2[[i]][[1]] <- p1[[i]][[1]] + theme_traffic_upper(traffic_textSize) +
-        theme(plot.margin = unit(traffic_upperMarg,"cm")) +
+        theme(plot.margin = unit(traffic_upperMarg, "cm")) +
         labs(title = plotTitleTraffic[[field]], y = "") +
         scale_y_discrete(breaks = paste0(attNameList[[1]]), labels = paste0(attDef[[1]], markPrimList[[1]])) +
         scale_x_discrete(position = "top") +
-        theme(aspect.ratio = 1/aspectRatio[[i]][[1]])
+        theme(aspect.ratio = 1 / aspectRatio[[i]][[1]])
 
       p2[[i]][[2]] <- p1[[i]][[2]] + theme_traffic_lower(traffic_textSize) +
-        theme(plot.margin = unit(traffic_lowerMarg,"cm")) +
+        theme(plot.margin = unit(traffic_lowerMarg, "cm")) +
         labs(x = penaltyLabel, y = "") +
         scale_y_discrete(breaks = paste0(attNameList[[2]]), labels = paste0(attDef[[2]], markPrimList[[2]])) +
-        theme(aspect.ratio = 1/aspectRatio[[i]][[2]]) #+ labs(tag = tag_text)
+        theme(aspect.ratio = 1 / aspectRatio[[i]][[2]]) #+ labs(tag = tag_text)
     } else {
       p2[[i]][[1]] <- p1[[i]][[1]] + theme_traffic(traffic_textSize) +
-        theme(plot.margin = unit(traffic_margins,"cm")) +
+        theme(plot.margin = unit(traffic_margins, "cm")) +
         labs(x = penaltyLabel, y = "", title = plotTitleTraffic[[field]]) +
         scale_y_discrete(breaks = paste0(attNameList[[1]]), labels = paste0(attDef[[1]], markPrimList[[1]])) +
-        theme(aspect.ratio = 1/aspectRatio[[i]][[1]]) #+ labs(tag = tag_text)
+        theme(aspect.ratio = 1 / aspectRatio[[i]][[1]]) #+ labs(tag = tag_text)
     }
-   }
+  }
 
   return(p2)
 }
@@ -640,7 +650,7 @@ plotTrafficHeatmap <- function(targAttList,
 ######## DM 2025 - I don't think this is currently used and not clear what it does #############
 # # can have a targetNum (and RepNum) argument to point to the target to be plotted - set to "1" and "NULL" by default
 # # If targetNum is set to NULL all targets are to be plotted. In this case, write to file has to be true
-# 
+#
 # plotTarget <- function(obs,                    # observations
 #                        sim,                    # the full simulation
 #                        targetNum,              # supply the targetNum, default set to Target1
@@ -648,7 +658,7 @@ plotTrafficHeatmap <- function(targAttList,
 #                        writeToFile = TRUE,
 #                        fileName = "plotTarget.pdf"
 #                        ) {
-# 
+#
 #   # Get required Information - Used by the original function
 #   #==================================================================
 #   # Unpack data from sim
@@ -657,18 +667,18 @@ plotTrafficHeatmap <- function(targAttList,
 #   optimArgs <- sim[["controlFile"]][["optimisationArguments"]]
 #   optimArgs[["lambda.mult"]] <- sim[["controlFile"]][["penaltyWeights"]]
 #   nml <- sim[["controlFile"]]
-# 
+#
 #   # Variable and target type
 #   attSel_varType <- vapply(attSel, FUN = get.attribute.varType, FUN.VALUE = character(1), USE.NAMES = FALSE)
 #   targetType <- vapply(attSel_varType, FUN = get.target.type, FUN.VALUE = character(1), USE.NAMES = FALSE)
-#   
+#
 #   # modelTag and variables
 #   simVar <- names(nml[["modelType"]])
 #   modelTag <- NULL
 #   for (v in simVar) {
 #     modelTag <- c(modelTag, getModelTag(nml = nml, v))
 #   }
-# 
+#
 #   # Date Indices
 #   datInd <- list()
 #   datInd[["obs"]] <- get.date.ind(dd = obs$day,
@@ -683,31 +693,31 @@ plotTrafficHeatmap <- function(targAttList,
 #                                   southHemi = TRUE)
 #   # Target to be plotted
 #   target <- sim[["expSpace"]][["targetMat"]][targetNum, ]
-# 
+#
 #   tarName <- paste0("Target", targetNum)
 #   repName <- paste0("Rep", repNum)
 #   simPt <- sim[[repName]][[tarName]][["targetSim"]]
 #   simTarget <- sim[[repName]][[tarName]]
-# 
+#
 #   #=======================================================================
-# 
+#
 #   # DO EVERYTHING FOR OBSERVED SERIES ONCE
 #   obsDat=list()
 #   for(i in 1:length(simVar)){
 #     plotVar=simVar[i]            #select variable to evaluate
 #     obsDat[[plotVar]]=collateDat(TS=obs[[plotVar]],datInd=datInd[["obs"]],plotVar=plotVar)
 #   }
-# 
+#
 #   #LOOP OVER TARGETS
-# 
+#
 #     simDat=list()
-# 
+#
 #     if (writeToFile) {
 #       #PLOT STUFF TO A PDF
 #       grDevices::pdf(file=fileName,height=8.27,width=11.69)   #landscape a4 page
 #     }
 #     graphics::par(mar=c(3,5,3,3),oma=c(2,2,2,2))
-# 
+#
 #     # Anjana: Need to modify this for the updated model settings
 #     #===========================================================
 #     #FRONT BOILERPLATE INFO
@@ -722,43 +732,43 @@ plotTrafficHeatmap <- function(targAttList,
 #     #                      simVar=simVar
 #     # )
 #     #============================================================
-# 
+#
 #     #TRAFFIC LIGHT PLOT HERE
 #     if(modelTag[1] != "Simple-ann"){
 #       trafficAttPlot(attSel=attSel,attPrim=attPrim,simPt=simPt,target=target,targetType=targetType)
 #     }
-# 
-# 
+#
+#
 #     #SET LAYOUT - 2 ROWS, 1 COLUMN
 #     graphics::par(mfrow=c(2,1),xaxs="i")
 #     graphics::par(mar=c(3,5,3,3),oma=c(3,5,3,3),xpd=FALSE)
 #     for(mod in 1:length(simVar)){
 #       plotVar=simVar[mod]
-# 
+#
 #       switch(modelTag[1],
 #              "Simple-ann" = {simTest=as.vector(unlist(simTarget[plotVar]))},
 #              {simTest=simTarget[[plotVar]]$sim}
 #       )
-# 
+#
 #       if(plotVar == "P"){mult=0.5}else{mult=1.05}
 #       simVobsTS(simTS=simTest[1:1460],obsTS=obs[[plotVar]][1:1460],datInd=datInd[["obs"]],varName=plotVar,asRollAv=TRUE) #datInd not used
-# 
+#
 #       simTS.overlayMonthlyObsRange(obsDat=obsDat[[plotVar]],simTS=simTest,datInd=datInd[["obs"]],label=plotVar,range.mult=mult)
 #     }
-# 
+#
 #     for(mod in 1:length(simVar)){
-# 
+#
 #       plotVar=simVar[mod]            #select variable to evaluate
 #       switch(modelTag[1],
 #              "Simple-ann" = {simTest=as.vector(unlist(simTarget[plotVar]))},
 #              {simTest=simTarget[[plotVar]]$sim}
 #       )
-# 
+#
 #       simDat[[plotVar]]=collateDat(TS=simTest,datInd=datInd[["sim"]],plotVar=plotVar)
-# 
+#
 #       #print(obsDat[[plotVar]][["ann_count_nWet"]])
 #       # print(simDat[[plotVar]][["ann_count_nWet"]])
-# 
+#
 #       #SET LAYOUT - 2 ROWS, 1 COLUMN
 #       graphics::par(mfrow=c(2,1),xaxs="i",xpd=FALSE)
 #       graphics::par(mar=c(3,5,3,3),oma=c(3,5,3,3))
@@ -766,52 +776,52 @@ plotTrafficHeatmap <- function(targAttList,
 #       #monthwise batch
 #       runTag="mon_mean_dyAll"; lab=paste(plotVar,": daily mean", sep="")
 #       monthwise.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
-# 
+#
 #       runTag="mon_sd_dyAll"; lab=paste(plotVar,": daily sd", sep="")
 #       monthwise.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
-# 
+#
 #       runTag="mon_sum_dyAll"; lab=paste(plotVar,": total", sep="")
 #       monthwise.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
-# 
+#
 #       if(plotVar == "P"){
 #         runTag="mon_mean_dyWet"; lab=paste(plotVar,": daily wet mean", sep="")
 #         monthwise.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
-# 
+#
 #         runTag="mon_sd_dyWet"; lab=paste(plotVar,": daily wet sd", sep="")
 #         monthwise.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
-# 
+#
 #         # runTag="mon_mean_nWet"; lab=paste(plotVar,": no. wet days mean", sep="")
 #         # monthwise.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
-# 
+#
 #         runTag="mon_count_nWet"; lab=paste(plotVar,": no. wet days", sep="")
 #         monthwise.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
 #       }
-# 
-# 
+#
+#
 #       #seasonal batch
 #       runTag="seas_mean_dyAll"; lab=paste(plotVar,": daily mean", sep="")
 #       seasonal.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
-# 
+#
 #       runTag="seas_sd_dyAll"; lab=paste(plotVar,": daily sd", sep="")
 #       seasonal.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
-# 
+#
 #       runTag="seas_sum_dyAll"; lab=paste(plotVar,": total", sep="")
 #       seasonal.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
-# 
+#
 #       #annual batch
 #       #change
 #       graphics::par(mfrow=c(2,3),xaxs="i",xpd=FALSE)  #assuming a4 landscape layout
 #       graphics::par(mar=c(3,5,3,3),oma=c(3,5,3,3))
-# 
+#
 #       runTag="ann_mean_dyAll"; lab=paste(plotVar,": daily mean", sep="")
 #       annual.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
-# 
+#
 #       runTag="ann_sd_dyAll"; lab=paste(plotVar,": daily sd", sep="")
 #       annual.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
-# 
+#
 #       runTag="ann_sum_dyAll"; lab=paste(plotVar,": total", sep="")
 #       annual.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
-# 
+#
 #       if(plotVar == "P"){
 #         runTag="ann_mean_dyWet"; lab=paste(plotVar,": daily wet mean", sep="")
 #         annual.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
@@ -821,13 +831,12 @@ plotTrafficHeatmap <- function(targAttList,
 #         # annual.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
 #         runTag="ann_count_nWet"; lab=paste(plotVar,": no. wet days", sep="")
 #         annual.boxplots(simDat=simDat[[plotVar]][[runTag]],obsDat=obsDat[[plotVar]][[runTag]],compObs=TRUE, metricTag=lab)
-# 
+#
 #       }
-# 
+#
 #     }
 #     if (writeToFile) grDevices::dev.off()  #STOP PLOTTING TO PDF
-# 
-# 
+#
+#
 # }
-# 
-
+#

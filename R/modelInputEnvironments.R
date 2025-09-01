@@ -15,23 +15,29 @@ foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
 
 foreSIGHT_optimizationInputOutputEnv <- new.env(parent = emptyenv())
 
-#foreSIGHT_optimizationSeedTrackerEnv <- new.env(parent = emptyenv())
+# foreSIGHT_optimizationSeedTrackerEnv <- new.env(parent = emptyenv())
 
-write_model_env <- function(envir,            # environment to write into
-                            modelInfo,        # the values of the fields
+write_model_env <- function(envir, # environment to write into
+                            modelInfo, # the values of the fields
                             modelTag = NULL,
                             datInd = NULL) {
-
   switch(modelInfo$simVar,
-         "P" = {subenvir <- foreSIGHT_modelEnv$P_modelEnv},
-         "Temp" = {subenvir <- foreSIGHT_modelEnv$Temp_modelEnv},
-         "PET" = {subenvir <- foreSIGHT_modelEnv$PET_modelEnv},
-         "Radn" = {subenvir <- foreSIGHT_modelEnv$Radn_modelEnv}
-         )
+    "P" = {
+      subenvir <- foreSIGHT_modelEnv$P_modelEnv
+    },
+    "Temp" = {
+      subenvir <- foreSIGHT_modelEnv$Temp_modelEnv
+    },
+    "PET" = {
+      subenvir <- foreSIGHT_modelEnv$PET_modelEnv
+    },
+    "Radn" = {
+      subenvir <- foreSIGHT_modelEnv$Radn_modelEnv
+    }
+  )
 
   assign("modelTag", modelTag, envir = subenvir)
   assign("modelInfo", modelInfo, envir = subenvir)
   assign("datInd", datInd, envir = subenvir)
   invisible()
 }
-

@@ -1,9 +1,9 @@
 # #######################################
 # ##     WGEN FUNCTION LIBRARY         ##
 # #######################################
-# 
+#
 # # CONTAINS
-# 
+#
 #   # switch_simulator()
 #   #----------------------------
 #   # P_WGEN_master()
@@ -17,13 +17,13 @@
 #       # calcDayFunc()
 #       # residualGenerator()
 #       #****NOT DONE YET Also other correlated series models (via residuals etc) ---
-# 
+#
 # #assign("WG_calls",0,envir = foreSIGHT_optimizationDiagnosticsEnv)
 # #foreSIGHT_optimizationDiagnosticsEnv$WG_calls=0
-# 
+#
 # #FUNCTIONS
 # #-----------------------------------------------------------------------------------------------------------
-# 
+#
 # switch_simulator_OLD = function(type=NULL,          # what vartype is being simulated
 #                             parS=NULL,
 #                             modelEnv = NULL,
@@ -32,7 +32,7 @@
 #                             resid_ts=NULL,
 #                             obs=NULL
 # ){
-# 
+#
 #   sim=switch_simulator1(type=type,
 #                        parS=parS,
 #                        modelEnv = modelEnv,
@@ -40,14 +40,14 @@
 #                        wdSeries=wdSeries,
 #                        resid_ts=resid_ts,
 #                        obs=obs)
-# 
+#
 #   # fac = quantile(sim$sim,0.99) / quantile(obs$P,0.99)
 #   # nTop = floor(length(sim$sim)/100)
 #   # tmp.sortSim = sort(sim$sim,decreasing = T,index.return=T)
 #   # i = tmp.sortSim$ix[1:nTop]
 #   # sortObs = sort(obs$P,decreasing = T)[1:nTop]
 #   # sim$sim[i] = fac*sortObs
-# 
+#
 #   # for (s in 1:4){
 #   #   keep = modelEnv$P_modelEnv$datInd$i.ss[[s]]
 #   #   fac = quantile(sim$sim[keep],0.99) / quantile(obs$P[keep],0.99)
@@ -57,13 +57,13 @@
 #   #   sortObs = sort(obs$P[keep],decreasing = T)[1:nTop]
 #   #   sim$sim[i] = fac*sortObs
 #   # }
-#   
+#
 #   return(sim)
-# 
+#
 # }
-# 
+#
 # #-----------------------------------------------------------------------------------------------------------
-# 
+#
 # switch_simulator1<-function(type=NULL,          # what vartype is being simulated
 #                             parS=NULL,
 #                             modelEnv = NULL,
@@ -72,11 +72,11 @@
 #                             resid_ts=NULL,
 #                             obs=NULL
 # ){
-#   
+#
 #   # DM: keep track of calls to weather generator. this is short term solution. ideally we would have this info in optimizer output
 #   WG_calls = foreSIGHT_optimizationDiagnosticsEnv$WG_calls + 1
 #   #assign("WG_calls",WG_calls,envir = foreSIGHT_optimizationDiagnosticsEnv)
-#   
+#
 #   switch(type,
 #          "P" = {
 #            modelTag = modelEnv$P_modelEnv$modelTag
@@ -90,7 +90,7 @@
 #                                   modelEnv = modelEnv$P_modelEnv,
 #                                   randomVector = randomTerm$randomVector,
 #                                   N=randomTerm$seed)
-#                     
+#
 #               # },
 #                   # "monAR1" = { simClim_DM(parS=parS,              #RAIN SELECTED
 #                   #              modelEnv = modelEnv,
@@ -116,8 +116,8 @@
 #                                 obs=obs)
 #                   )
 #          },
-#          
-#          "Temp" = { 
+#
+#          "Temp" = {
 #            modelTag = modelEnv$Temp_modelEnv$modelTag
 #            switch(strsplit(modelTag, split="-")[[1]][3],
 #                   "wgen" = { TS_WGEN_master(parS=parS,
@@ -135,7 +135,7 @@
 #                                 obs=obs)
 #            )
 #          },
-#          
+#
 #          "PET" = { TS_WGEN_master(parS=parS,
 #                                   modelTag=modelEnv$PET_modelEnv$modelTag,
 #                                   modelInfo=modelEnv$PET_modelEnv$modelInfo,
@@ -146,7 +146,7 @@
 #                                   resid_ts=resid_ts,
 #                                   seed=seed,
 #                                   trunc=0)
-#            
+#
 #          },
 #          "Radn" = { TS_WGEN_master(parS=parS,
 #                                    modelTag=modelEnv$Radn_modelEnv$modelTag,
@@ -158,14 +158,14 @@
 #                                    resid_ts=resid_ts,
 #                                    seed=seed,
 #                                    trunc=0)
-#            
+#
 #          },
-#          
-#          
+#
+#
 #          -99.00
 #   )
 # }
-# 
+#
 # P_WGEN_master<- function(parS,               # vector of pars (will change in optim)
 #                          modelEnv,
 #                          randomVector,
@@ -174,15 +174,15 @@
 #   # Converts supplied pars into required format (e.g. if harmonic applied)
 #   class(parS) <- "wgen"
 #   parTS <- parManager(parS = parS, modelEnv = modelEnv)
-# 
+#
 #   # Simulate rainfall timeseries
 #   sim <- P_WGEN(parTS = parTS,
 #                 N = N,
 #                 modelEnv = modelEnv,
 #                 randomVector = randomVector)
-# 
+#
 #   datInd <- modelEnv$datInd
-#   
+#
 #   if(!is.null(parTS$annAR1_coeff)){
 #     if (parTS$annAR1_multRange!=0){
 #       randomAnnAR1seed = N + 100 # specify different random seed used for daily noise
@@ -202,18 +202,18 @@
 #       sim$sim = sim$sim*multSim
 #     }
 #   }
-# 
+#
 #   if (!is.null(parTS$annSD_fac)){
 #     Pann = rep(NA,datInd$nyr)
 #     Pdaily = sim$sim
 #     for(iy in 1:datInd$nyr){
 #       ind=datInd$i.yy[[iy]]
 #       Pann[iy] = sum(Pdaily[ind])
-#     } 
+#     }
 #     meanPann = mean(Pann)
 #     Pann_new = meanPann + parTS$annSD_fac*(Pann-meanPann)
 #     Pann_fac = Pann_new/Pann
-#     
+#
 #     multSim=rep(NA,datInd$ndays)
 #     for(iy in 1:datInd$nyr){
 #       ind=datInd$i.yy[[iy]]
@@ -221,19 +221,19 @@
 #     }
 #     multSim<-pmax(multSim,0)
 #     sim$sim = Pdaily*multSim
-#     
+#
 #     # Pann.new = rep(NA,datInd$nyr)
 #     # Pdaily.new = sim$sim
 #     # for(iy in 1:datInd$nyr){
 #     #   ind=datInd$i.yy[[iy]]
 #     #   Pann.new[iy] = sum(Pdaily.new[ind])
-#     # } 
-#     
+#     # }
+#
 #   }
-#   
+#
 #   return(sim)  #return simulated rainfall
 # }
-# 
+#
 # P_WGEN<-function(parTS,
 #                  N=NULL,    #seed
 #                  modelEnv,
@@ -245,17 +245,17 @@
 #   parAlpha <- parTS$alpha
 #   parBeta <- parTS$beta
 #   ar1 <- modelEnv$modelInfo$ar1  # Culley 2019 add ar(1) model multipliers
-# 
+#
 #   # sim length
 #   ndays <- length(randomVector)
-# 
+#
 #   # sim occurrence
 #   simS=Pstatus_WGEN(parPwd=parPwd,    # vector of pars for pwd (length = ndays)
 #                     parPdd=parPdd,    # vector of pars for pdd (length = ndays)
 #                     ndays=ndays,
 #                     randomVector = randomVector
 #   )
-# 
+#
 #   # sim amounts
 #   simP=Pamount_WGEN(parAlpha=parAlpha,         # vector of pars for alpha (length = ndays)
 #                     parBeta=parBeta,           # vector of pars for beta (length = ndays)
@@ -263,34 +263,34 @@
 #                     N=N,                       # random seed
 #                     ndays=ndays
 #   )
-# 
-# 
+#
+#
 #   # multiply to inflate standard deviation at monthly scale and introduce monthly correlation
 #   if(!is.null(ar1)){simP$sim=simP$sim*ar1}
-# 
+#
 #   syntP <- list(sim=simP$sim,
 #                 seed=N)
 #   return(syntP)
 # }
-# 
+#
 # Pstatus_WGEN <- function(parPwd,    # vector of pars for pwd (length = nperiod) - The modified cpp code expects vector of length ndays (not nperiod)
 #                          parPdd,    # vector of pars for pdd (length = nperiod) - The modified cpp code expects vector of length ndays (not nperiod)
 #                          ndays,
 #                          randomVector
-# 
+#
 #   ){
-# 
+#
 #   drywet_TS <- Pstatus_WGEN_cpp(parPwd, parPdd, randomVector, ndays)
 #   return(drywet_TS)
 # }
-# 
+#
 # Pamount_WGEN <- function(parAlpha=NULL,         # vector of pars for alpha (length = nperiod) - alpha has to be of length ndays (as per the code)
 #                          parBeta=NULL,          # vector of pars for beta (length = nperiod)
 #                          status_ts=NULL,             # TS vector of wet/dry statuses-obtained from the output of 'wvar_gen_Pstatus'
 #                          N=NULL,                # random seeds
 #                          ndays=NULL
 # ){
-# 
+#
 #   set.seed(N)     # seed seed to fix input needed for rgamma  ---  this creates a challenge for passing in a vector of random numbers
 #   rain <- vector(mode="numeric", ndays)  #allocate time series
 #   wet.days<-which(status_ts==1)         #index wet occurance
@@ -299,29 +299,29 @@
 #                 seed=N)
 #   return(syntP)
 # }
-# 
+#
 # # Latent variable rainfall model
 # #-----------------------------------------------------------------------------------------------------
-# 
+#
 # P_latent_master <- function(parS,                 # vector of pars (will change in optim)
 #                             modelEnv,
 #                             randomVector = NULL,             # can specify random noise as uniform
 #                             randomUnitNormalVector = NULL,    # OR can specify random noise as Gaussian
 #                             seed = NULL
 # ) {
-# 
+#
 #   if (is.null(randomUnitNormalVector)){randomUnitNormalVector=stats::qnorm(randomVector)}
-# 
+#
 #   # Converts supplied pars into required format (e.g. if harmonic applied)
 #   class(parS) <- "latent"
 #   parTS <- parManager(parS = parS, modelEnv = modelEnv)
-# 
+#
 #   # Simulate rainfall timeseries
 #   sim <- P_latent(parTS = parTS,                 # wgen parameters
 #                   randomUnitNormalVector = randomUnitNormalVector)   # random vector of length ndays
-# 
+#
 #   datInd <- modelEnv$datInd
-#   
+#
 # #   if(!is.null(parTS$monAR1_coeff)){
 # #     if (parTS$monAR1_multRange!=0){
 # # #    ar1ParMult=parTS$monAR1_coeff # correlation between MULTIPLIER of monthly toals (not same as correlation between monthly totals) was 0.97
@@ -343,7 +343,7 @@
 # #       sim$sim = sim$sim*multSim
 # #     }
 # #   }
-#   
+#
 #   if(!is.null(parTS$annAR1_coeff)){
 #     if (parTS$annAR1_multRange!=0){
 #       randomAnnAR1seed = seed + 100 # specify different random seed used for daily noise
@@ -363,29 +363,29 @@
 #       sim$sim = sim$sim*multSim
 #     }
 #   }
-#   
+#
 #   if(!is.null(parTS$annSOI_coeff)){
 #     fac = 1 + parTS$annSOI_coeff*(annSOI-mean(annSOI))
 #     multSim=rep(NA,datInd$ndays)
 #     for(iy in 1:datInd$nyr){
 #       ind=datInd$i.yy[[iy]]
 #       multSim[ind]=fac[iy]
-#     }    
+#     }
 #     multSim<-pmax(multSim,0)
 #     sim$sim = sim$sim*multSim
 #   }
-#   
+#
 #   if (!is.null(parTS$annSD_fac)){
 #     Pann = rep(NA,datInd$nyr)
 #     Pdaily = sim$sim
 #     for(iy in 1:datInd$nyr){
 #       ind=datInd$i.yy[[iy]]
 #       Pann[iy] = sum(Pdaily[ind])
-#     } 
+#     }
 #     meanPann = mean(Pann)
 #     Pann_new = meanPann + parTS$annSD_fac*(Pann-meanPann)
 #     Pann_fac = Pann_new/Pann
-# 
+#
 #     multSim=rep(NA,datInd$ndays)
 #     for(iy in 1:datInd$nyr){
 #       ind=datInd$i.yy[[iy]]
@@ -393,50 +393,50 @@
 #     }
 #     multSim<-pmax(multSim,0)
 #     sim$sim = Pdaily*multSim
-# 
+#
 #     # Pann.new = rep(NA,datInd$nyr)
 #     # Pdaily.new = sim$sim
 #     # for(iy in 1:datInd$nyr){
 #     #   ind=datInd$i.yy[[iy]]
 #     #   Pann.new[iy] = sum(Pdaily.new[ind])
-#     # } 
-#     
+#     # }
+#
 #   }
-# 
+#
 #   return(sim)  #return simulated rainfall
-# 
+#
 # }
-# 
-# 
+#
+#
 # P_latent <- function(parTS,                  # list of parameters
 #                      randomUnitNormalVector = NULL
 # ) {
-# 
+#
 #   # Unpack WGEN parameters
 #   parAlpha <- parTS$alpha
 #   parSigma <- parTS$sigma
 #   parMu <- parTS$mu
 #   parLambda <- parTS$lambda
 #   ndays <- length(randomUnitNormalVector)
-# 
+#
 #   # Calculate latent variable - latentX
 # #  epsilonT <- qnorm(randomVector, mean = 0, sd = parSigma)
 #   epsilonT <- randomUnitNormalVector*parSigma
 #   latentX <- latentX_calc_cpp(parAlpha, epsilonT, ndays)
 #   latentX <- latentX + parMu
-# 
+#
 #   # Transform latentX to rainfall
 #   rain <- rep_len(0, ndays)
 #   latentX_pos_ind <- which(latentX > 0)
 #   rain[latentX_pos_ind] <- latentX[latentX_pos_ind] ^ parLambda[latentX_pos_ind]
-# 
+#
 #   syntP <- list(sim = rain)
 #   return(syntP)
-# 
+#
 # }
-# 
+#
 # #-----------------------------------------------------------------------------------------------------
-# 
+#
 # TS_WGEN_master<- function(parS=NULL,         # vector of pars (will change in optim)
 #                           modelTag=NULL,      # tag to link/identify model
 #                           modelInfo=NULL,
@@ -450,7 +450,7 @@
 # ){
 #   #Converts supplied pars into required format (e.g. if harmonic applied)
 #   par=simHarTS.parmanager(parS=parS,modelTag=modelTag,modelInfo=modelInfo,initCalibPars=initCalibPars)
-# 
+#
 #   #SIMULATE REQUIRED TIMESERIES
 #   sim=TS_WGEN(parCor0=par$cor0,         # correl pars
 #               parCor1=par$cor1,
@@ -473,10 +473,10 @@
 #    badIndx=which(sim$sim<trunc)
 #    if(length(badIndx)>0){sim$sim[badIndx]=0}
 #   }
-# 
+#
 #   return(sim)
 # }
-# 
+#
 # TS_WGEN<-function(parCor0=NULL,         # correl pars
 #                   parCor1=NULL,
 #                   parHmean=NULL,      # mean harmonic pars
@@ -493,7 +493,7 @@
 #                   seed=NULL,            # seed for residuals generation
 #                   randomVector=NULL
 # ){
-# 
+#
 #   #generate residual series if none supplied
 #   if(is.null(resid_ts)){
 #     resid_ts=residualGenerator(parCor0=parCor0,
@@ -503,7 +503,7 @@
 #                                randomVector=randomVector
 #     )
 #   }
-# 
+#
 #   #divy up parameters and simulate
 #   sim=calcDaySeries(Hpar_m=parHmean,       #
 #                     Hpar_sd=parHsd,
@@ -518,8 +518,8 @@
 #   out=list(sim=sim,seed=seed)
 #   return(out)
 # }
-# 
-# 
+#
+#
 # #Generate the daily series
 # calcDaySeries<-function(Hpar_m=NULL,       #harmonic pars for means of length nperiod
 #                         Hpar_sd=NULL,      #harmonic pars for std dev
@@ -531,7 +531,7 @@
 #                         WDcondition=FALSE, #generate ts conditional on wet-dry series
 #                         wdSeries=NULL      #wetdry series
 # ){
-# 
+#
 #   genTS=rep(NA,ndays)           #MAKE BLANK VECTOR FOR TS
 #   if(WDcondition==FALSE){       #IF NO WET-DRY CONDITION
 #     #CALCULATE VALUE BASED ON PERIOD PARS & STUFF BACK INTO TS AT CORRECT POINT
@@ -551,7 +551,7 @@
 #   }
 #   return(genTS)
 # }
-# 
+#
 # #SIMULATE TEMPERATURE SERIES
 # calcDayFunc<-function(mean=NULL,
 #                       sd=NULL,
@@ -559,7 +559,7 @@
 # ){
 #   val=mean+sd*err
 # }
-# 
+#
 # #GENERATE RESIDUALS USING SUPPLIED PARAMETERS
 # residualGenerator<-function(parCor0=NULL,
 #                             parCor1=NULL,
@@ -567,19 +567,19 @@
 #                             nAssocSeries=0,
 #                             randomVector=NULL
 # ){
-# 
+#
 #   #GENERATE RANDOM NUMBERS FROM A STANDARD NORMAL (MEAN=0, STD=1)
-# 
+#
 #   if(nAssocSeries==0){  #if just one series
 #     RN_res<-stats::qnorm(randomVector, mean=0, sd=1)
 #     res_gen <- residualGenerator_cpp(RN_res, parCor1)
-# 
+#
 #   }else{
 #     #IMPLEMENT A/B MATRIX MATHS HERE
 #     #
 #     stop("functionality not yet implemented")
 #   }
-# 
+#
 #   return(res_gen)
 # }
-# 
+#

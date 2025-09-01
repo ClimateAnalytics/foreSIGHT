@@ -1,7 +1,7 @@
 # #######################################
 # ##   DATE MANAGER FUNCTION LIBRARY   ##
 # #######################################
-# 
+#
 # #CONTAINS
 #   # dateExtender()
 #   # extendDates()
@@ -15,53 +15,53 @@
 #   # julian_day()
 #   # split_ts()  - divide year into even(ish) chunks for harmonic fit
 #   # get.period.ind() - groups indices with the same period assignment
-# 
+#
 ##############################################################################
-dateExtender<-function(obs=NULL,
-                       simLengthNyrs=NULL,
-                       file=NULL,
-                       modelTag=NULL
-                       ){
-  
-  #EXTEND DATES IF NEEDED
-  if(!is.null(simLengthNyrs)){
-    if(!(any(modelTag%in%c("Simple-ann","Simple-seas")))){
-      dateExtnd=extendDates(simLengthNyrs=simLengthNyrs,
-                            times=obs$times,timeStep=obs$timeStep)
-      progress("Extending dates",file)
-    }else{
-      dateExtnd=obs$times                                             # make the same as observed
-      progress("Length of time series cannot be increased using simple scaling",file)
+dateExtender <- function(obs = NULL,
+                         simLengthNyrs = NULL,
+                         file = NULL,
+                         modelTag = NULL) {
+  # EXTEND DATES IF NEEDED
+  if (!is.null(simLengthNyrs)) {
+    if (!(any(modelTag %in% c("Simple-ann", "Simple-seas")))) {
+      dateExtnd <- extendDates(
+        simLengthNyrs = simLengthNyrs,
+        times = obs$times, timeStep = obs$timeStep
+      )
+      progress("Extending dates", file)
+    } else {
+      dateExtnd <- obs$times # make the same as observed
+      progress("Length of time series cannot be increased using simple scaling", file)
     }
   } else {
-    dateExtnd=obs$times                                            # make the same as observed
+    dateExtnd <- obs$times # make the same as observed
   }
   return(dateExtnd)
 }
- 
-extendDates<-function(simLengthNyrs=NULL,
-                      times=NULL,
-                      timeStep=NULL
-){
 
-  nT = length(times)
+extendDates <- function(simLengthNyrs = NULL,
+                        times = NULL,
+                        timeStep = NULL) {
+  nT <- length(times)
 
-  if (is.null(timeStep)){browser()}
-    
-  year = as.integer(format(times,'%Y'))
-  firstYr = year[1]
-  lastYr = firstYr + simLengthNyrs - 1
+  if (is.null(timeStep)) {
+    browser()
+  }
 
-  firstTimeFirstYr = as.POSIXct(paste0(firstYr,'/1/1 0:0:0'),tz='UTC')
-  firstTimeAfterLastYr = as.POSIXct(paste0((lastYr+1),'/1/1 0:0:0'),tz='UTC')
-  lastTimeLastYr = seq(firstTimeAfterLastYr,by=paste0('-',timeStep),length=2)[2]
-  times=seq(firstTimeFirstYr,lastTimeLastYr,by=timeStep)
+  year <- as.integer(format(times, "%Y"))
+  firstYr <- year[1]
+  lastYr <- firstYr + simLengthNyrs - 1
+
+  firstTimeFirstYr <- as.POSIXct(paste0(firstYr, "/1/1 0:0:0"), tz = "UTC")
+  firstTimeAfterLastYr <- as.POSIXct(paste0((lastYr + 1), "/1/1 0:0:0"), tz = "UTC")
+  lastTimeLastYr <- seq(firstTimeAfterLastYr, by = paste0("-", timeStep), length = 2)[2]
+  times <- seq(firstTimeFirstYr, lastTimeLastYr, by = timeStep)
 
   return(times)
 }
 # #TEST
 # # tester=extendDates(simLengthNyrs=100,dd=obs$day,mm=obs$month,yy=obs$year)
-# 
+#
 # makeDates<-function(datStart=NULL,
 #                     datFinish=NULL){
 #   print('need to update makeDates')
@@ -72,20 +72,20 @@ extendDates<-function(simLengthNyrs=NULL,
 #   dates=data.frame(year,month,day)
 #   return(dates)
 # }
-# 
+#
 # #get date info across multiple models
-mod.get.date.ind<-function(obs=NULL,
-                           modelTag=NULL,
-                           modelInfo=NULL,
-                           southHemi=TRUE){
-  nMod=length(modelTag)   #how many models
-  
-  datInd=list()
-  datInd[["obs"]]=get.date.ind(times=obs$times,nperiod=12,southHemi=southHemi)              #make obs based datInd
-  
-  for(i in 1:nMod){
-#    datInd[[modelTag[i]]]=get.date.ind(dd=obs$day,mm=obs$month,yy=obs$year,nperiod=modelInfo[[modelTag[i]]]$nperiod,southHemi=southHemi)    # FROM dateManager.R
-    datInd[[modelTag[i]]]=get.date.ind(times = obs$times,nperiod=modelInfo[[modelTag[i]]]$nperiod,southHemi=southHemi)    # FROM dateManager.R
+mod.get.date.ind <- function(obs = NULL,
+                             modelTag = NULL,
+                             modelInfo = NULL,
+                             southHemi = TRUE) {
+  nMod <- length(modelTag) # how many models
+
+  datInd <- list()
+  datInd[["obs"]] <- get.date.ind(times = obs$times, nperiod = 12, southHemi = southHemi) # make obs based datInd
+
+  for (i in 1:nMod) {
+    #    datInd[[modelTag[i]]]=get.date.ind(dd=obs$day,mm=obs$month,yy=obs$year,nperiod=modelInfo[[modelTag[i]]]$nperiod,southHemi=southHemi)    # FROM dateManager.R
+    datInd[[modelTag[i]]] <- get.date.ind(times = obs$times, nperiod = modelInfo[[modelTag[i]]]$nperiod, southHemi = southHemi) # FROM dateManager.R
     # datInd[[modelTag[i]]]$i.mod=datInd[[modelTag[i]]]$i.pp  #add on i.mod
   }
   return(datInd)
@@ -107,24 +107,24 @@ mod.get.date.ind<-function(obs=NULL,
 #   }
 #   return(datInd)
 # }
-# 
-#Get dat indices
-get.date.ind<-function(times,
-                       nperiod=NULL,
-                       southHemi=TRUE
-                       ){
-  
-  if (is.null(nperiod)){nperiod=1}
-  
-  nTimes = length(times)
-  yy = as.integer(format(times,'%Y'))
-  mm = as.integer(format(times,'%m'))
-  nyr=yy[nTimes]-yy[1]+1             # get number of years on record
+#
+# Get dat indices
+get.date.ind <- function(times,
+                         nperiod = NULL,
+                         southHemi = TRUE) {
+  if (is.null(nperiod)) {
+    nperiod <- 1
+  }
 
-  i.mm=get.month.ind(mm=mm)         #get indices for months
-  i.yy=get.year.ind(yy=yy,nyr=nyr)  #get indices for years
-  i.3yy=get.nyear.ind(yy=yy,nyrEitherSide = 1)  #get indices for 3 year moving window
-  i.5yy=get.nyear.ind(yy=yy,nyrEitherSide = 2)  #get indices for 5 year moving window
+  nTimes <- length(times)
+  yy <- as.integer(format(times, "%Y"))
+  mm <- as.integer(format(times, "%m"))
+  nyr <- yy[nTimes] - yy[1] + 1 # get number of years on record
+
+  i.mm <- get.month.ind(mm = mm) # get indices for months
+  i.yy <- get.year.ind(yy = yy, nyr = nyr) # get indices for years
+  i.3yy <- get.nyear.ind(yy = yy, nyrEitherSide = 1) # get indices for 3 year moving window
+  i.5yy <- get.nyear.ind(yy = yy, nyrEitherSide = 2) # get indices for 5 year moving window
   # if (nyr>=10){
   #   i.10yyBlock=get.nyearBlock.ind(yy=yy,inc=10)  #get indices for 10 year window
   # } else {
@@ -135,26 +135,32 @@ get.date.ind<-function(times,
   # } else {
   #   i.50yyBlock = NULL
   # }
-  if(southHemi==TRUE){
-    i.ss=get.seas.ind(i.mm=i.mm)    #get indices for seasons
-  }else{
-    print("warning check seasons")  #warning not southern hemisphere
+  if (southHemi == TRUE) {
+    i.ss <- get.seas.ind(i.mm = i.mm) # get indices for seasons
+  } else {
+    print("warning check seasons") # warning not southern hemisphere
   }
   # dateS=paste(yy[1],mm[1],dd[1],sep="-")
   # dateF=paste(yy[ndays],mm[ndays],dd[ndays],sep="-")
   # jj=julian_day(dateS=dateS,dateF=dateF)
 
-  jj = as.integer(format(times,'%j'))
-  
-  i.pp=list()
-  
-  if((nperiod==1)|(nperiod==4)|(nperiod==12)){
-    if(nperiod==1){i.pp[[1]]=seq(1,nTimes)}  # annual model case
-    if(nperiod==4){i.pp=i.ss}             # seasonal model case
-    if(nperiod==12){i.pp=i.mm}            # monthly model case (not currently in use)
-  }else{
-    harInd= split_ts(nperiod=nperiod,jj=jj)  # alternative period split - calculate indices
-    i.pp=get.period.ind(har.period=harInd,nperiod=nperiod)
+  jj <- as.integer(format(times, "%j"))
+
+  i.pp <- list()
+
+  if ((nperiod == 1) | (nperiod == 4) | (nperiod == 12)) {
+    if (nperiod == 1) {
+      i.pp[[1]] <- seq(1, nTimes)
+    } # annual model case
+    if (nperiod == 4) {
+      i.pp <- i.ss
+    } # seasonal model case
+    if (nperiod == 12) {
+      i.pp <- i.mm
+    } # monthly model case (not currently in use)
+  } else {
+    harInd <- split_ts(nperiod = nperiod, jj = jj) # alternative period split - calculate indices
+    i.pp <- get.period.ind(har.period = harInd, nperiod = nperiod)
   }
 
   # datInd=list(ndays=ndays,
@@ -169,42 +175,43 @@ get.date.ind<-function(times,
   #             i.pp=i.pp,
   #             jj=jj)
 
-  datInd=list(nTimes=nTimes,
-              nyr=nyr,
-              i.mm=i.mm,
-              i.yy=i.yy,
-              i.ss=i.ss,
-              i.pp=i.pp,
-              i.3yy=i.3yy,
-              i.5yy=i.5yy,
-              jj=jj)
+  datInd <- list(
+    nTimes = nTimes,
+    nyr = nyr,
+    i.mm = i.mm,
+    i.yy = i.yy,
+    i.ss = i.ss,
+    i.pp = i.pp,
+    i.3yy = i.3yy,
+    i.5yy = i.5yy,
+    jj = jj
+  )
 
   return(datInd)
 }
 
-get.month.ind<-function(mm=NULL  # ts vector of months
-){
-  i.mm=NULL
-  for(m in 1:12) i.mm[[m]]=which(mm==m)         # CREATE MONTHLY INDICES
+get.month.ind <- function(mm = NULL # ts vector of months
+) {
+  i.mm <- NULL
+  for (m in 1:12) i.mm[[m]] <- which(mm == m) # CREATE MONTHLY INDICES
   return(i.mm)
 }
 
-get.year.ind<-function(yy=NULL,   # ts vector of years
-                       nyr=NULL  # nyears oon record
-                       ){
-  years=seq(yy[1],yy[length(yy)])                                   # GET VECTOR OF YEARS
-  i.yy=NULL
-  for(Y in 1:nyr) i.yy[[Y]]=which(yy==years[Y])            # CREATE MONTHLY INDICES
+get.year.ind <- function(yy = NULL, # ts vector of years
+                         nyr = NULL # nyears oon record
+) {
+  years <- seq(yy[1], yy[length(yy)]) # GET VECTOR OF YEARS
+  i.yy <- NULL
+  for (Y in 1:nyr) i.yy[[Y]] <- which(yy == years[Y]) # CREATE MONTHLY INDICES
   return(i.yy)
 }
 
-get.nyear.ind<-function(yy=NULL,   # ts vector of years
-                        nyrEitherSide = NULL
-){
-  years=seq(min(yy)+nyrEitherSide,max(yy)-nyrEitherSide)
-  nyr = length(years)
-  i.yywin=NULL
-  for(Y in 1:nyr) i.yywin[[Y]]=which((yy>=years[Y]-nyrEitherSide)&(yy<=years[Y]+nyrEitherSide))            # CREATE MONTHLY INDICES
+get.nyear.ind <- function(yy = NULL, # ts vector of years
+                          nyrEitherSide = NULL) {
+  years <- seq(min(yy) + nyrEitherSide, max(yy) - nyrEitherSide)
+  nyr <- length(years)
+  i.yywin <- NULL
+  for (Y in 1:nyr) i.yywin[[Y]] <- which((yy >= years[Y] - nyrEitherSide) & (yy <= years[Y] + nyrEitherSide)) # CREATE MONTHLY INDICES
   return(i.yywin)
 }
 
@@ -219,28 +226,30 @@ get.nyear.ind<-function(yy=NULL,   # ts vector of years
 #   for(Y in 1:nBlock) i.yy[[Y]]=which((yy>=start[Y])&(yy<=end[Y]))            # CREATE MONTHLY INDICES
 #   return(i.yy)
 # }
-# 
-get.seas.ind<-function(i.mm=NULL # list of days sorted by month
-){
-
-  #NOTE SOUTHERN HEMISPHERE HERE
+#
+get.seas.ind <- function(i.mm = NULL # list of days sorted by month
+) {
+  # NOTE SOUTHERN HEMISPHERE HERE
   # define months belonging to each season
-  seas <- t(matrix(c(9,10,11,#SPR -SON
-                     12,1,2,#SUM -DJF
-                     3,4,5,#AUT -MAM
-                     6,7,8),#WIN -JJA
-                   nrow=3,ncol=4))
+  seas <- t(matrix(
+    c(
+      9, 10, 11, # SPR -SON
+      12, 1, 2, # SUM -DJF
+      3, 4, 5, # AUT -MAM
+      6, 7, 8
+    ), # WIN -JJA
+    nrow = 3, ncol = 4
+  ))
 
-  i.ss=NULL
-  for(s in 1:4) i.ss[[s]]=c(i.mm[[seas[s,1]]],i.mm[[seas[s,2]]],i.mm[[seas[s,3]]]) #CREATE SEASONAL INDICES i.ss[[1]]-i.ss[[4]] (not contiguous, needs a sort)
-  for(s in 1:4){
-    tmp=i.ss[[s]]
-    tmp=sort(tmp)
-    i.ss[[s]]=tmp  #put in daily order
+  i.ss <- NULL
+  for (s in 1:4) i.ss[[s]] <- c(i.mm[[seas[s, 1]]], i.mm[[seas[s, 2]]], i.mm[[seas[s, 3]]]) # CREATE SEASONAL INDICES i.ss[[1]]-i.ss[[4]] (not contiguous, needs a sort)
+  for (s in 1:4) {
+    tmp <- i.ss[[s]]
+    tmp <- sort(tmp)
+    i.ss[[s]] <- tmp # put in daily order
   }
   rm(tmp)
   return(i.ss)
-
 }
 
 # julian_day<-function(dateS=NULL,  #start date e.g. "1995-01-01"
@@ -253,32 +262,33 @@ get.seas.ind<-function(i.mm=NULL # list of days sorted by month
 # }
 # # jj=julian_day(dateS="1995-01-01",dateF="2004-12-31")
 
-split_ts<-function(nperiod=26,   #no. of periods to divide year over
-                   jj=NULL       #vector of julian day values
-){
-  nd.per=floor(366/nperiod)  #no. days in period
-  nd.year=nperiod*nd.per     #est no. days in year
-  short=366-nd.year               #no. days short from 366
+split_ts <- function(nperiod = 26, # no. of periods to divide year over
+                     jj = NULL # vector of julian day values
+) {
+  nd.per <- floor(366 / nperiod) # no. days in period
+  nd.year <- nperiod * nd.per # est no. days in year
+  short <- 366 - nd.year # no. days short from 366
 
   indl <- NULL
-  for (i in 1:nperiod) {indl <- c(indl,rep(i,nd.per))}
-  indl <- c(indl,rep(nperiod,short)) #add missing days on end
+  for (i in 1:nperiod) {
+    indl <- c(indl, rep(i, nd.per))
+  }
+  indl <- c(indl, rep(nperiod, short)) # add missing days on end
 
-  harInd <- rep(NA,length(jj))
+  harInd <- rep(NA, length(jj))
   for (i in 1:366) {
-    tmpInd=which(jj==i)
-    harInd[tmpInd] <- indl[i]       #determine which day belongs to which period
+    tmpInd <- which(jj == i)
+    harInd[tmpInd] <- indl[i] # determine which day belongs to which period
   }
   return(harInd)
 }
-#harInd= split_ts(nperiod=26,jj=jj)
+# harInd= split_ts(nperiod=26,jj=jj)
 
-get.period.ind<-function(har.period=NULL,  # ts vector of period assigned
-                         nperiod=NULL      # number of periods used
-){
-  i.hh=NULL
-  for(h in 1:nperiod) i.hh[[h]]=which(har.period==h)         # CREATE MONTHLY INDICES
+get.period.ind <- function(har.period = NULL, # ts vector of period assigned
+                           nperiod = NULL # number of periods used
+) {
+  i.hh <- NULL
+  for (h in 1:nperiod) i.hh[[h]] <- which(har.period == h) # CREATE MONTHLY INDICES
   return(i.hh)
 }
-#i.hh=get.period.ind(har.period=harInd,nperiod=26)
-
+# i.hh=get.period.ind(har.period=harInd,nperiod=26)

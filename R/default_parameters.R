@@ -12,58 +12,70 @@
 #' # To view the default optimisation arguments
 #' viewDefaultOptimArgs()
 #' @export
-viewDefaultOptimArgs <- function(optimizer='RGN') {
+viewDefaultOptimArgs <- function(optimizer = "RGN") {
+  allArgs <- names(optimArgsdefault)
+  optimArgs_toPrint <- list(
+    optimizer = optimizer,
+    obj.func = optimArgsdefault$obj.func,
+    seed = optimArgsdefault$seed,
+    nMultiStart = optimArgsdefault$nMultiStart,
+    OFtol = optimArgsdefault$OFtol,
+    seed = optimArgsdefault$seed
+  )
 
-  allArgs = names(optimArgsdefault)
-  optimArgs_toPrint <- list(optimizer=optimizer,
-                            obj.func=optimArgsdefault$obj.func,
-                            seed=optimArgsdefault$seed,
-                            nMultiStart=optimArgsdefault$nMultiStart,
-                            OFtol=optimArgsdefault$OFtol,
-                            seed=optimArgsdefault$seed)
-
-  controlName = allArgs[grepl(optimizer,allArgs)]
-  optimArgs_toPrint[[controlName]] = optimArgsdefault[[controlName]]
-  optimArgs_toPrint[[controlName]]$fnscale = NULL
-  optimArgs_toPrint[[controlName]]$maximize = NULL
+  controlName <- allArgs[grepl(optimizer, allArgs)]
+  optimArgs_toPrint[[controlName]] <- optimArgsdefault[[controlName]]
+  optimArgs_toPrint[[controlName]]$fnscale <- NULL
+  optimArgs_toPrint[[controlName]]$maximize <- NULL
   print(optimArgs_toPrint)
 }
 
-optimArgsdefault=list(optimizer='RGN',
-                      obj.func='WSS',
-                      nMultiStart=5,
-                      OFtol=0.,
-                      seed=NULL,
-                      GA.args=list(pcrossover= 0.8,   # list of a parameters used by the ga optimiser (if used)
-                              pmutation=0.1,
-                              maxiter=50,
-                              maxFitness=-0.001,
-                              popSize = 500,
-                              run=20,
-                              parallel = FALSE,
-                              keepBest=TRUE),
-                      RGN.control=list(iterMax=100,distMin=0),#0.01),
-                      SCE.control=list(fnscale=-1,
-                                       initsample='random',
-                                       ncomplex=5),
-                      # CMAES.control=list(fnscale=-1,
-                      #                    stopfitness=1e-5),
-                      NM.control = list(maximize=T,
-                                        tol=1e-6),
-                      lambda.mult=NULL,
-                      suggestions=NULL,
-                      use_different_seeds=F
-                      )
+optimArgsdefault <- list(
+  optimizer = "RGN",
+  obj.func = "WSS",
+  nMultiStart = 5,
+  OFtol = 0.,
+  seed = NULL,
+  GA.args = list(
+    pcrossover = 0.8, # list of a parameters used by the ga optimiser (if used)
+    pmutation = 0.1,
+    maxiter = 50,
+    maxFitness = -0.001,
+    popSize = 500,
+    run = 20,
+    parallel = FALSE,
+    keepBest = TRUE
+  ),
+  RGN.control = list(iterMax = 100, distMin = 0), # 0.01),
+  SCE.control = list(
+    fnscale = -1,
+    initsample = "random",
+    ncomplex = 5
+  ),
+  # CMAES.control=list(fnscale=-1,
+  #                    stopfitness=1e-5),
+  NM.control = list(
+    maximize = T,
+    tol = 1e-6
+  ),
+  lambda.mult = NULL,
+  suggestions = NULL,
+  use_different_seeds = F
+)
 
-varShortToLong <- c("P" = "Precipitation",
-                   "Temp" = "Temperature",
-                   "PET" = "Evapotranspiration",
-                   "Radn" = "Radiation")
+varShortToLong <- c(
+  "P" = "Precipitation",
+  "Temp" = "Temperature",
+  "PET" = "Evapotranspiration",
+  "Radn" = "Radiation"
+)
 
-varUnits <- c("P" = "mm",
-              "Temp" = "\u00B0C",
-              "PET" = "mm",
-              "Radn" = "MJ/m2")
+varUnits <- c(
+  "P" = "mm",
+  "Temp" = "\u00B0C",
+  "PET" = "mm",
+  "Radn" = "MJ/m2"
+)
 
 #' Prints the names of and units of valid variables
 #'
@@ -77,14 +89,15 @@ varUnits <- c("P" = "mm",
 #' @export
 viewVariables <- function() {
   # vector of stochastic model tags - exclude scaling
-  stochModels = names(modelInfoList)
+  stochModels <- names(modelInfoList)
   # get variable name
   shortName <- unique(sapply(strsplit(stochModels, "-"), `[[`, 1))
   longName <- varShortToLong[shortName]
   units <- varUnits[shortName]
-  outData <- cbind(shortName, longName, units); rownames(outData) <- NULL
+  outData <- cbind(shortName, longName, units)
+  rownames(outData) <- NULL
   return(outData)
- }
+}
 
 
 
@@ -93,7 +106,7 @@ getVarUnits <- function(varNames) {
   varUnits <- NA
   for (v in 1:length(varNames)) {
     if (varNames[v] %in% c("Temp")) {
-      varUnits[v] <- "\u00B0C"  #expression(paste0(~degree, "C"))
+      varUnits[v] <- "\u00B0C" # expression(paste0(~degree, "C"))
     } else {
       varUnits[v] <- "fraction"
     }
@@ -167,19 +180,21 @@ getVarUnits <- function(varNames) {
 #                 )
 # names(modelTimeStep) <- modelTaglist
 
-defaultModelTags <- c(P = "P-seas-latent",
-                      Temp = "Temp-har-wgenO",
-                      PET = "PET-har-wgenO",
-                      Radn = "Radn-har-wgenO")
+defaultModelTags <- c(
+  P = "P-seas-latent",
+  Temp = "Temp-har-wgenO",
+  PET = "PET-har-wgenO",
+  Radn = "Radn-har-wgenO"
+)
 
 # existing foreSIGHT variables
 # fSVars <- unique(sapply(strsplit(modelTaglist[!(modelTaglist%in%c("Simple-ann","Simple-seas"))], "-"), `[[`, 1))
 
-get_fSVars = function(modelTaglist){
-  fSVars <- unique(sapply(strsplit(modelTaglist[!(modelTaglist%in%c("Simple-ann","Simple-seas"))], "-"), `[[`, 1))
+get_fSVars <- function(modelTaglist) {
+  fSVars <- unique(sapply(strsplit(modelTaglist[!(modelTaglist %in% c("Simple-ann", "Simple-seas"))], "-"), `[[`, 1))
 }
 
-get_modelTags = function(modelInfoList){
+get_modelTags <- function(modelInfoList) {
   names(modelInfoList)
 }
 
@@ -195,33 +210,35 @@ viewAttributeFuncs <- function() {
   print(attributeFuncs())
 }
 
-attributeFuncs = function() {
-  allFuncsForesight=utils::lsf.str("package:foreSIGHT")
-  allFuncsGlobal = utils::lsf.str(globalenv())
-  allFuncs = c(allFuncsForesight,allFuncsGlobal)
-  funcs=allFuncs[which(startsWith(allFuncs,'func_'))]
-  mvFuncs=allFuncs[which(startsWith(allFuncs,'mvFunc_'))]
-  msFuncs=allFuncs[which(startsWith(allFuncs,'msFunc_'))]
-  attFuncs = mvAttFuncs = msAttFuncs = c()
-  if (length(funcs)>0){
-    for (a in 1:length(funcs)){
-      attFuncs[a] = strsplit(funcs,'func_')[[a]][2]
+attributeFuncs <- function() {
+  allFuncsForesight <- utils::lsf.str("package:foreSIGHT")
+  allFuncsGlobal <- utils::lsf.str(globalenv())
+  allFuncs <- c(allFuncsForesight, allFuncsGlobal)
+  funcs <- allFuncs[which(startsWith(allFuncs, "func_"))]
+  mvFuncs <- allFuncs[which(startsWith(allFuncs, "mvFunc_"))]
+  msFuncs <- allFuncs[which(startsWith(allFuncs, "msFunc_"))]
+  attFuncs <- mvAttFuncs <- msAttFuncs <- c()
+  if (length(funcs) > 0) {
+    for (a in 1:length(funcs)) {
+      attFuncs[a] <- strsplit(funcs, "func_")[[a]][2]
     }
   }
-  if (length(mvFuncs)>0){
-    for (a in 1:length(mvFuncs)){
-      mvAttFuncs[a] = strsplit(mvFuncs,'mvFunc_')[[a]][2]
-    }  
+  if (length(mvFuncs) > 0) {
+    for (a in 1:length(mvFuncs)) {
+      mvAttFuncs[a] <- strsplit(mvFuncs, "mvFunc_")[[a]][2]
+    }
   }
-  if (length(msFuncs)>0){
-    for (a in 1:length(msFuncs)){
-      msAttFuncs[a] = strsplit(msFuncs,'msFunc_')[[a]][2]
-    }  
+  if (length(msFuncs) > 0) {
+    for (a in 1:length(msFuncs)) {
+      msAttFuncs[a] <- strsplit(msFuncs, "msFunc_")[[a]][2]
+    }
   }
-  
-  return(list(single=attFuncs,
-              multivariable=mvAttFuncs,
-              multisite=msAttFuncs))
+
+  return(list(
+    single = attFuncs,
+    multivariable = mvAttFuncs,
+    multisite = msAttFuncs
+  ))
 }
 
 #' Prints the definition of an attribute
@@ -261,35 +278,41 @@ viewModelParameters <- function(variable, modelType, modelParameterVariation) {
 
   modelTag <- getModelTag(nml, variable)
   modelInfo <- get.model.info(modelTag)
-  modelPars <- data.frame(parameter = modelInfo[["parNam"]],
-                          min_bound = modelInfo[["minBound"]],
-                          max_bound = modelInfo[["maxBound"]])
+  modelPars <- data.frame(
+    parameter = modelInfo[["parNam"]],
+    min_bound = modelInfo[["minBound"]],
+    max_bound = modelInfo[["maxBound"]]
+  )
   if (nrow(modelPars) < 1) print("Are the input arguments a valid combination of variable|modelType|modelParameterVariation?")
   # colnames(modelPars) <- c("parameter", "minimum bound", "maximum bound")
   print(modelPars)
 }
 
- 
-get.model.info = function(modelTag=NULL){
+
+get.model.info <- function(modelTag = NULL) {
   return(modelInfoList[[modelTag]])
 }
 
-modelInfoList = list()
+modelInfoList <- list()
 
 
-modelInfoList[["Simple-ann"]]  = list(simVar=c(),
-                                      simPriority=1)
+modelInfoList[["Simple-ann"]] <- list(
+  simVar = c(),
+  simPriority = 1
+)
 
-modelInfoList[["Simple-seas"]]  = list(simVar=c(),
-                                       simPriority=1)
-                                    
-       
+modelInfoList[["Simple-seas"]] <- list(
+  simVar = c(),
+  simPriority = 1
+)
+
+
 # # Anjana: Consider storing modelInfo in sysdata.rda - as part of the model_attribute_comb data.frame
 # #get.model.info() - based on model tag gets general model information (e.g. nperiods in a year, no. harmonic cycles fitted)
 # #Get info for individual models
 # get.model.info<-function(modelTag=NULL #string used to specify model for stochastic generation
 # ){
-# 
+#
 #   modelInfo=list()
 #   #SET UP MODEL RELATED PARAMETERS
 #   switch(modelTag,
@@ -311,13 +334,13 @@ modelInfoList[["Simple-seas"]]  = list(simVar=c(),
 #          #                    "pwd_1","pwd_2","pwd_3","pwd_4",
 #          #                    "alpha_1","alpha_2","alpha_3","alpha_4",
 #          #                    "beta_1","beta_2","beta_3","beta_4")
-#          # modelInfo$minBound=c(0.389, 0.334, 0.375, 0.277, 
+#          # modelInfo$minBound=c(0.389, 0.334, 0.375, 0.277,
 #          #                      0.078, 0.079, 0.084, 0.036,
-#          #                      0.295,	0.303, 0.309,	0.257, 
+#          #                      0.295,	0.303, 0.309,	0.257,
 #          #                      0.043,	0.046, 0.048, 0.034) #Aus 3stdev hard bounds
-#          # modelInfo$maxBound=c(0.997, 0.989, 0.994, 0.998, 
+#          # modelInfo$maxBound=c(0.997, 0.989, 0.994, 0.998,
 #          #                      0.85, 0.714, 0.714, 0.808,
-#          #                      0.998, 0.998, 0.998, 0.998, 
+#          #                      0.998, 0.998, 0.998, 0.998,
 #          #                      15.716, 30.08, 27.877, 21.193)
 #          # #bounds here?????????????
 #          # #npar.optim???? - then split into max, min bounds
@@ -334,14 +357,14 @@ modelInfoList[["Simple-seas"]]  = list(simVar=c(),
 #          #                    "alpha_1","alpha_2","alpha_3","alpha_4",
 #          #                    "beta_1","beta_2","beta_3","beta_4",
 #          #                    "annAR1_coeff","annAR1_multRange")
-#          # modelInfo$minBound=c(0.389, 0.334, 0.375, 0.277, 
+#          # modelInfo$minBound=c(0.389, 0.334, 0.375, 0.277,
 #          #                      0.078, 0.079, 0.084, 0.036,
-#          #                      0.295,	0.303, 0.309,	0.257, 
+#          #                      0.295,	0.303, 0.309,	0.257,
 #          #                      0.043,	0.046, 0.048, 0.034,
-#          #                      0,0) 
-#          # modelInfo$maxBound=c(0.997, 0.989, 0.994, 0.998, 
+#          #                      0,0)
+#          # modelInfo$maxBound=c(0.997, 0.989, 0.994, 0.998,
 #          #                      0.85, 0.714, 0.714, 0.808,
-#          #                      0.998, 0.998, 0.998, 0.998, 
+#          #                      0.998, 0.998, 0.998, 0.998,
 #          #                      15.716, 30.08, 27.877, 21.193,
 #          #                      0,0)
 #          # },
@@ -357,14 +380,14 @@ modelInfoList[["Simple-seas"]]  = list(simVar=c(),
 #                             "alpha_1","alpha_2","alpha_3","alpha_4",
 #                             "beta_1","beta_2","beta_3","beta_4",
 #                             "annSD_fac")
-#          modelInfo$minBound=c(0.389, 0.334, 0.375, 0.277, 
+#          modelInfo$minBound=c(0.389, 0.334, 0.375, 0.277,
 #                               0.078, 0.079, 0.084, 0.036,
-#                               0.295,	0.303, 0.309,	0.257, 
+#                               0.295,	0.303, 0.309,	0.257,
 #                               0.043,	0.046, 0.048, 0.034,
-#                               1) 
-#          modelInfo$maxBound=c(0.997, 0.989, 0.994, 0.998, 
+#                               1)
+#          modelInfo$maxBound=c(0.997, 0.989, 0.994, 0.998,
 #                               0.85, 0.714, 0.714, 0.808,
-#                               0.998, 0.998, 0.998, 0.998, 
+#                               0.998, 0.998, 0.998, 0.998,
 #                               15.716, 30.08, 27.877, 21.193,
 #                               1)
 #          },
@@ -389,7 +412,7 @@ modelInfoList[["Simple-seas"]]  = list(simVar=c(),
 #          #                    "pwd_m","pwd_amp","pwd_ang",
 #          #                    "alpha_m","alpha_amp","alpha_ang",
 #          #                    "beta_m","beta_amp","beta_ang")
-#          # 
+#          #
 #          # # modelInfo$minBound=c(0.476, 0.006, 0.730,
 #          # #                      0.093, 0.004, 0.543,
 #          # #                      0.33, 0.002, 4.108,
@@ -606,7 +629,7 @@ modelInfoList[["Simple-seas"]]  = list(simVar=c(),
 #                             "W-sCycle-m","W-sCycle-amp","W-sCycle-ang",
 #                             "D-mCycle-m","D-mCycle-amp","D-mCycle-ang",
 #                             "D-sCycle-m","D-sCycle-amp","D-sCycle-ang")
-# 
+#
 #          modelInfo$minBound=c(0.45,7.0,1.0,-0.05,0.9,0.1,-1.6,7.0,1.0,-0.05,0.9,0.1,-1.6) #Placeholder bounds
 #          modelInfo$maxBound=c(0.90,28.0,9.0,0.81,4.9,1.4,3.15,28.0,9.0,0.81,4.9,1.4,3.15)
 #          },
@@ -689,7 +712,7 @@ modelInfoList[["Simple-seas"]]  = list(simVar=c(),
 #                             "W-sCycle-m","W-sCycle-amp","W-sCycle-ang",
 #                             "D-mCycle-m","D-mCycle-amp","D-mCycle-ang",
 #                             "D-sCycle-m","D-sCycle-amp","D-sCycle-ang")
-# 
+#
 #          modelInfo$minBound=c(0.001,
 #                               0.01,0.01,0.95,
 #                               0.01,0.01,0.9,
@@ -743,13 +766,13 @@ modelInfoList[["Simple-seas"]]  = list(simVar=c(),
 # #          #                      1e1,1e1,1e1,1e1,
 # #          #                      0.99,0.99,0.99,0.99,
 # #          #                      3,3,3,3)
-# #          
+# #
 # #          modelInfo$minBound=rep(c(-1e2,0.01,-0.7,0.1),each=4)
 # #          modelInfo$maxBound=rep(c(2e2,2e2,0.9,3),each=4)
-# #          
+# #
 # #          },
 #          #--- MORE VERSIONS COMING ---
-# 
+#
 #          # "P-2har26-wgen-FS" = {modelInfo$simVar="P"
 #          # modelInfo$nperiod=26
 #          #                       modelInfo$fixedPars="phase.angle"
@@ -757,15 +780,15 @@ modelInfoList[["Simple-seas"]]  = list(simVar=c(),
 #          #                       modelInfo$npars=4*(1+modelInfo$ncycle*1)  #par vector is of length 12
 #          # },
 #          # versions where occurence w/d is kept the same as current
-# 
+#
 # #         -999
-# 
+#
 #       {modelInfo = modelInfoList[[modelTag]]}
 #   )
-#   
+#
 #   if (is.null(modelInfo)){modelInfo=-999}
 #   return(modelInfo)
-# 
+#
 # }
 
 # get.attribute.info <- function(modelTag = NULL){
@@ -784,6 +807,3 @@ modelInfoList[["Simple-seas"]]  = list(simVar=c(),
 #   }
 #   return(validAttributes)
 # }
-
-
-

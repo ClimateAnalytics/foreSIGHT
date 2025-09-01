@@ -19,30 +19,29 @@
 #' viewModels("PET")
 #' @export
 viewModels <- function(variable = NULL) {
+  stochModels <- get_modelTags(modelInfoList = modelInfoList)
+  exclude <- c("Simple-ann", "Simple-seas")
+  stochModels <- stochModels[!stochModels %in% exclude]
 
-  stochModels = get_modelTags(modelInfoList=modelInfoList) 
-  exclude = c("Simple-ann","Simple-seas")
-  stochModels = stochModels[!stochModels%in%exclude]
-  
   # get stochastic model Info
   varNames <- sapply(strsplit(stochModels, "-"), `[[`, 1)
   parVariation <- sapply(strsplit(stochModels, "-"), `[[`, 2)
   modelType <- sapply(strsplit(stochModels, "-"), `[[`, 3)
-  
-  modelTimeStep = c()
-  for (i in 1:length(stochModels)){
-    stochModel = stochModels[i]
-    mts = modelInfoList[[stochModel]]$timeStep
-    if (length(mts)<1){
-      stop(paste0('require timeStep for model ',stochModel))
+
+  modelTimeStep <- c()
+  for (i in 1:length(stochModels)) {
+    stochModel <- stochModels[i]
+    mts <- modelInfoList[[stochModel]]$timeStep
+    if (length(mts) < 1) {
+      stop(paste0("require timeStep for model ", stochModel))
     } else {
-      modelTimeStep[i] = mts
+      modelTimeStep[i] <- mts
     }
   }
   defaultModel <- rep(FALSE, length(stochModels))
   defaultModel[which(stochModels %in% defaultModelTags)] <- TRUE
 
-  if(is.null(variable) || !(variable %in% varNames)) {
+  if (is.null(variable) || !(variable %in% varNames)) {
     print("Please select a valid variable. The valid variable names are:")
     print(unique(varNames))
   } else {
@@ -50,10 +49,10 @@ viewModels <- function(variable = NULL) {
     ind <- which(varNames == variable)
 
     # model information dataframe
-    varModels <- data.frame(modelType[ind], parVariation[ind], modelTimeStep[ind],defaultModel[ind])
+    varModels <- data.frame(modelType[ind], parVariation[ind], modelTimeStep[ind], defaultModel[ind])
     colnames(varModels)[1:2] <- mdlFields
-    colnames(varModels)[3] = 'timeStep'
-    colnames(varModels)[4] = 'default'
+    colnames(varModels)[3] <- "timeStep"
+    colnames(varModels)[4] <- "default"
     rownames(varModels) <- NULL
 
     return(varModels)
@@ -64,9 +63,9 @@ viewModels <- function(variable = NULL) {
 getModelSpec <- function(colName, var = NULL) {
   modelSpec <- NULL
 
-  fSVars = get_fSVars(get_modelTags(modelInfoList=modelInfoList))
+  fSVars <- get_fSVars(get_modelTags(modelInfoList = modelInfoList))
   # If variable is not specified - return data for all variables
-  if(is.null(var)){
+  if (is.null(var)) {
     var <- fSVars
   }
   for (v in var) {
@@ -90,24 +89,23 @@ getModelSpec <- function(colName, var = NULL) {
 
 
 # Model definifition fields of the namelist
-#======================================================================================
+# ======================================================================================
 # These are the columns used to define a model - printed using output of viewModels()
 # The possible values of these fields should always be a string/number (i.e., not a vector)
-mdlFields <- c("modelType", "modelParameterVariation") #NOTE: Both modelType & modelParameterVariation have to be specified
+mdlFields <- c("modelType", "modelParameterVariation") # NOTE: Both modelType & modelParameterVariation have to be specified
 
 mdlBounds <- c("modelParameterBounds")
 
-ppOps = c("postProcessing")
+ppOps <- c("postProcessing")
 
-spatialOps = c("spatialOptions")
+spatialOps <- c("spatialOptions")
 
 # Optimization fields - can be specified independent of - mdlFields & mdlBounds
-#=======================================================================================
+# =======================================================================================
 optFields <- c("optimisationArguments", "penaltyAttributes", "penaltyWeights")
 
 # Function to return the masterNamelist options used to check controlFile
-getNamelistMaster <- function(){
-
+getNamelistMaster <- function() {
   outList <- list()
   for (f in mdlFields) {
     outList[[f]] <- getModelSpec(f)
@@ -123,7 +121,7 @@ getNamelistMaster <- function(){
   }
   for (f in optFields) {
     if (f == "optimisationArguments") {
-      outList[[f]] <- names(optimArgsdefault)[!(names(optimArgsdefault)=="lambda.mult")]
+      outList[[f]] <- names(optimArgsdefault)[!(names(optimArgsdefault) == "lambda.mult")]
     } else {
       outList[[f]] <- list()
     }
@@ -133,7 +131,7 @@ getNamelistMaster <- function(){
 
 # Function to read controlFile. Will be used in generateScenario
 readNamelist <- function(jsonfile) {
-  if(!file.exists(jsonfile)) {
+  if (!file.exists(jsonfile)) {
     stop("controlFile json file does not exist")
   }
   nml <- jsonlite::fromJSON(txt = jsonfile)
@@ -143,7 +141,6 @@ readNamelist <- function(jsonfile) {
 
 # Function to get the user model choice of "v" from namelist, input is a list - read in from the namelist json file
 getModelChoice <- function(nml, v) {
-
   # initialize modelChoice
   modelChoice <- viewModels(v)[FALSE, 1:2]
   modelChoice[1, ] <- NA
@@ -165,7 +162,6 @@ getModelChoice <- function(nml, v) {
 # Can be used after reading Obs to create a vector of modelTags
 # modelTag = "v-parTag-modelType"
 getModelTag <- function(nml, v) {
-  
   modelChoice <- getModelChoice(nml, v)
 
   if (ncol(modelChoice) == 0) {
@@ -182,38 +178,35 @@ getModelTag <- function(nml, v) {
 # To create the original 'modelInfoMod' list based on the nml input
 # 'modelInfoMod' depends only on the vars specified as fields of mdlBounds
 getModelInfoMod <- function(nml) {
-
   field <- "modelParameterBounds"
-  if(!is.null(nml[[field]])) {
+  if (!is.null(nml[[field]])) {
     vars <- names(nml[[field]])
 
     modelInfoMod <- NULL
-    for (v in vars){
+    for (v in vars) {
       modelTag <- getModelTag(nml, v)
       modelInfoMod[[modelTag]] <- modifyParBounds(nml, v)
     }
     return(modelInfoMod)
   } else {
-    #cat(paste0("\ncontrolFile does not contain ", field, ". Using foreSIGHT defaults.\n"))
+    # cat(paste0("\ncontrolFile does not contain ", field, ". Using foreSIGHT defaults.\n"))
     return(list())
   }
-
 }
 
 getOptimArgs <- function(nml) {
-
   field1 <- "optimisationArguments"
   field2 <- "penaltyWeights"
 
   optimArgs <- list()
 
-  if(!is.null(nml[[field1]])) {
+  if (!is.null(nml[[field1]])) {
     optimArgs <- nml[[field1]]
   } else {
-    #cat(paste0("\ncontrolFile does not contain ", field1, ". Using foreSIGHT defaults.\n"))
+    # cat(paste0("\ncontrolFile does not contain ", field1, ". Using foreSIGHT defaults.\n"))
   }
 
-  if(!is.null(nml[[field2]])) {
+  if (!is.null(nml[[field2]])) {
     optimArgs[["lambda.mult"]] <- nml[[field2]]
   }
 
@@ -221,28 +214,31 @@ getOptimArgs <- function(nml) {
 }
 
 getAttPenalty <- function(nml) {
-
   field <- "penaltyAttributes"
   return(nml[[field]])
-
 }
 
 # remove arguments for other optimizers that are not used
-cleanOptimArgs = function(optimArgs){
-
-  if(optimArgs$optimizer!='RGN'){optimArgs$RGN.control=NULL}
-  if(optimArgs$optimizer!='SCE'){optimArgs$SCE.control=NULL}
+cleanOptimArgs <- function(optimArgs) {
+  if (optimArgs$optimizer != "RGN") {
+    optimArgs$RGN.control <- NULL
+  }
+  if (optimArgs$optimizer != "SCE") {
+    optimArgs$SCE.control <- NULL
+  }
   # if(optimArgs$optimizer!='CMAES'){optimArgs$CMAES.control=NULL}
-  if(optimArgs$optimizer!='NM'){optimArgs$NM.control=NULL}
-  if(optimArgs$optimizer!='GA'){optimArgs$GA.args=NULL}
+  if (optimArgs$optimizer != "NM") {
+    optimArgs$NM.control <- NULL
+  }
+  if (optimArgs$optimizer != "GA") {
+    optimArgs$GA.args <- NULL
+  }
 
   return(optimArgs)
-
 }
 
 # Given a namelist & variable, return integrated (modelInfo + new bounds) minimum and maximum bounds in a list
 modifyParBounds <- function(nml, v) {
-
   field <- "modelParameterBounds"
   boundsIn <- nml[[field]][[v]]
   parsIn <- names(boundsIn)
@@ -258,8 +254,10 @@ modifyParBounds <- function(nml, v) {
     maxBound[ind] <- boundsIn[[p]][2]
   }
 
-  return(list(minBound = minBound,
-              maxBound = maxBound))
+  return(list(
+    minBound = minBound,
+    maxBound = maxBound
+  ))
 }
 
 
@@ -326,7 +324,6 @@ modifyParBounds <- function(nml, v) {
 #' }
 #' @export
 writeControlFile <- function(jsonfile = "sample_controlFile.json", basic = TRUE, nml = NULL) {
-
   # get defaults
   if (is.null(nml)) {
     modelTag <- defaultModelTags
@@ -340,15 +337,14 @@ writeControlFile <- function(jsonfile = "sample_controlFile.json", basic = TRUE,
     checkControlFile(nml)
   }
 
-  if(basic) {
+  if (basic) {
     nml[[mdlBounds]] <- NULL
-    nml[["optimisationArguments"]] <- NULL  # removed optimArgs from basic controlFile; add if needed
+    nml[["optimisationArguments"]] <- NULL # removed optimArgs from basic controlFile; add if needed
   }
   json_nml <- jsonlite::toJSON(nml, pretty = TRUE, auto_unbox = TRUE)
   write(json_nml, file = jsonfile)
 
   return(invisible())
-
 }
 
 # Function to create a namelist from a number of foreSIGHT options
@@ -359,8 +355,7 @@ writeControlFile <- function(jsonfile = "sample_controlFile.json", basic = TRUE,
 # 3. penaltyAtt - input namelist
 # 4. modelInfo - input namelist bounds + exisiting default bounds for unspecified parameters
 # The output is of type list - it can be passed to a writeNamelist function to write a json file
-toNamelist <- function(modelTag, modelInfoMod = NULL, optimArgs = NULL, attPenalty = NULL, ppArgs=NULL) {
-
+toNamelist <- function(modelTag, modelInfoMod = NULL, optimArgs = NULL, attPenalty = NULL, ppArgs = NULL) {
   if (!is.null(attPenalty)) penaltyWeights <- optimArgs[["lambda.mult"]]
   optimArgs[["lambda.mult"]] <- NULL
 
@@ -369,7 +364,7 @@ toNamelist <- function(modelTag, modelInfoMod = NULL, optimArgs = NULL, attPenal
   varNames <- sapply(strsplit(modelTag, "-"), `[[`, 1)
   parTag <- sapply(strsplit(modelTag, "-"), `[[`, 2)
 
-  parVar = parTag
+  parVar <- parTag
   # modelType
   #----------------------------------------------------
   mType <- sapply(strsplit(modelTag, "-"), `[[`, 3)
@@ -417,18 +412,16 @@ toNamelist <- function(modelTag, modelInfoMod = NULL, optimArgs = NULL, attPenal
       }
     }
   }
-  if(!is.null(attPenalty)) {
+  if (!is.null(attPenalty)) {
     nml[["penaltyAttributes"]] <- attPenalty
     nml[["penaltyWeights"]] <- penaltyWeights
   }
   return(nml)
-
 }
 
 # Internal function to get the parameters and their bounds using modelInfo and modelTag
 # Used to get information to write namelist out
 getModelParBounds <- function(modelTag, modelInfo = NULL) {
-
   varNames <- sapply(strsplit(modelTag, "-"), `[[`, 1)
 
   if (is.null(modelInfo)) {
@@ -441,16 +434,15 @@ getModelParBounds <- function(modelTag, modelInfo = NULL) {
   for (i in 1:length(modelTag)) {
     parNam <- modelInfo[[modelTag[i]]][["parNam"]]
 
-    parBounds <- matrix(rep(NA, length(parNam)*2), ncol = length(parNam))
+    parBounds <- matrix(rep(NA, length(parNam) * 2), ncol = length(parNam))
     parBounds[1, ] <- modelInfo[[modelTag[i]]][["minBound"]]
     parBounds[2, ] <- modelInfo[[modelTag[i]]][["maxBound"]]
 
     for (p in 1:length(parNam)) {
-      modelParameterBounds[[varNames[i]]][[parNam[p]]] <- parBounds[ ,p]
+      modelParameterBounds[[varNames[i]]][[parNam[p]]] <- parBounds[, p]
     }
   }
   return(modelParameterBounds)
-
 }
 
 # Function to view the parameter bounds of specific models - intended for user
@@ -478,7 +470,6 @@ getModelParBounds <- function(modelTag, modelInfo = NULL) {
 # Are the optimization argument fields valid (i.e., belongs to optimArgsdefault) (can add detailed checks later)
 
 checkControlFile <- function(nml) {
-
   # Master Namelist
   nmlMaster <- getNamelistMaster()
 
@@ -493,15 +484,13 @@ checkControlFile <- function(nml) {
   checkMdlFields(nml)
   checkOptFields(nml)
   checkMdlBounds(nml)
-
 }
 
 
 # check mdlFields
 checkMdlFields <- function(nml) {
+  fSVars <- get_fSVars(get_modelTags(modelInfoList = modelInfoList))
 
-  fSVars = get_fSVars(get_modelTags(modelInfoList=modelInfoList))
-  
   # Master Namelist
   nmlMaster <- getNamelistMaster()
 
@@ -509,8 +498,8 @@ checkMdlFields <- function(nml) {
   for (field in mdlFields) {
     master <- nmlMaster[[field]]
     for (i in unlist(nml[[field]])) {
-      if(length(i) > 1 | !is.character(i)) stop(paste0("controlFile ", field, " input", i, " should be a string. Type viewModels() to view the valid options."))
-      if(!(i %in% master)) stop(paste0("controlFile ", field, " input", i, "unrecognized"))
+      if (length(i) > 1 | !is.character(i)) stop(paste0("controlFile ", field, " input", i, " should be a string. Type viewModels() to view the valid options."))
+      if (!(i %in% master)) stop(paste0("controlFile ", field, " input", i, "unrecognized"))
     }
   }
 
@@ -525,16 +514,18 @@ checkMdlFields <- function(nml) {
     for (v in varsi) {
       if (!(v %in% fSVars)) stop(paste0("controlFile variable", v, " specified in ", mdlFields[i], " is unrecognized. ", "Type viewModels() to view the valid variables"))
     }
-    if (!(all(vars1 %in% varsi) & all(varsi %in% vars1))) stop(paste0("Specify ", paste(mdlFields, collapse="/")," for every variable in controlFile"))
+    if (!(all(vars1 %in% varsi) & all(varsi %in% vars1))) stop(paste0("Specify ", paste(mdlFields, collapse = "/"), " for every variable in controlFile"))
   }
 
   # Check : combination of model choices are okay
   for (v in vars1) {
     modelChoice <- getModelChoice(nml, v)
     # compare with available options
-    if (nrow(merge(modelChoice, viewModels(v)[ ,1:2])) != 1) {
-      stop(paste0("controlFile: combination of ", paste(mdlFields, collapse = "/"), " specified for variable ", v, " is not valid. ",
-                  "Type viewModels(\"", v, "\") to view the valid options"))
+    if (nrow(merge(modelChoice, viewModels(v)[, 1:2])) != 1) {
+      stop(paste0(
+        "controlFile: combination of ", paste(mdlFields, collapse = "/"), " specified for variable ", v, " is not valid. ",
+        "Type viewModels(\"", v, "\") to view the valid options"
+      ))
     }
   }
   return(invisible())
@@ -545,14 +536,12 @@ checkMdlFields <- function(nml) {
 # This function needs to get modelTags from namelist if mdlFields are specified
 # Otherwise it needs to get modelTags from the defaults for each variable
 checkMdlBounds <- function(nml) {
-
   field <- mdlBounds
 
   vars <- names(nml[[field]])
   for (v in vars) {
+    fSVars <- get_fSVars(get_modelTags(modelInfoList = modelInfoList))
 
-    fSVars = get_fSVars(get_modelTags(modelInfoList=modelInfoList))
-    
     if (!(v %in% fSVars)) stop(paste0("controlFile variable ", v, " specified in ", field, " is unrecognized. Type viewModels() to view the valid variables."))
 
     parIn <- names(nml[[field]][[v]])
@@ -560,10 +549,10 @@ checkMdlBounds <- function(nml) {
     parNam <- get.model.info(modelTag)[["parNam"]]
 
     for (p in parIn) {
-      if (!(p %in% parNam)) stop("controlFile parameter ", p,  " specified in ", field, " for variable ", v, " is unrecognized.")
+      if (!(p %in% parNam)) stop("controlFile parameter ", p, " specified in ", field, " for variable ", v, " is unrecognized.")
       bounds <- nml[[field]][[v]][[p]]
       if (length(bounds) != 2) stop("controlFile parameter ", p, " specified in ", field, " for variable ", v, " should have minimum and maximum bounds.")
-      if(bounds[1] > bounds[2]) stop("controlFile parameter ", p, " specified in ", field, " for variable ", v, ": minimum bound is greater than maximum.")
+      if (bounds[1] > bounds[2]) stop("controlFile parameter ", p, " specified in ", field, " for variable ", v, ": minimum bound is greater than maximum.")
     }
   }
   return(invisible())
@@ -572,7 +561,6 @@ checkMdlBounds <- function(nml) {
 
 # check optFields
 checkOptFields <- function(nml) {
-
   # Check names of optimArgs
   field <- "optimisationArguments"
 
@@ -580,21 +568,16 @@ checkOptFields <- function(nml) {
   nmlMaster <- getNamelistMaster()
 
   namesIn <- names(nml)
-  if(field %in% namesIn) {
+  if (field %in% namesIn) {
     master <- nmlMaster[[field]]
     for (i in names(nml[[field]])) {
-      if(!(i %in% master)) stop(paste0("controlFile ", field, " input ", i, " unrecognized"))
+      if (!(i %in% master)) stop(paste0("controlFile ", field, " input ", i, " unrecognized"))
     }
   }
 
   # Check length of penaltyAtt
-  if(! (length(nml[["penaltyWeights"]]) == length(nml[["penaltyWeights"]]))) {
+  if (!(length(nml[["penaltyWeights"]]) == length(nml[["penaltyWeights"]]))) {
     stop("controlFile: specify penaltyWeights for all penaltyAttributes")
   }
   return(invisible())
 }
-
-
-
-
-
