@@ -237,6 +237,18 @@ addExpArgs_attHold <- function(attPerturb = attPerturb, attHold = attHold, exSpA
 
 #######
 
+#' Creates tied attributes which tie seasonal changes in attributes to annual changes
+#'
+#' \code{setSeasonalTiedAttributes} returns a list containing tied attributes, 
+#' matching seasonal attributes to non-stratified attributes. 
+#' This list can be used to specify tied attributes in \code{createExpSpace()} 
+#' @param attSel A char vector; the names of the attributes (perturbed/held) for which seasonal attributes will be tied to. 
+#' @return A list describing tied attributes with first level corresponding to 
+#' original perturbed/held attributes, and second level a vector with tied seasonal attributes.
+#' @examples
+#' attSel = c('P_day_all_tot_m','P_day_all_P99')
+#' attTied = setSeasonalTiedAttributes(attSel)
+#' attTied  
 #' @export
 setSeasonalTiedAttributes = function(attSel){
   attsTied = list()
@@ -250,7 +262,8 @@ setSeasonalTiedAttributes = function(attSel){
   return(attsTied)
 }
 
-#' @export
+##################################################
+# generates list of tied attributes, for tying WetDay and DryDay attributes to other attributes
 setWDdayTiedAttributes = function(attSel){
   attsTied = list()
   for (att in attSel){
