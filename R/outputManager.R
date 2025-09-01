@@ -13,20 +13,20 @@
 #------------------------------------------
 #FUNCTIONS
 
-nameMaker<-function(attSel=NULL,  # vector of selected attributes
-                    target=NULL   # vector coordinates of targets
-){
-  #SQUASH ATTSEL CHARACTERS
-  squashfunc<-function(x) {paste(x,sep="",collapse="")}
-  nAtt=length(attSel)
-  tmp.str=strsplit(x=attSel,split="_");tmp.str=vapply(tmp.str,FUN=squashfunc,FUN.VALUE=character(1))
-  #ATTACH TARGET COORDINATES
-  tarVal=vapply(X=as.numeric(target),FUN=signif,digits=5,FUN.VALUE=numeric(1))
-  tarVal=substr(tarVal,start=1,stop=5)
-  fnam=paste(paste(tarVal[-nAtt],tmp.str[-nAtt],"_",sep="",collapse=""),paste(tarVal[nAtt],tmp.str[nAtt],sep="",collapse=""),sep="")
-  #RETURN NAME MINUS FILE EXTENSION
-  return(fnam)
-}
+# nameMaker<-function(attSel=NULL,  # vector of selected attributes
+#                     target=NULL   # vector coordinates of targets
+# ){
+#   #SQUASH ATTSEL CHARACTERS
+#   squashfunc<-function(x) {paste(x,sep="",collapse="")}
+#   nAtt=length(attSel)
+#   tmp.str=strsplit(x=attSel,split="_");tmp.str=vapply(tmp.str,FUN=squashfunc,FUN.VALUE=character(1))
+#   #ATTACH TARGET COORDINATES
+#   tarVal=vapply(X=as.numeric(target),FUN=signif,digits=5,FUN.VALUE=numeric(1))
+#   tarVal=substr(tarVal,start=1,stop=5)
+#   fnam=paste(paste(tarVal[-nAtt],tmp.str[-nAtt],"_",sep="",collapse=""),paste(tarVal[nAtt],tmp.str[nAtt],sep="",collapse=""),sep="")
+#   #RETURN NAME MINUS FILE EXTENSION
+#   return(fnam)
+# }
 
 # makeOutputDataframe<-function(data=NULL,
 #                               dates=NULL,
@@ -52,37 +52,37 @@ nameMaker<-function(attSel=NULL,  # vector of selected attributes
 #   
 # }
 
-saveTarget<-function(data=NULL,       # data[[i]]  ->    $P, $Temp $attSim $targetSim
-                     dates=NULL,      # data frame dates info mm,dd,yy
-                     modelTag=NULL,   # vector of modelTags
-                     modelInfo=NULL,  # list of modelInfo related to modelTag
-                     simVar=NULL,     # vector of variables simulated
-                     target=NULL,     # vector coords of target location
-                     attSel=NULL,     # vector of attributes Selected
-                     attPrim=NULL,     # vector of primary attributes nominated
-                     paths=NULL
-){
-  #MAKE FILENAME
-  fnam=nameMaker(attSel=attSel,target=target)
-  
-  #MAKE OUTPUTTED DATAFRAME
-  simDat=makeOutputDataframe(data=data,dates=dates,simVar=simVar,modelTag=modelTag[1])
-  
-  #RENAME WHAT YOU WANT TO SAVE AT TOP LEVEL
-  attSim=data$attSim
-  par=data$parS
-  targetSimulated=data$targetSim
-  targetRequested=target
-  seed=data[[1]]$seed   #this assume same seed for all
-  
-  #WRITE TO .RDATA FILE
-  save(simDat,modelTag,modelInfo,attSel,attPrim,attSim,targetSimulated,targetRequested,seed,par,file=paste(paths$RData,"/",fnam,".RData",sep=""))
-  
-  #WRITE OUTPUT CSV
-  utils::write.table(simDat,file=paste(paths$CSV,"/",fnam,".csv",sep=""),row.names=FALSE,quote = FALSE,sep=",")  
-    
-  return(fnam)
-}
+# saveTarget<-function(data=NULL,       # data[[i]]  ->    $P, $Temp $attSim $targetSim
+#                      dates=NULL,      # data frame dates info mm,dd,yy
+#                      modelTag=NULL,   # vector of modelTags
+#                      modelInfo=NULL,  # list of modelInfo related to modelTag
+#                      simVar=NULL,     # vector of variables simulated
+#                      target=NULL,     # vector coords of target location
+#                      attSel=NULL,     # vector of attributes Selected
+#                      attPrim=NULL,     # vector of primary attributes nominated
+#                      paths=NULL
+# ){
+#   #MAKE FILENAME
+#   fnam=nameMaker(attSel=attSel,target=target)
+#   
+#   #MAKE OUTPUTTED DATAFRAME
+#   simDat=makeOutputDataframe(data=data,dates=dates,simVar=simVar,modelTag=modelTag[1])
+#   
+#   #RENAME WHAT YOU WANT TO SAVE AT TOP LEVEL
+#   attSim=data$attSim
+#   par=data$parS
+#   targetSimulated=data$targetSim
+#   targetRequested=target
+#   seed=data[[1]]$seed   #this assume same seed for all
+#   
+#   #WRITE TO .RDATA FILE
+#   save(simDat,modelTag,modelInfo,attSel,attPrim,attSim,targetSimulated,targetRequested,seed,par,file=paste(paths$RData,"/",fnam,".RData",sep=""))
+#   
+#   #WRITE OUTPUT CSV
+#   utils::write.table(simDat,file=paste(paths$CSV,"/",fnam,".csv",sep=""),row.names=FALSE,quote = FALSE,sep=",")  
+#     
+#   return(fnam)
+# }
 
 # #simpleSaveTarget
 # simpleSaveTarget<-function(data=NULL,       # data[[i]]$P, $Temp $attSim $targetSim
