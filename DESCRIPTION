@@ -12,10 +12,8 @@ Imports:
     graphics,
     grDevices,
     utils,
-    moments,
     jsonlite,
     progress,
-    rcorpora,
     scales,
     viridisLite,
     fields,
@@ -110,7 +108,6 @@ Collate:
     'defaultParams_diagAndPlotting.R'
     'demoTankModel.R'
     'diagnosticPlotLib.R'
-    'diagnosticsOtherAttributes.R'
     'eval_system_metrics.R'
     'evaluate_attribute_change.R'
     'exposureSpaceSampler.R'
