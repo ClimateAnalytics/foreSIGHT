@@ -26,231 +26,231 @@
 #COLOUR RAMP
 traffic.col=c("chartreuse3","gold1","red1")
 
-polygon.monthwise<-function(obsDat=NULL #List with max and min entries of length 12
-){
-  coord.y=c(obsDat$min[1],obsDat$min[1:12],obsDat$min[12],   # 0-13
-            obsDat$max[12],obsDat$max[12:1],obsDat$max[1],   # 13 -0
-            obsDat$min[1])                                   # close loop
-  coord.x=c(seq(0,13),seq(13,0),0)
-  out=list(coord.x=coord.x,coord.y=coord.y)
-  return(out)
-}
+# polygon.monthwise<-function(obsDat=NULL #List with max and min entries of length 12
+# ){
+#   coord.y=c(obsDat$min[1],obsDat$min[1:12],obsDat$min[12],   # 0-13
+#             obsDat$max[12],obsDat$max[12:1],obsDat$max[1],   # 13 -0
+#             obsDat$min[1])                                   # close loop
+#   coord.x=c(seq(0,13),seq(13,0),0)
+#   out=list(coord.x=coord.x,coord.y=coord.y)
+#   return(out)
+# }
+# 
+# polygon.seasonal<-function(obsDat=NULL #List with max and min entries of length 4
+# ){
+#   seas.order=c(2,3,4,1)
+#   coord.y=c(obsDat$min[seas.order[1]],obsDat$min[seas.order[1:4]],obsDat$min[seas.order[4]],   # 0-4
+#             obsDat$max[seas.order[4]],obsDat$max[seas.order[4:1]],obsDat$max[seas.order[1]],   # 4 -0
+#             obsDat$min[seas.order[1]])                                 # close loop
+#   coord.x=c(seq(0,5),seq(5,0),0)
+#   out=list(coord.x=coord.x,coord.y=coord.y)
+#   return(out)
+# }
+# 
+# polygon.annual<-function(obsDat=NULL #List with max and min entries of length 4
+# ){
+#   coord.y=c(rep(obsDat$min[1],3),   # 
+#             rep(obsDat$max[1],3),   # 
+#             obsDat$min[1])                                 # close loop
+#   coord.x=c(seq(0,2),seq(2,0),0)
+#   out=list(coord.x=coord.x,coord.y=coord.y)
+#   return(out)
+# }
 
-polygon.seasonal<-function(obsDat=NULL #List with max and min entries of length 4
-){
-  seas.order=c(2,3,4,1)
-  coord.y=c(obsDat$min[seas.order[1]],obsDat$min[seas.order[1:4]],obsDat$min[seas.order[4]],   # 0-4
-            obsDat$max[seas.order[4]],obsDat$max[seas.order[4:1]],obsDat$max[seas.order[1]],   # 4 -0
-            obsDat$min[seas.order[1]])                                 # close loop
-  coord.x=c(seq(0,5),seq(5,0),0)
-  out=list(coord.x=coord.x,coord.y=coord.y)
-  return(out)
-}
-
-polygon.annual<-function(obsDat=NULL #List with max and min entries of length 4
-){
-  coord.y=c(rep(obsDat$min[1],3),   # 
-            rep(obsDat$max[1],3),   # 
-            obsDat$min[1])                                 # close loop
-  coord.x=c(seq(0,2),seq(2,0),0)
-  out=list(coord.x=coord.x,coord.y=coord.y)
-  return(out)
-}
-
-monthwise.boxplots<-function(simDat=NULL, #sim data list of stats (from collate.stat.lib.r)
-                             obsDat=NULL, #observed data list if adding polygon
-                             compObs=TRUE, #add observed stast
-                             metricTag=NULL,  #name of metric plotted
-                             ...
-){
-  #GET Y-RANGES  
-  if(compObs==TRUE){
-    y.min=min(c(min(simDat$TS,na.rm=TRUE),min(obsDat$TS,na.rm=TRUE)),ma.rm=TRUE)
-    y.max=max(c(max(simDat$TS,na.rm=TRUE),max(obsDat$TS,na.rm=TRUE)),na.rm=TRUE)
-  }else{
-    y.min=min(simDat$TS,na.rm=TRUE)  
-    y.max=max(simDat$TS,na.rm=TRUE)
-  }
-  #BLANK PLOT
-  plot(1,type="n",xlim=c(0.2,12.8),ylim=c(y.min,y.max),ylab=metricTag,xlab="Month",xaxt="n")
-  graphics::axis(side=1,at=seq(1,12),labels=month.abb)     #note month.abb built into R 
-  
-  
-  #ADD COMPARISON TO OBSERVED DATASET
-  if(compObs==TRUE){
-    poly=polygon.monthwise(obsDat=obsDat)                                                   #make monthwise polygon
-    graphics::polygon(x=poly$coord.x,y=poly$coord.y,col = "lemonchiffon1",border = NA)                #add obs range polygon
-    graphics::lines(x=seq(0,13),y=c(obsDat$median[1],obsDat$median[1:12],obsDat$median[12]),lwd=2,col="blue")     #add obs median line
-  } 
-  
-  #ADD BOXPLOT FOR EACH MONTH
-  for(m in 1:12){
-    boxplot_func(z=simDat$TS[m,],at.pt=m,col="lightgray")   #plot each month separately
-  }
-  
-  #ADD LEGEND
-  if(compObs==TRUE){
-    graphics::legend("topright",legend = c("sim.","obs. range","obs. med"),horiz = FALSE,seg.len = c(1,1,1.5),
-                    col=c(NA,NA,"blue"),fill = c("lightgray","lemonchiffon1",NA),border = c("black","black",NA),
-                    lwd = c(NA,NA,2),
-                    bty="n" )
-  }else{
-    graphics::legend("topright",legend = c("sim."),horiz = FALSE,seg.len = c(1),
-                    col=c(NA),fill = c("lightgray"),border = c("black"),
-                    lwd = c(NA),
-                    bty="n" )
-  }
-}
-#tester
-#monthwise.boxplots(simDat=tmp,obsDat=tmp,compObs=TRUE,metricTag="monTot")
-
-seasonal.boxplots<-function(simDat=NULL, #sim data list of stats (from collate.stat.lib.r)
-                            obsDat=NULL, #observed data list if adding polygon
-                            compObs=TRUE, #add observed stast
-                            metricTag=NULL,  #name of metric plotted
-                             ...
-){
-  #GET Y-RANGES  
-  if(compObs==TRUE){
-    y.min=min(c(min(simDat$TS,na.rm=TRUE),min(obsDat$TS,na.rm=TRUE)),ma.rm=TRUE)
-    y.max=max(c(max(simDat$TS,na.rm=TRUE),max(obsDat$TS,na.rm=TRUE)),na.rm=TRUE)
-  }else{
-    y.min=min(simDat$TS,na.rm=TRUE)  
-    y.max=max(simDat$TS,na.rm=TRUE)
-  }
-  #BLANK PLOT
-  plot(1,type="n",xlim=c(0.75,4.25),ylim=c(y.min,y.max),ylab=metricTag,xlab="Season",xaxt="n",xaxs="i")
-  seas.order=c(2,3,4,1)
-  graphics::axis(side=1,at=seq(1,4),labels=c("DJF","MAM","JJA","SON"))   
-  
-  
-  #ADD COMPARISON TO OBSERVED DATASET
-  if(compObs==TRUE){
-    poly=polygon.seasonal(obsDat=obsDat)                                                   #make monthwise polygon
-    graphics::polygon(x=poly$coord.x,y=poly$coord.y,col = "lemonchiffon1",border = NA)                #add obs range polygon
-    graphics::lines(x=seq(0,5),y=c(obsDat$median[seas.order[1]],obsDat$median[seas.order[1:4]],obsDat$median[seas.order[4]]),lwd=2,col="blue")     #add obs median line
-  } 
-  
-  #ADD BOXPLOT FOR EACH MONTH
-  for(s in 1:4){
-    boxplot_func(z=simDat$TS[seas.order[s],],at.pt=s,col="lightgray")   #plot each season separately
-  }
-  
-  #ADD LEGEND
-  if(compObs==TRUE){
-    graphics::legend("topleft",legend = c("sim.","obs. range","obs. med"),horiz = FALSE,seg.len = c(1,1,1.5),
-                     col=c(NA,NA,"blue"),fill = c("lightgray","lemonchiffon1",NA),border = c("black","black",NA),
-                     lwd = c(NA,NA,2),
-                     bty="n" )
-  }else{
-    graphics::legend("topleft",legend = c("sim."),horiz = FALSE,seg.len = c(1),
-                     col=c(NA),fill = c("lightgray"),border = c("black"),
-                     lwd = c(NA),
-                     bty="n" )
-  }
-}
-#tester
-#seasonal.boxplots(simDat=tmp,obsDat=tmp,compObs=TRUE,metricTag="seasTot")
-
-
-annual.boxplots<-function(simDat=NULL, #sim data list of stats (from collate.stat.lib.r)
-                          obsDat=NULL, #observed data list if adding polygon
-                          compObs=TRUE, #add observed stast
-                          metricTag=NULL,  #name of metric plotted
-                          x.lab=NULL,    #lab for x axis
-                          ...
-){
-  #GET Y-RANGES  
-  if(compObs==TRUE){
-    y.min=min(c(min(simDat$TS,na.rm=TRUE),min(obsDat$TS,na.rm=TRUE)),ma.rm=TRUE)
-    y.max=max(c(max(simDat$TS,na.rm=TRUE),max(obsDat$TS,na.rm=TRUE)),na.rm=TRUE)
-  }else{
-    y.min=min(simDat$TS,na.rm=TRUE)  
-    y.max=max(simDat$TS,na.rm=TRUE)
-  }
-  #BLANK PLOT
-  plot(1,type="n",xlim=c(0.7,1.3),ylim=c(y.min,y.max),ylab=metricTag,xlab="",xaxt="n")
-  if(!is.null(x.lab)) graphics::axis(side=1,at=1,labels=x.lab)     
-  
-  #ADD COMPARISON TO OBSERVED DATASET
-  if(compObs==TRUE){
-    poly=polygon.annual(obsDat=obsDat)                                                   #make annual polygon
-    graphics::polygon(x=poly$coord.x,y=poly$coord.y,col = "lemonchiffon1",border = NA)             #add obs range polygon
-    graphics::lines(x=seq(0,2),y=rep(obsDat$median[1],3),lwd=2,col="blue")     #add obs median line
-  } 
-  
-  #ADD BOXPLOT
-    boxplot_func(z=simDat$TS,at.pt=1,col="lightgray")   #plot each season separately
-  
-  
-  #ADD LEGEND
-  if(compObs==TRUE){
-    graphics::legend("bottomright",legend = c("sim.","obs. range","obs. med"),horiz = FALSE,seg.len = c(1,1,1.5),
-                     col=c(NA,NA,"blue"),fill = c("lightgray","lemonchiffon1",NA),border = c("black","black",NA),
-                     lwd = c(NA,NA,2),
-                     bty="n" )
-  }else{
-    graphics::legend("bottomright",legend = c("sim."),horiz = FALSE,seg.len = c(1),
-                     col=c(NA),fill = c("lightgray"),border = c("black"),
-                     lwd = c(NA),
-                     bty="n" )
-  }
-}
-
-#annual.boxplots(simDat=tmp,obsDat=tmp,compObs=TRUE,metricTag="annTot",x.lab="Point X")
-
-simVobsTS<-function(simTS=NULL,  #timeseries vector
-                    obsTS=NULL,  #timeseries vector
-                    datInd=NULL, #date Indices
-                    varName=NULL,  #variable name
-                    asRollAv=NULL #add rolling average line
-                    
-){
-  
-
-  
-
-  
-  #PLOT THE TWO SERIES
-  if(asRollAv==FALSE){
-    #GET Y-RANGE 
-    y.min=min(c(min(simTS,na.rm=TRUE),min(obsTS,na.rm=TRUE)),ma.rm=TRUE)
-    y.max=max(c(max(simTS,na.rm=TRUE),max(obsTS,na.rm=TRUE)),na.rm=TRUE)
-    y.range=c(y.min,y.max)
-    
-    #BLANK PLOT
-    plot(1,type="n",xlim=c(1,length(obsTS)),ylim=y.range,ylab=varName,xlab="Indx",xaxs="i")
-    
-    graphics::lines(x=seq(1,length(obsTS)),y=obsTS,col="blue") #add obs time series
-    graphics::lines(x=seq(1,length(simTS)),y=simTS,col="red")  #add sim timeseries
-  }else{
-    #PLOT AS ROLLING AVERAGE
-    period=30
-    rollObs=movingAverage(x=obsTS, n=period, centered=TRUE)  #take moving average of observed timeseries
-    rollSim=movingAverage(x=simTS, n=period, centered=TRUE)  #take moving average of observed timeseries
-  
-    #GET Y-RANGE 
-    y.min=min(c(min(rollSim,na.rm=TRUE),min(rollObs,na.rm=TRUE)),ma.rm=TRUE)
-    y.max=max(c(max(rollSim,na.rm=TRUE),max(rollObs,na.rm=TRUE)),na.rm=TRUE)
-    y.range=c(y.min,y.max)
-    
-    #BLANK PLOT
-    plot(1,type="n",xlim=c(1,length(obsTS)),ylim=y.range,ylab=varName,xlab="Indx",xaxs="i")
-    
-    graphics::lines(x=seq(1,length(obsTS)),rollObs, col="blue", lwd=2) #add obs timeseries
-    graphics::lines(x=seq(1,length(simTS)),rollSim, col="red", lwd=2)  #add sim timeseries
-  }
-  
-  #ADD LEGEND
-  if(asRollAv==FALSE){
-    graphics::legend("topright",legend = c("sim.","obs."),horiz = FALSE,
-                     col=c("red","blue"),lwd = c(2,2),bty="n" )
-  }else{
-    graphics::legend("topright",legend = c("sim. 30 rolling Av.","obs. 30 rolling Av."),horiz = FALSE,
-                     col=c("red","blue"),lwd = c(2,2),bty="n" )
-    graphics::title(paste("Daily moving average:", period,"day period used",sep=" "))
-  } 
-}
+# monthwise.boxplots<-function(simDat=NULL, #sim data list of stats (from collate.stat.lib.r)
+#                              obsDat=NULL, #observed data list if adding polygon
+#                              compObs=TRUE, #add observed stast
+#                              metricTag=NULL,  #name of metric plotted
+#                              ...
+# ){
+#   #GET Y-RANGES  
+#   if(compObs==TRUE){
+#     y.min=min(c(min(simDat$TS,na.rm=TRUE),min(obsDat$TS,na.rm=TRUE)),ma.rm=TRUE)
+#     y.max=max(c(max(simDat$TS,na.rm=TRUE),max(obsDat$TS,na.rm=TRUE)),na.rm=TRUE)
+#   }else{
+#     y.min=min(simDat$TS,na.rm=TRUE)  
+#     y.max=max(simDat$TS,na.rm=TRUE)
+#   }
+#   #BLANK PLOT
+#   plot(1,type="n",xlim=c(0.2,12.8),ylim=c(y.min,y.max),ylab=metricTag,xlab="Month",xaxt="n")
+#   graphics::axis(side=1,at=seq(1,12),labels=month.abb)     #note month.abb built into R 
+#   
+#   
+#   #ADD COMPARISON TO OBSERVED DATASET
+#   if(compObs==TRUE){
+#     poly=polygon.monthwise(obsDat=obsDat)                                                   #make monthwise polygon
+#     graphics::polygon(x=poly$coord.x,y=poly$coord.y,col = "lemonchiffon1",border = NA)                #add obs range polygon
+#     graphics::lines(x=seq(0,13),y=c(obsDat$median[1],obsDat$median[1:12],obsDat$median[12]),lwd=2,col="blue")     #add obs median line
+#   } 
+#   
+#   #ADD BOXPLOT FOR EACH MONTH
+#   for(m in 1:12){
+#     boxplot_func(z=simDat$TS[m,],at.pt=m,col="lightgray")   #plot each month separately
+#   }
+#   
+#   #ADD LEGEND
+#   if(compObs==TRUE){
+#     graphics::legend("topright",legend = c("sim.","obs. range","obs. med"),horiz = FALSE,seg.len = c(1,1,1.5),
+#                     col=c(NA,NA,"blue"),fill = c("lightgray","lemonchiffon1",NA),border = c("black","black",NA),
+#                     lwd = c(NA,NA,2),
+#                     bty="n" )
+#   }else{
+#     graphics::legend("topright",legend = c("sim."),horiz = FALSE,seg.len = c(1),
+#                     col=c(NA),fill = c("lightgray"),border = c("black"),
+#                     lwd = c(NA),
+#                     bty="n" )
+#   }
+# }
+# #tester
+# #monthwise.boxplots(simDat=tmp,obsDat=tmp,compObs=TRUE,metricTag="monTot")
+# 
+# seasonal.boxplots<-function(simDat=NULL, #sim data list of stats (from collate.stat.lib.r)
+#                             obsDat=NULL, #observed data list if adding polygon
+#                             compObs=TRUE, #add observed stast
+#                             metricTag=NULL,  #name of metric plotted
+#                              ...
+# ){
+#   #GET Y-RANGES  
+#   if(compObs==TRUE){
+#     y.min=min(c(min(simDat$TS,na.rm=TRUE),min(obsDat$TS,na.rm=TRUE)),ma.rm=TRUE)
+#     y.max=max(c(max(simDat$TS,na.rm=TRUE),max(obsDat$TS,na.rm=TRUE)),na.rm=TRUE)
+#   }else{
+#     y.min=min(simDat$TS,na.rm=TRUE)  
+#     y.max=max(simDat$TS,na.rm=TRUE)
+#   }
+#   #BLANK PLOT
+#   plot(1,type="n",xlim=c(0.75,4.25),ylim=c(y.min,y.max),ylab=metricTag,xlab="Season",xaxt="n",xaxs="i")
+#   seas.order=c(2,3,4,1)
+#   graphics::axis(side=1,at=seq(1,4),labels=c("DJF","MAM","JJA","SON"))   
+#   
+#   
+#   #ADD COMPARISON TO OBSERVED DATASET
+#   if(compObs==TRUE){
+#     poly=polygon.seasonal(obsDat=obsDat)                                                   #make monthwise polygon
+#     graphics::polygon(x=poly$coord.x,y=poly$coord.y,col = "lemonchiffon1",border = NA)                #add obs range polygon
+#     graphics::lines(x=seq(0,5),y=c(obsDat$median[seas.order[1]],obsDat$median[seas.order[1:4]],obsDat$median[seas.order[4]]),lwd=2,col="blue")     #add obs median line
+#   } 
+#   
+#   #ADD BOXPLOT FOR EACH MONTH
+#   for(s in 1:4){
+#     boxplot_func(z=simDat$TS[seas.order[s],],at.pt=s,col="lightgray")   #plot each season separately
+#   }
+#   
+#   #ADD LEGEND
+#   if(compObs==TRUE){
+#     graphics::legend("topleft",legend = c("sim.","obs. range","obs. med"),horiz = FALSE,seg.len = c(1,1,1.5),
+#                      col=c(NA,NA,"blue"),fill = c("lightgray","lemonchiffon1",NA),border = c("black","black",NA),
+#                      lwd = c(NA,NA,2),
+#                      bty="n" )
+#   }else{
+#     graphics::legend("topleft",legend = c("sim."),horiz = FALSE,seg.len = c(1),
+#                      col=c(NA),fill = c("lightgray"),border = c("black"),
+#                      lwd = c(NA),
+#                      bty="n" )
+#   }
+# }
+# #tester
+# #seasonal.boxplots(simDat=tmp,obsDat=tmp,compObs=TRUE,metricTag="seasTot")
+# 
+# 
+# annual.boxplots<-function(simDat=NULL, #sim data list of stats (from collate.stat.lib.r)
+#                           obsDat=NULL, #observed data list if adding polygon
+#                           compObs=TRUE, #add observed stast
+#                           metricTag=NULL,  #name of metric plotted
+#                           x.lab=NULL,    #lab for x axis
+#                           ...
+# ){
+#   #GET Y-RANGES  
+#   if(compObs==TRUE){
+#     y.min=min(c(min(simDat$TS,na.rm=TRUE),min(obsDat$TS,na.rm=TRUE)),ma.rm=TRUE)
+#     y.max=max(c(max(simDat$TS,na.rm=TRUE),max(obsDat$TS,na.rm=TRUE)),na.rm=TRUE)
+#   }else{
+#     y.min=min(simDat$TS,na.rm=TRUE)  
+#     y.max=max(simDat$TS,na.rm=TRUE)
+#   }
+#   #BLANK PLOT
+#   plot(1,type="n",xlim=c(0.7,1.3),ylim=c(y.min,y.max),ylab=metricTag,xlab="",xaxt="n")
+#   if(!is.null(x.lab)) graphics::axis(side=1,at=1,labels=x.lab)     
+#   
+#   #ADD COMPARISON TO OBSERVED DATASET
+#   if(compObs==TRUE){
+#     poly=polygon.annual(obsDat=obsDat)                                                   #make annual polygon
+#     graphics::polygon(x=poly$coord.x,y=poly$coord.y,col = "lemonchiffon1",border = NA)             #add obs range polygon
+#     graphics::lines(x=seq(0,2),y=rep(obsDat$median[1],3),lwd=2,col="blue")     #add obs median line
+#   } 
+#   
+#   #ADD BOXPLOT
+#     boxplot_func(z=simDat$TS,at.pt=1,col="lightgray")   #plot each season separately
+#   
+#   
+#   #ADD LEGEND
+#   if(compObs==TRUE){
+#     graphics::legend("bottomright",legend = c("sim.","obs. range","obs. med"),horiz = FALSE,seg.len = c(1,1,1.5),
+#                      col=c(NA,NA,"blue"),fill = c("lightgray","lemonchiffon1",NA),border = c("black","black",NA),
+#                      lwd = c(NA,NA,2),
+#                      bty="n" )
+#   }else{
+#     graphics::legend("bottomright",legend = c("sim."),horiz = FALSE,seg.len = c(1),
+#                      col=c(NA),fill = c("lightgray"),border = c("black"),
+#                      lwd = c(NA),
+#                      bty="n" )
+#   }
+# }
+# 
+# #annual.boxplots(simDat=tmp,obsDat=tmp,compObs=TRUE,metricTag="annTot",x.lab="Point X")
+# 
+# simVobsTS<-function(simTS=NULL,  #timeseries vector
+#                     obsTS=NULL,  #timeseries vector
+#                     datInd=NULL, #date Indices
+#                     varName=NULL,  #variable name
+#                     asRollAv=NULL #add rolling average line
+#                     
+# ){
+#   
+# 
+#   
+# 
+#   
+#   #PLOT THE TWO SERIES
+#   if(asRollAv==FALSE){
+#     #GET Y-RANGE 
+#     y.min=min(c(min(simTS,na.rm=TRUE),min(obsTS,na.rm=TRUE)),ma.rm=TRUE)
+#     y.max=max(c(max(simTS,na.rm=TRUE),max(obsTS,na.rm=TRUE)),na.rm=TRUE)
+#     y.range=c(y.min,y.max)
+#     
+#     #BLANK PLOT
+#     plot(1,type="n",xlim=c(1,length(obsTS)),ylim=y.range,ylab=varName,xlab="Indx",xaxs="i")
+#     
+#     graphics::lines(x=seq(1,length(obsTS)),y=obsTS,col="blue") #add obs time series
+#     graphics::lines(x=seq(1,length(simTS)),y=simTS,col="red")  #add sim timeseries
+#   }else{
+#     #PLOT AS ROLLING AVERAGE
+#     period=30
+#     rollObs=movingAverage(x=obsTS, n=period, centered=TRUE)  #take moving average of observed timeseries
+#     rollSim=movingAverage(x=simTS, n=period, centered=TRUE)  #take moving average of observed timeseries
+#   
+#     #GET Y-RANGE 
+#     y.min=min(c(min(rollSim,na.rm=TRUE),min(rollObs,na.rm=TRUE)),ma.rm=TRUE)
+#     y.max=max(c(max(rollSim,na.rm=TRUE),max(rollObs,na.rm=TRUE)),na.rm=TRUE)
+#     y.range=c(y.min,y.max)
+#     
+#     #BLANK PLOT
+#     plot(1,type="n",xlim=c(1,length(obsTS)),ylim=y.range,ylab=varName,xlab="Indx",xaxs="i")
+#     
+#     graphics::lines(x=seq(1,length(obsTS)),rollObs, col="blue", lwd=2) #add obs timeseries
+#     graphics::lines(x=seq(1,length(simTS)),rollSim, col="red", lwd=2)  #add sim timeseries
+#   }
+#   
+#   #ADD LEGEND
+#   if(asRollAv==FALSE){
+#     graphics::legend("topright",legend = c("sim.","obs."),horiz = FALSE,
+#                      col=c("red","blue"),lwd = c(2,2),bty="n" )
+#   }else{
+#     graphics::legend("topright",legend = c("sim. 30 rolling Av.","obs. 30 rolling Av."),horiz = FALSE,
+#                      col=c("red","blue"),lwd = c(2,2),bty="n" )
+#     graphics::title(paste("Daily moving average:", period,"day period used",sep=" "))
+#   } 
+# }
 
 measure.diff<- function(type=NULL,
                         simPt=NULL,
@@ -408,9 +408,11 @@ getSimTraffic <- function(sim) {          # simulations generated using generate
   
   # Variable and target type
   varType <- vapply(attSel, FUN = get.attribute.varType, FUN.VALUE = character(1), USE.NAMES = FALSE)
-  # targetType <- vapply(varType, FUN = get.target.type, FUN.VALUE = character(1), USE.NAMES = FALSE)
   # print('fix targetType')
   targetType = sim$expSpace$targetType
+  if (is.null(targetType)){
+    targetType <- vapply(varType, FUN = get.target.type, FUN.VALUE = character(1), USE.NAMES = FALSE)
+  }
   
   # modelTag and variables
   simVar <- names(nml[["modelType"]])
@@ -418,7 +420,7 @@ getSimTraffic <- function(sim) {          # simulations generated using generate
   for (v in simVar) {
     modelTag <- c(modelTag, getModelTag(nml = nml, v))
   }
-  
+
   # get nameTarg and nameReps
   nameReps <- names(sim)[!(names(sim) %in% c("expSpace", "simDates", "controlFile"))]
   numReps <- 1:length(nameReps)
@@ -687,368 +689,368 @@ expSpace2dViz<-function(x=NULL,    #vector of one attribute
 # expSpace2dViz(x=c(1,2,3,4,1,2,3,4,1,2,3,4),y=c(1,1,1,1,2,2,2,2,3,3,3,3),x.lab="Ptot%",y.lab="Temp(+deg)")
 
 
-#-------------------------------------------------
-frontBoilerPlateInfo<-function(modelTag=NULL,
-                               targetLocn=NULL,
-                               spot=NULL,
-                               nTarget=NULL,
-                               attSel=NULL,
-                               attPrim=NULL,
-                               optimArgs=NULL,
-                               sim=NULL,
-                               simVar=NULL
-                              ){
-  #text col
-  t.col="dodgerblue3"
+# #-------------------------------------------------
+# frontBoilerPlateInfo<-function(modelTag=NULL,
+#                                targetLocn=NULL,
+#                                spot=NULL,
+#                                nTarget=NULL,
+#                                attSel=NULL,
+#                                attPrim=NULL,
+#                                optimArgs=NULL,
+#                                sim=NULL,
+#                                simVar=NULL
+#                               ){
+#   #text col
+#   t.col="dodgerblue3"
+# 
+#   # MAKE BLANK UN-BORDERED PLOTTING SPACE
+#   graphics::par(mar=c(1,1,1,1),oma=c(1,1,1,1))
+#   plot(1,type="n",xlim=c(1,100),ylim=c(1,100),ylab="",xlab="",xaxs="i",xaxt="n",yaxt="n",frame.plot=FALSE,xpd=FALSE)
+#   
+#   #THINGS TO PLOT IN ALL CASES
+#   graphics::polygon(c(0,100,100,0,0),
+#           c(93,93,118,118,93),
+#           border=FALSE,
+#           col=grDevices::adjustcolor("green3",alpha.f=0.1))
+#   
+#   line.no=0
+#   #TARGET INFORMATION 
+#   graphics::text(x = 50,y=(98-line.no*10),labels=paste("Target", spot, "of",nTarget,sep=" " ),cex=2.5,col=t.col)
+#   nacross=4
+#   if(length(attSel)>nacross){
+#     nlot=ceiling(length(attSel)/4)   #split into lots of 3
+#     nrem=length(attSel)%%nacross           #get remainder
+#     line.no=line.no+0.5
+#     for(i in 1:nlot){
+#       line.no=line.no+0.5
+#       nstart=(i-1)*nacross+1
+#       if((i == nlot)&(nrem>0)){nfin=nstart+(nrem-1) }else{ nfin=nstart+(nacross-1)}
+#       chunk=seq(nstart,nfin)
+#       if(i == 1){
+#         graphics::text(x=50,y=(100-line.no*10),labels=paste("Target location:",paste(attSel[chunk],": ",targetLocn[chunk],sep="",collapse = ",    "),sep=" "),font = 2,col=t.col)
+#       }else{
+#         graphics::text(x=50,y=(100-line.no*10),labels=paste(attSel[chunk],": ",targetLocn[chunk],sep="",collapse = ",    "),font = 2,col=t.col)  #cap at 3 across
+#       }
+#     }
+#   }else{
+#     line.no=line.no+1.0
+#     graphics::text(x=50,y=(100-line.no*10),labels=paste("Target location:",paste(attSel,": ",targetLocn,sep="",collapse = ",    "),sep=" "),font = 2,col=t.col)
+#   }
+#   
+#   #PRIMARY ATTRIBUTES (IF ANY)
+#   if(!is.null(attPrim)){
+#     line.no=line.no+0.75
+#     graphics::text(x = 50,y=(100-line.no*10),labels=paste("Primary attributes:",paste(attPrim,collapse=",  ")),cex=1.0,font=2,col=t.col)
+#   }
+#   
+#   #RUN INFORMATION
+#   line.no=line.no+1
+#   graphics::text(x = 50,y=(100-line.no*10),labels=paste("Simulation run with the following properties"),cex=2.0,col=t.col)
+#   
+#   line.no=line.no+0.75
+#   graphics::text(x = 50,y=(100-line.no*10),labels=paste("Models Used:",paste(modelTag,collapse=",  ")),cex=1.0,font=2,col=t.col)
+#   
+#   line.no=line.no+0.5
+#   graphics::text(x = 50,y=(100-line.no*10),labels=paste("Variables perturbed:",paste(simVar,collapse=",  ")),cex=1.0,font=2,col=t.col)
+#   
+#   #THINGS TO PLOT IF STOCHASTIC SIMULATION USED
+#   if(modelTag[1] != "Simple-ann"){
+#     line.no=line.no+0.5
+#     graphics::text(x=50,y=(100-line.no*10),labels="Optimisation used: GA",font = 2,col=t.col) 
+#     line.no=line.no+0.5
+#     graphics::text(x=50,y=(100-line.no*10),labels=paste("Max no. iterations:",optimArgs$maxiter,sep=" "),font = 2,col=t.col)
+#     line.no=line.no+0.5
+#     graphics::text(x=50,y=(100-line.no*10),labels=paste("Crossover:",optimArgs$pcrossover,sep=" "),font = 2,col=t.col)
+#     line.no=line.no+0.5
+#     graphics::text(x=50,y=(100-line.no*10),labels=paste("Mutation:",optimArgs$pmutation,sep=" "),font = 2,col=t.col)
+#     line.no=line.no+0.5
+#     graphics::text(x=50,y=(100-line.no*10),labels=paste("Population size:",optimArgs$popSize,sep=" "),font = 2,col=t.col)
+#     line.no=line.no+0.5
+#     graphics::text(x=50,y=(100-line.no*10),labels=paste0("Lambda(",attPrim,"): ",optimArgs$lambda.mult,collapse = ", "),font = 2,col=t.col)
+#   }else{
+#     line.no=line.no+0.5
+#     graphics::text(x=50,y=(100-line.no*10),labels="Simple scaling used",font = 2,col=t.col) 
+#   }
+#   
+#   #BOTTOM BORDER POLYGON
+#   graphics::polygon(c(0,100,100,0,0),
+#           c(0,0,5,5,0),
+#           border=FALSE,
+#           col=grDevices::adjustcolor("green3",alpha.f=0.1))
+#   
+# }
+# 
+# # heading: heading of the line
+# # lineInfo: information to be printed on the line as a vector (eg: attPerturb)
+# # Anjana: may need to change x here for portrait A4 page
+# 
+# printLines <- function(heading, lineInfo, line.no, t.col, nacross = 3) {
+#   
+#   if(length(lineInfo) > nacross){
+#     
+#     nlot=ceiling(length(lineInfo)/nacross)         #split into lots
+#     nrem=length(lineInfo)%%nacross           #get remainder
+#     line.no.new=line.no+0.5
+#     
+#     for(i in 1:nlot){
+#       line.no.new=line.no.new+0.75
+#       nstart=(i-1)*nacross+1
+#       if((i == nlot)&(nrem>0)){nfin=nstart+(nrem-1) }else{ nfin=nstart+(nacross-1)}
+#       chunk=seq(nstart,nfin)
+#       if(i == 1){
+#         graphics::text(x=50, y=(100-line.no.new*5), labels=paste(heading, ":",paste(lineInfo[chunk], sep="", collapse = ",    "), sep = " "),font = 2,col=t.col)
+#       }else{
+#         graphics::text(x=50, y=(100-line.no.new*5), labels=paste(lineInfo[chunk], sep="", collapse = ",    "), font = 2, col=t.col)  #cap at 3 across
+#       }
+#     }
+#   }else{
+#     line.no.new=line.no+1
+#     graphics::text(x=50,y=(100-line.no.new*5),labels=paste(heading, ":",paste(lineInfo, sep="", collapse = ",    "),sep=" "),font = 2,col=t.col)
+#   }
+#   #line.no.out <- line.no
+#   return(line.no.new)
+# }
 
-  # MAKE BLANK UN-BORDERED PLOTTING SPACE
-  graphics::par(mar=c(1,1,1,1),oma=c(1,1,1,1))
-  plot(1,type="n",xlim=c(1,100),ylim=c(1,100),ylab="",xlab="",xaxs="i",xaxt="n",yaxt="n",frame.plot=FALSE,xpd=FALSE)
-  
-  #THINGS TO PLOT IN ALL CASES
-  graphics::polygon(c(0,100,100,0,0),
-          c(93,93,118,118,93),
-          border=FALSE,
-          col=grDevices::adjustcolor("green3",alpha.f=0.1))
-  
-  line.no=0
-  #TARGET INFORMATION 
-  graphics::text(x = 50,y=(98-line.no*10),labels=paste("Target", spot, "of",nTarget,sep=" " ),cex=2.5,col=t.col)
-  nacross=4
-  if(length(attSel)>nacross){
-    nlot=ceiling(length(attSel)/4)   #split into lots of 3
-    nrem=length(attSel)%%nacross           #get remainder
-    line.no=line.no+0.5
-    for(i in 1:nlot){
-      line.no=line.no+0.5
-      nstart=(i-1)*nacross+1
-      if((i == nlot)&(nrem>0)){nfin=nstart+(nrem-1) }else{ nfin=nstart+(nacross-1)}
-      chunk=seq(nstart,nfin)
-      if(i == 1){
-        graphics::text(x=50,y=(100-line.no*10),labels=paste("Target location:",paste(attSel[chunk],": ",targetLocn[chunk],sep="",collapse = ",    "),sep=" "),font = 2,col=t.col)
-      }else{
-        graphics::text(x=50,y=(100-line.no*10),labels=paste(attSel[chunk],": ",targetLocn[chunk],sep="",collapse = ",    "),font = 2,col=t.col)  #cap at 3 across
-      }
-    }
-  }else{
-    line.no=line.no+1.0
-    graphics::text(x=50,y=(100-line.no*10),labels=paste("Target location:",paste(attSel,": ",targetLocn,sep="",collapse = ",    "),sep=" "),font = 2,col=t.col)
-  }
-  
-  #PRIMARY ATTRIBUTES (IF ANY)
-  if(!is.null(attPrim)){
-    line.no=line.no+0.75
-    graphics::text(x = 50,y=(100-line.no*10),labels=paste("Primary attributes:",paste(attPrim,collapse=",  ")),cex=1.0,font=2,col=t.col)
-  }
-  
-  #RUN INFORMATION
-  line.no=line.no+1
-  graphics::text(x = 50,y=(100-line.no*10),labels=paste("Simulation run with the following properties"),cex=2.0,col=t.col)
-  
-  line.no=line.no+0.75
-  graphics::text(x = 50,y=(100-line.no*10),labels=paste("Models Used:",paste(modelTag,collapse=",  ")),cex=1.0,font=2,col=t.col)
-  
-  line.no=line.no+0.5
-  graphics::text(x = 50,y=(100-line.no*10),labels=paste("Variables perturbed:",paste(simVar,collapse=",  ")),cex=1.0,font=2,col=t.col)
-  
-  #THINGS TO PLOT IF STOCHASTIC SIMULATION USED
-  if(modelTag[1] != "Simple-ann"){
-    line.no=line.no+0.5
-    graphics::text(x=50,y=(100-line.no*10),labels="Optimisation used: GA",font = 2,col=t.col) 
-    line.no=line.no+0.5
-    graphics::text(x=50,y=(100-line.no*10),labels=paste("Max no. iterations:",optimArgs$maxiter,sep=" "),font = 2,col=t.col)
-    line.no=line.no+0.5
-    graphics::text(x=50,y=(100-line.no*10),labels=paste("Crossover:",optimArgs$pcrossover,sep=" "),font = 2,col=t.col)
-    line.no=line.no+0.5
-    graphics::text(x=50,y=(100-line.no*10),labels=paste("Mutation:",optimArgs$pmutation,sep=" "),font = 2,col=t.col)
-    line.no=line.no+0.5
-    graphics::text(x=50,y=(100-line.no*10),labels=paste("Population size:",optimArgs$popSize,sep=" "),font = 2,col=t.col)
-    line.no=line.no+0.5
-    graphics::text(x=50,y=(100-line.no*10),labels=paste0("Lambda(",attPrim,"): ",optimArgs$lambda.mult,collapse = ", "),font = 2,col=t.col)
-  }else{
-    line.no=line.no+0.5
-    graphics::text(x=50,y=(100-line.no*10),labels="Simple scaling used",font = 2,col=t.col) 
-  }
-  
-  #BOTTOM BORDER POLYGON
-  graphics::polygon(c(0,100,100,0,0),
-          c(0,0,5,5,0),
-          border=FALSE,
-          col=grDevices::adjustcolor("green3",alpha.f=0.1))
-  
-}
-
-# heading: heading of the line
-# lineInfo: information to be printed on the line as a vector (eg: attPerturb)
-# Anjana: may need to change x here for portrait A4 page
-
-printLines <- function(heading, lineInfo, line.no, t.col, nacross = 3) {
-  
-  if(length(lineInfo) > nacross){
-    
-    nlot=ceiling(length(lineInfo)/nacross)         #split into lots
-    nrem=length(lineInfo)%%nacross           #get remainder
-    line.no.new=line.no+0.5
-    
-    for(i in 1:nlot){
-      line.no.new=line.no.new+0.75
-      nstart=(i-1)*nacross+1
-      if((i == nlot)&(nrem>0)){nfin=nstart+(nrem-1) }else{ nfin=nstart+(nacross-1)}
-      chunk=seq(nstart,nfin)
-      if(i == 1){
-        graphics::text(x=50, y=(100-line.no.new*5), labels=paste(heading, ":",paste(lineInfo[chunk], sep="", collapse = ",    "), sep = " "),font = 2,col=t.col)
-      }else{
-        graphics::text(x=50, y=(100-line.no.new*5), labels=paste(lineInfo[chunk], sep="", collapse = ",    "), font = 2, col=t.col)  #cap at 3 across
-      }
-    }
-  }else{
-    line.no.new=line.no+1
-    graphics::text(x=50,y=(100-line.no.new*5),labels=paste(heading, ":",paste(lineInfo, sep="", collapse = ",    "),sep=" "),font = 2,col=t.col)
-  }
-  #line.no.out <- line.no
-  return(line.no.new)
-}
-
-#-------------------------------------------------
-frontPageScenarios <- function(sim, 
-                               simName = NULL
-                               ) {
-  simNameNote <- NULL
-  
-  # random simulation name
-  if (is.null(simName)) {
-    wordVector <- c(tools::toTitleCase(rcorpora::corpora("animals/common")[["animals"]]), 
-                    tools::toTitleCase(rcorpora::corpora("plants/plants")[["instruments"]][["name"]]), 
-                    tools::toTitleCase(rcorpora::corpora("geography/rivers")[["rivers"]][["name"]]), 
-                 tools::toTitleCase(rcorpora::corpora("foods/fruits")[["fruits"]]),
-                 tools::toTitleCase(rcorpora::corpora("foods/vegetables")[["vegetables"]]),
-                 tools::toTitleCase(rcorpora::corpora("games/pokemon")[["pokemon"]][["name"]]),
-                 tools::toTitleCase(rcorpora::corpora("materials/gemstones")[["gemstones"]]))
-    
-    simNameFull <- paste0("Simulation Name", expression("\206"), ": ", wordVector[round(stats::runif(1)*length(wordVector))])
-    simNameNote <- paste0(expression("\206"), "Name automatically generated")
-  } else {
-    simNameFull <- paste0("Simulation Name:", simName)
-  }
-  
-  # get names of variables in simulation
-  # simFields <- names(sim[["Rep1"]][["Target1"]])
-  # varNames <- simFields[-which(simFields %in% c("attSim", "targetSim", "parS", "score"))]
-  varNames <- names(sim[["controlFile"]][["modelType"]])
-  varFull <- NULL
-  for (i in 1:length(varNames)) {
-    varFull[i] <- varShortToLong[varNames[i]]
-  }
-  
-  simDate <- format(Sys.time(), "%b %d %Y %R")
-
-  # saving lengthly names here to save typing
-  n <- "controlFile"
-  m1 <- "modelType"
-  m2 <- "modelParameterVariation"
-  o <- "optimisationArguments"
-  
-  m1Long <- "model type"
-  m2Long <- "model parameter variation"
-  
-  # text col
-  t.col="dodgerblue3"
-  p.col <- "green3"
-  
-  # MAKE BLANK UN-BORDERED PLOTTING SPACE
-  graphics::par(mar=c(1,1,1,1),oma=c(1,1,1,1))
-  plot(1,type="n",xlim=c(1,100),ylim=c(1,100),ylab="", xlab="", xaxs="i", xaxt="n",yaxt="n",frame.plot=FALSE,xpd=NA)
-  #plot(1,type="n",xlim=c(1,100),ylim=c(1,100),xaxt="n",yaxt="n",frame.plot=FALSE,xpd=NA)
-  
-  #THINGS TO PLOT IN ALL CASES
-  graphics::polygon(c(0,100,100,0,0),
-          c(93,93,118,118,93),
-          border=FALSE,
-          col=grDevices::adjustcolor(p.col,alpha.f=0.1))
-  
-  nTarg <- dim(sim$expSpace$targetMat)[1]
-  nAtt <- dim(sim$expSpace$targetMat)[2]
-  nRep <- length(sim) - 3
-  
-  attPerturb <- sim[["expSpace"]][["attPerturb"]]
-  attHold <- sim[["expSpace"]][["attHold"]]
-  
-  attPFull <- NULL
-  for (i in 1:length(attPerturb)){
-    attPFull[i] <- tagBlender(attPerturb[i])
-  }
-  attHFull <- NULL
-  for (i in 1:length(attHold)){
-    attHFull[i] <- tagBlender(attHold[i])
-  }
-  
-  line.no=0
-  #SCENARIOS INFORMATION 
-  graphics::text(x = 50,y=(98-line.no*5),labels=simNameFull,cex=1.5,col=t.col)
-  graphics::text(x = 88,y=(95-line.no*5),labels=simDate,cex=1,col=t.col)
-
-  line.no <- line.no + 2.25
-  # text(x = 50,y=(100-line.no*5),labels=paste("Number of Targets = ", nTarg, ", Attributes = ", nAtt, ", Replicates = ", nRep), font = 2, col=t.col)
-  # line.no <- line.no + 0.5
-  line.no.new <- printLines("Simulation variables", varFull, line.no, t.col)
-  line.no <- line.no.new + 0.5
-  line.no.new <- printLines("Perturbed attributes (P)", attPFull, line.no, t.col)
-  line.no <- line.no.new
-  
-  if (!is.null(attHold)) {
-    line.no=line.no + 0.5
-    line.no.new <- printLines("Held attributes (H)", attHFull, line.no, t.col)
-    line.no <- line.no.new
-  } else {
-    line.no <- line.no + 1.5
-    graphics::text(x = 50,y=(100-line.no*5),labels=paste("Held attributes (H): There are no held attributes"), font = 2, col=t.col)
-  }
-  
-  line.no <- line.no + 1.5
-  graphics::text(x = 50,y=(100-line.no*5),labels=paste("Number of Targets = ", nTarg, ", Attributes = ", nAtt, ", Replicates = ", nRep), font = 2, col=t.col)
-  
-  #BOTTOM BORDER POLYGON
-  graphics::polygon(c(0,100,100,0,0),
-          c(0,0,5,5,0),
-          border=FALSE,
-          col=grDevices::adjustcolor(p.col,alpha.f=0.1))
-  
-  if (!is.null(simNameNote)) {
-    graphics::text(x = 15, y = 2.5, labels = simNameNote, cex = 1, col = t.col)
-  }
-  
-}
-
-
-advancedPageScenarios <- function(sim) {
-  
-  # saving lengthly names here to save typing
-  n <- "controlFile"
-  m1 <- "modelType"
-  m2 <- "modelParameterVariation"
-  o <- "optimisationArguments"
-  
-  m1Long <- "Model type"
-  m2Long <- "Model parameter variation"
-  
-  # text col
-  t.col="dodgerblue3"
-  p.col <- "green3"
-  
-  # MAKE BLANK UN-BORDERED PLOTTING SPACE
-  graphics::par(mar=c(1,1,1,1),oma=c(1,1,1,1))
-  plot(1,type="n",xlim=c(1,100),ylim=c(1,100),ylab="", xlab="", xaxs="i", xaxt="n",yaxt="n",frame.plot=FALSE,xpd=NA)
-  #plot(1,type="n",xlim=c(1,100),ylim=c(1,100),xaxt="n",yaxt="n",frame.plot=FALSE,xpd=NA)
-  
-  #THINGS TO PLOT IN ALL CASES
-  graphics::polygon(c(0,100,100,0,0),
-          c(93,93,118,118,93),
-          border=FALSE,
-          col=grDevices::adjustcolor(p.col,alpha.f=0.1))
-  
-  attPenalty <- sim[[n]][["penaltyAttributes"]]
-  penaltyWeights <- sim[[n]][["penaltyWeights"]]
-  
-  line.no=0
-  #SCENARIOS INFORMATION 
-  graphics::text(x = 50,y=(98-line.no*5),labels="Advanced Model and Optimisation Settings",cex=1.5,col=t.col)
-  #text(x = 90,y=(94-line.no*5),labels=simDate,cex=0.8,col=t.col)
-  
-  line.no=line.no + 3
-
-  
-  # line.no <- line.no + 0.75
-  # Anjana: add line or polygon here
-  
-  # #RUN INFORMATION
-  # line.no=line.no + 1.25
-  # text(x = 50,y = (100-line.no*5),labels=paste("Simulation model and optimisation settings"),cex=2.0,col=t.col)
-  
-  # line.no <- line.no + 0.75
-  
-  if (is.character(sim[[n]])) {
-    if (sim[[n]] == "scaling") {
-      # line.no = line.no+1
-      graphics::text(x=50,y=(100-line.no*5),labels="Simple scaling used",font = 2,col=t.col)
-    }
-  } else {
-    nVars <- length(sim[[n]][[m1]])
-    varNames <- names(sim[[n]][[m1]])
-    varFull <- NULL
-    for (i in 1:nVars) {
-      varFull[i] <- varShortToLong[varNames[i]]
-    }
-    
-    for (v in 1:nVars) {
-      labelText <- paste(varFull[v], paste(paste(m1Long, sim[[n]][[m1]][v], sep = " = "),
-                                                         paste(m2Long, sim[[n]][[m2]][v], sep = " = "), sep = ", "), sep = ": ")
-      #labelText <- paste("Variable ", labelText)
-      line.no=line.no + 0.75
-      graphics::text(x = 50,y = (100-line.no*5),labels=labelText, cex=1.0, font=2, col=t.col)
-    }
-    
-    line.no=line.no+1.5
-    graphics::text(x=50,y=(100-line.no*5),labels="Optimisation used: GA",font = 2,col=t.col) 
-    line.no=line.no+0.75
-    graphics::text(x=50,y=(100-line.no*5),labels=paste("Max no. iterations:",sim[[n]][[o]]$maxiter,sep=" "),font = 2,col=t.col)
-    line.no=line.no+0.75
-    graphics::text(x=50,y=(100-line.no*5),labels=paste("Crossover:",sim[[n]][[o]]$pcrossover,sep=" "),font = 2,col=t.col)
-    line.no=line.no+0.75
-    graphics::text(x=50,y=(100-line.no*5),labels=paste("Mutation:",sim[[n]][[o]]$pmutation,sep=" "),font = 2,col=t.col)
-    line.no=line.no+0.75
-    graphics::text(x=50,y=(100-line.no*5),labels=paste("Population size:",sim[[n]][[o]]$popSize,sep=" "),font = 2,col=t.col)
-  }
-  
-  line.no <- line.no + 0.5
-  if (!is.null(attPenalty)) {
-    attPtyFull <- NULL
-    for (i in 1:length(attPenalty)){
-      attPtyFull[i] <- paste0(tagBlender(attPenalty[i]), " (Lambda = ", penaltyWeights[i], ")")
-    }
-    line.no.new <- printLines("Penalty attributes (*)", attPtyFull, line.no, t.col, nacross = 1)
-    line.no <- line.no.new
-    #line.no <- line.no + 0.5
-    #graphics::text(x = 50,y = (100-line.no*5),labels=paste0("Penalty weights: ", paste(penaltyWeights, collapse = ", ")),font = 2,col=t.col)
-  } else {
-    line.no <- line.no + 1
-    graphics::text(x = 50,y = (100-line.no*5),labels="There are no penalty attributes", font=2, col=t.col)
-  }
-  
-  #BOTTOM BORDER POLYGON
-  graphics::polygon(c(0,100,100,0,0),
-          c(0,0,5,5,0),
-          border=FALSE,
-          col=grDevices::adjustcolor(p.col,alpha.f=0.1))
-  
-}
+# #-------------------------------------------------
+# frontPageScenarios <- function(sim, 
+#                                simName = NULL
+#                                ) {
+#   simNameNote <- NULL
+#   
+#   # random simulation name
+#   if (is.null(simName)) {
+#     wordVector <- c(tools::toTitleCase(rcorpora::corpora("animals/common")[["animals"]]), 
+#                     tools::toTitleCase(rcorpora::corpora("plants/plants")[["instruments"]][["name"]]), 
+#                     tools::toTitleCase(rcorpora::corpora("geography/rivers")[["rivers"]][["name"]]), 
+#                  tools::toTitleCase(rcorpora::corpora("foods/fruits")[["fruits"]]),
+#                  tools::toTitleCase(rcorpora::corpora("foods/vegetables")[["vegetables"]]),
+#                  tools::toTitleCase(rcorpora::corpora("games/pokemon")[["pokemon"]][["name"]]),
+#                  tools::toTitleCase(rcorpora::corpora("materials/gemstones")[["gemstones"]]))
+#     
+#     simNameFull <- paste0("Simulation Name", expression("\206"), ": ", wordVector[round(stats::runif(1)*length(wordVector))])
+#     simNameNote <- paste0(expression("\206"), "Name automatically generated")
+#   } else {
+#     simNameFull <- paste0("Simulation Name:", simName)
+#   }
+#   
+#   # get names of variables in simulation
+#   # simFields <- names(sim[["Rep1"]][["Target1"]])
+#   # varNames <- simFields[-which(simFields %in% c("attSim", "targetSim", "parS", "score"))]
+#   varNames <- names(sim[["controlFile"]][["modelType"]])
+#   varFull <- NULL
+#   for (i in 1:length(varNames)) {
+#     varFull[i] <- varShortToLong[varNames[i]]
+#   }
+#   
+#   simDate <- format(Sys.time(), "%b %d %Y %R")
+# 
+#   # saving lengthly names here to save typing
+#   n <- "controlFile"
+#   m1 <- "modelType"
+#   m2 <- "modelParameterVariation"
+#   o <- "optimisationArguments"
+#   
+#   m1Long <- "model type"
+#   m2Long <- "model parameter variation"
+#   
+#   # text col
+#   t.col="dodgerblue3"
+#   p.col <- "green3"
+#   
+#   # MAKE BLANK UN-BORDERED PLOTTING SPACE
+#   graphics::par(mar=c(1,1,1,1),oma=c(1,1,1,1))
+#   plot(1,type="n",xlim=c(1,100),ylim=c(1,100),ylab="", xlab="", xaxs="i", xaxt="n",yaxt="n",frame.plot=FALSE,xpd=NA)
+#   #plot(1,type="n",xlim=c(1,100),ylim=c(1,100),xaxt="n",yaxt="n",frame.plot=FALSE,xpd=NA)
+#   
+#   #THINGS TO PLOT IN ALL CASES
+#   graphics::polygon(c(0,100,100,0,0),
+#           c(93,93,118,118,93),
+#           border=FALSE,
+#           col=grDevices::adjustcolor(p.col,alpha.f=0.1))
+#   
+#   nTarg <- dim(sim$expSpace$targetMat)[1]
+#   nAtt <- dim(sim$expSpace$targetMat)[2]
+#   nRep <- length(sim) - 3
+#   
+#   attPerturb <- sim[["expSpace"]][["attPerturb"]]
+#   attHold <- sim[["expSpace"]][["attHold"]]
+#   
+#   attPFull <- NULL
+#   for (i in 1:length(attPerturb)){
+#     attPFull[i] <- tagBlender(attPerturb[i])
+#   }
+#   attHFull <- NULL
+#   for (i in 1:length(attHold)){
+#     attHFull[i] <- tagBlender(attHold[i])
+#   }
+#   
+#   line.no=0
+#   #SCENARIOS INFORMATION 
+#   graphics::text(x = 50,y=(98-line.no*5),labels=simNameFull,cex=1.5,col=t.col)
+#   graphics::text(x = 88,y=(95-line.no*5),labels=simDate,cex=1,col=t.col)
+# 
+#   line.no <- line.no + 2.25
+#   # text(x = 50,y=(100-line.no*5),labels=paste("Number of Targets = ", nTarg, ", Attributes = ", nAtt, ", Replicates = ", nRep), font = 2, col=t.col)
+#   # line.no <- line.no + 0.5
+#   line.no.new <- printLines("Simulation variables", varFull, line.no, t.col)
+#   line.no <- line.no.new + 0.5
+#   line.no.new <- printLines("Perturbed attributes (P)", attPFull, line.no, t.col)
+#   line.no <- line.no.new
+#   
+#   if (!is.null(attHold)) {
+#     line.no=line.no + 0.5
+#     line.no.new <- printLines("Held attributes (H)", attHFull, line.no, t.col)
+#     line.no <- line.no.new
+#   } else {
+#     line.no <- line.no + 1.5
+#     graphics::text(x = 50,y=(100-line.no*5),labels=paste("Held attributes (H): There are no held attributes"), font = 2, col=t.col)
+#   }
+#   
+#   line.no <- line.no + 1.5
+#   graphics::text(x = 50,y=(100-line.no*5),labels=paste("Number of Targets = ", nTarg, ", Attributes = ", nAtt, ", Replicates = ", nRep), font = 2, col=t.col)
+#   
+#   #BOTTOM BORDER POLYGON
+#   graphics::polygon(c(0,100,100,0,0),
+#           c(0,0,5,5,0),
+#           border=FALSE,
+#           col=grDevices::adjustcolor(p.col,alpha.f=0.1))
+#   
+#   if (!is.null(simNameNote)) {
+#     graphics::text(x = 15, y = 2.5, labels = simNameNote, cex = 1, col = t.col)
+#   }
+#   
+# }
+# 
+# 
+# advancedPageScenarios <- function(sim) {
+#   
+#   # saving lengthly names here to save typing
+#   n <- "controlFile"
+#   m1 <- "modelType"
+#   m2 <- "modelParameterVariation"
+#   o <- "optimisationArguments"
+#   
+#   m1Long <- "Model type"
+#   m2Long <- "Model parameter variation"
+#   
+#   # text col
+#   t.col="dodgerblue3"
+#   p.col <- "green3"
+#   
+#   # MAKE BLANK UN-BORDERED PLOTTING SPACE
+#   graphics::par(mar=c(1,1,1,1),oma=c(1,1,1,1))
+#   plot(1,type="n",xlim=c(1,100),ylim=c(1,100),ylab="", xlab="", xaxs="i", xaxt="n",yaxt="n",frame.plot=FALSE,xpd=NA)
+#   #plot(1,type="n",xlim=c(1,100),ylim=c(1,100),xaxt="n",yaxt="n",frame.plot=FALSE,xpd=NA)
+#   
+#   #THINGS TO PLOT IN ALL CASES
+#   graphics::polygon(c(0,100,100,0,0),
+#           c(93,93,118,118,93),
+#           border=FALSE,
+#           col=grDevices::adjustcolor(p.col,alpha.f=0.1))
+#   
+#   attPenalty <- sim[[n]][["penaltyAttributes"]]
+#   penaltyWeights <- sim[[n]][["penaltyWeights"]]
+#   
+#   line.no=0
+#   #SCENARIOS INFORMATION 
+#   graphics::text(x = 50,y=(98-line.no*5),labels="Advanced Model and Optimisation Settings",cex=1.5,col=t.col)
+#   #text(x = 90,y=(94-line.no*5),labels=simDate,cex=0.8,col=t.col)
+#   
+#   line.no=line.no + 3
+# 
+#   
+#   # line.no <- line.no + 0.75
+#   # Anjana: add line or polygon here
+#   
+#   # #RUN INFORMATION
+#   # line.no=line.no + 1.25
+#   # text(x = 50,y = (100-line.no*5),labels=paste("Simulation model and optimisation settings"),cex=2.0,col=t.col)
+#   
+#   # line.no <- line.no + 0.75
+#   
+#   if (is.character(sim[[n]])) {
+#     if (sim[[n]] == "scaling") {
+#       # line.no = line.no+1
+#       graphics::text(x=50,y=(100-line.no*5),labels="Simple scaling used",font = 2,col=t.col)
+#     }
+#   } else {
+#     nVars <- length(sim[[n]][[m1]])
+#     varNames <- names(sim[[n]][[m1]])
+#     varFull <- NULL
+#     for (i in 1:nVars) {
+#       varFull[i] <- varShortToLong[varNames[i]]
+#     }
+#     
+#     for (v in 1:nVars) {
+#       labelText <- paste(varFull[v], paste(paste(m1Long, sim[[n]][[m1]][v], sep = " = "),
+#                                                          paste(m2Long, sim[[n]][[m2]][v], sep = " = "), sep = ", "), sep = ": ")
+#       #labelText <- paste("Variable ", labelText)
+#       line.no=line.no + 0.75
+#       graphics::text(x = 50,y = (100-line.no*5),labels=labelText, cex=1.0, font=2, col=t.col)
+#     }
+#     
+#     line.no=line.no+1.5
+#     graphics::text(x=50,y=(100-line.no*5),labels="Optimisation used: GA",font = 2,col=t.col) 
+#     line.no=line.no+0.75
+#     graphics::text(x=50,y=(100-line.no*5),labels=paste("Max no. iterations:",sim[[n]][[o]]$maxiter,sep=" "),font = 2,col=t.col)
+#     line.no=line.no+0.75
+#     graphics::text(x=50,y=(100-line.no*5),labels=paste("Crossover:",sim[[n]][[o]]$pcrossover,sep=" "),font = 2,col=t.col)
+#     line.no=line.no+0.75
+#     graphics::text(x=50,y=(100-line.no*5),labels=paste("Mutation:",sim[[n]][[o]]$pmutation,sep=" "),font = 2,col=t.col)
+#     line.no=line.no+0.75
+#     graphics::text(x=50,y=(100-line.no*5),labels=paste("Population size:",sim[[n]][[o]]$popSize,sep=" "),font = 2,col=t.col)
+#   }
+#   
+#   line.no <- line.no + 0.5
+#   if (!is.null(attPenalty)) {
+#     attPtyFull <- NULL
+#     for (i in 1:length(attPenalty)){
+#       attPtyFull[i] <- paste0(tagBlender(attPenalty[i]), " (Lambda = ", penaltyWeights[i], ")")
+#     }
+#     line.no.new <- printLines("Penalty attributes (*)", attPtyFull, line.no, t.col, nacross = 1)
+#     line.no <- line.no.new
+#     #line.no <- line.no + 0.5
+#     #graphics::text(x = 50,y = (100-line.no*5),labels=paste0("Penalty weights: ", paste(penaltyWeights, collapse = ", ")),font = 2,col=t.col)
+#   } else {
+#     line.no <- line.no + 1
+#     graphics::text(x = 50,y = (100-line.no*5),labels="There are no penalty attributes", font=2, col=t.col)
+#   }
+#   
+#   #BOTTOM BORDER POLYGON
+#   graphics::polygon(c(0,100,100,0,0),
+#           c(0,0,5,5,0),
+#           border=FALSE,
+#           col=grDevices::adjustcolor(p.col,alpha.f=0.1))
+#   
+# }
 
 
 
-#-----------------------------------------------------------------------------
-exposureSlices<-function(targetMat=NULL,
-                         attSel=NULL
-  
-){
-  
-  graphics::par(mfrow=c(2,3),mar=c(4,4,2,2),oma=c(1,1,1,1))  # try and keep as square as possible
-  for(i in 1:ncol(targetMat)){                        # do all combinations
-    for(j in 1:(ncol(targetMat)-1)){
-      k=j+1
-      for(jj in k:ncol(targetMat)){
-        if(i!=jj){                                       #don't plot attributes v the same attribute
-          expSpace2dViz(x=targetMat[,i],                #vector of attribute_1
-                        y=targetMat[,jj],                #vector of one attribute_2
-                        x.lab=attSel[i],   #Name of attribute_1
-                        y.lab=attSel[jj]    #Name of attribute_2
-          )
-        }
-      }
-
-    }
-  }
-  
-
-}
+# #-----------------------------------------------------------------------------
+# exposureSlices<-function(targetMat=NULL,
+#                          attSel=NULL
+#   
+# ){
+#   
+#   graphics::par(mfrow=c(2,3),mar=c(4,4,2,2),oma=c(1,1,1,1))  # try and keep as square as possible
+#   for(i in 1:ncol(targetMat)){                        # do all combinations
+#     for(j in 1:(ncol(targetMat)-1)){
+#       k=j+1
+#       for(jj in k:ncol(targetMat)){
+#         if(i!=jj){                                       #don't plot attributes v the same attribute
+#           expSpace2dViz(x=targetMat[,i],                #vector of attribute_1
+#                         y=targetMat[,jj],                #vector of one attribute_2
+#                         x.lab=attSel[i],   #Name of attribute_1
+#                         y.lab=attSel[jj]    #Name of attribute_2
+#           )
+#         }
+#       }
+# 
+#     }
+#   }
+#   
+# 
+# }
 
 
 
