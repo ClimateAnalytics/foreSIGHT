@@ -175,6 +175,50 @@
 #'   controlFile = paste0(tempdir(), "controlFile.json"), seed = 1
 #' )
 #' }
+#' 
+#' # Example 6: Subdaily stochastic simulation
+#' #-----------------------------------------------------------------------
+#' \dontrun{
+#' # specify attributes for range of time scales from hourly to daily
+#' attPerturb = c('P_day_all_tot')
+#' attHold = c('P_hour_all_sd','P_hour_all_cor','P_hour_all_nWet',
+#'             'P_3hour_all_sd','P_3hour_all_cor','P_3hour_all_nWet',
+#'             'P_12hour_all_sd','P_12hour_all_cor','P_12hour_all_nWet',
+#'             'P_day_all_sd','P_day_all_cor','P_day_all_nWet')
+#' # consider unperturbed climate           
+#' attPerturbType = "regGrid"
+#' attPerturbSamp = c(1)
+#' attPerturbMin = c(1.)
+#' attPerturbMax = c(1.)
+#' 
+#' # create the exposure space
+#' expSpace = createExpSpace(attPerturb = attPerturb,
+#'                           attPerturbSamp = attPerturbSamp,
+#'                           attPerturbMin = attPerturbMin,
+#'                           attPerturbMax = attPerturbMax,
+#'                           attPerturbType = attPerturbType,
+#'                           attHold = attHold)
+#'  
+#' # load synthetic subdaily data                          
+#' data('subdailySyntheticDat')
+#'  
+#' controlFileList = list()                          
+#' controlFileList$modelType = list()
+#' controlFileList$modelType$P = "BLRPM"  # Bartlett-Lewis rectangular pulse model        
+#' controlFileList$modelParameterVariation = list()
+#' controlFileList$modelParameterVariation$P = "ann" # annual parameters (don't vary with season)
+#' controlFileList = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
+#' controlFile = paste0(tempdir(), "\\eg_controlFile.json")
+#' write(controlFileList, file = controlFile)
+#' 
+#' sim = generateScenarios(reference = subdaily_synthetic_obs,
+#'                         expSpace = expSpace,
+#'                         controlFile = controlFile,
+#'                         seedID = 1)
+#' # plot biases in target and simulated attributes                       
+#' plotScenarios(sim)  
+#' }                       
+#' #-----------------------------------------------------------------------
 #' @export
 #' @importFrom foreach foreach %:% %dopar%
 #'
@@ -1094,7 +1138,6 @@ simulateTargetMarg <- function(optimArgs = NULL,
     spatCorMatIn_PD <- as.matrix(Matrix::nearPD(spatCorMatIn, keepDiag = T)$mat)
 
     MVTsampleMat <- mvtnorm::rmvnorm(n = nTimes, sigma = spatCorMatIn_PD)
-print(cor(MVTsampleMat))
     colnames(MVTsampleMat) <- sites
   }
 
