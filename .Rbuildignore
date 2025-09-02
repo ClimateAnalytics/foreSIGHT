@@ -2,3 +2,12 @@
 ^\.Rproj\.user$
 ^scripts_benchmark_test$
 ^cran-comments\.md$
+^notebooks$
+^testing_2.0$
+^CRAN-SUBMISSION$
+^data/backup$
+^data/scripts$
+^tests$
+
+^doc$
+^Meta$
