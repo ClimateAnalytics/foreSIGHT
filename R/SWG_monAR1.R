@@ -39,19 +39,40 @@ modelInfoList[["P-seas1-monAR1"]] <- list(
     "phi"
   ),
   minBound = c(
-    -1e2, -1e2, -1e2, -1e2,
+    -5e2, -5e2, -5e2, -5e2,
     0.01, 0.01, 0.01, 0.01,
-    0.5, 0.5, 0.5, 0.5,
+    0.2, 0.2, 0.2, 0.2,
     -0.5
   ),
   maxBound = c(
     5e3, 5e3, 5e3, 5e3,
     5e3, 5e3, 5e3, 5e3,
     1.5, 1.5, 1.5, 1.5,
-    2
+    0.9
   )
 )
 
+modelInfoList[["P-seas2-monAR1"]] <- list(
+  simVar = "P",
+  timeStep = "1 month",
+  simPriority = 1,
+  npars = 10,
+  parNam = c(
+    "mu.SON", "mu.DJF", "mu.MAM", "mu.JJA",
+    "sigma.SON", "sigma.DJF", "sigma.MAM", "sigma.JJA",
+    "phi","lambda"
+  ),
+  minBound = c(
+    -1e2, -1e2, -1e2, -1e2,
+    0.01, 0.01, 0.01, 0.01,
+    -0.5,0.2
+  ),
+  maxBound = c(
+    5e3, 5e3, 5e3, 5e3,
+    5e3, 5e3, 5e3, 5e3,
+    0.9,1.5
+  )
+)
 modelInfoList[["P-har-monAR1"]] <- list(
   simVar = "P",
   timeStep = "1 month",
@@ -81,19 +102,22 @@ modelInfoList[["P-har-monAR1"]] <- list(
 
 #' @exportS3Method parManager monAR1
 parManager.monAR1 <- function(parS, SWGparameterization, datInd, auxInfo = NULL) {
+  parNamesSWG <- c("mu", "sigma", "lambda", "phi")
   if (SWGparameterization == "ann") {
-    parTS <- assignAnnualParameters(parS = parS, datInd = datInd)
+    parTS <- assignAnnualParameters(parNamesSWG = parNamesSWG, parS = parS, datInd = datInd)
   } else if (SWGparameterization == "seas") {
-    parTS <- assignSeasonalParameters(parS = parS, datInd = datInd)
+    parTS <- assignSeasonalParameters(parNamesSWG = parNamesSWG, parS = parS, datInd = datInd)
   } else if (SWGparameterization == "seas1") {
     parTS <- assignSeasonalParameters(parNamesSWG = c("mu", "sigma", "lambda"), parS = parS, datInd = datInd)
     parTS <- assignAnnualParameters(parNamesSWG = c("phi"), parS = parS, datInd = datInd, parTS = parTS)
+  } else if (SWGparameterization == "seas2") {
+    parTS <- assignSeasonalParameters(parNamesSWG = c("mu", "sigma"), parS = parS, datInd = datInd)
+    parTS <- assignAnnualParameters(parNamesSWG = c("phi","lambda"), parS = parS, datInd = datInd, parTS = parTS)
   } else if (SWGparameterization == "har") {
-    parTS <- assignHarmonicDailyParameters(parS = parS, datInd = datInd)
+    parTS <- assignHarmonicMonthlyParameters(parNamesSWG = parNamesSWG, parS = parS, datInd = datInd)
   }
-
   parTS$sigma[parTS$sigma < 0] <- 0.
-  parTS$phi[parTS$phi <- 0.9] <- -0.9
+  parTS$phi[parTS$phi < -0.9] <- -0.9
   parTS$phi[parTS$phi > 0.9] <- 0.9
 
   return(parTS)
@@ -101,6 +125,7 @@ parManager.monAR1 <- function(parS, SWGparameterization, datInd, auxInfo = NULL)
 
 #################################
 
+#' @import Rcpp
 #' @exportS3Method SWGsim monAR1
 SWGsim.monAR1 <- function(SWGpar,
                           nTimes,

@@ -130,6 +130,7 @@ SWGsim.wgen <- function(SWGpar,
   return(simP$sim)
 }
 
+#' @import Rcpp
 Pstatus_WGEN <- function(parPwd, # vector of pars for pwd (length = nperiod) - The modified cpp code expects vector of length ndays (not nperiod)
                          parPdd, # vector of pars for pdd (length = nperiod) - The modified cpp code expects vector of length ndays (not nperiod)
                          ndays,

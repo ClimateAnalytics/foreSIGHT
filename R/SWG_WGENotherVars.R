@@ -325,6 +325,7 @@ parManager.wgenO <- function(parS, SWGparameterization, datInd, auxInfo = NULL) 
 
 #################################
 
+#' @import Rcpp
 #' @exportS3Method SWGsim wgenO
 SWGsim.wgenO <- function(SWGpar,
                          nTimes,

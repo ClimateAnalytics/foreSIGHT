@@ -360,6 +360,7 @@ calc_mean_day_clim <- function(obs, keepMat) {
 }
 
 # Calculates the seasonal pattern (i.e. climatological mean)
+#' @import Rcpp
 calc_meanClimDaily_dayOfYearWindow <- function(obs, # vector representing a time series
                                                dates = NULL,
                                                keepMat = NULL, # matrix indexing days of year
@@ -1326,10 +1327,14 @@ tagBlender <- function(attLab = NULL) {
   # aggType
   if (aggName == "day") {
     atype <- "daily"
+  } else if (aggName == "hour") {
+    atype <- "hourly"
   } else if (aggName == "month") {
     atype <- "monthly"
   } else if (aggName == "year") {
     atype <- "annual"
+  } else {
+    atype <- aggName
   }
 
   # operation

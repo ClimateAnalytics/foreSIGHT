@@ -81,6 +81,7 @@ parManager.latent <- function(parS, SWGparameterization, datInd, auxInfo = NULL)
 #################################
 
 #' @exportS3Method SWGsim latent
+#' @import Rcpp
 SWGsim.latent <- function(SWGpar,
                           nTimes,
                           randomTerm,

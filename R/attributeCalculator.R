@@ -149,7 +149,6 @@ timestep_rank <- setNames(seq_along(timestep_order), timestep_order)
 # aggregate data to different aggregation periods
 #' @importFrom dplyr '%>%'
 aggregate_data <- function(data = NULL, times, timeStep, aggPeriod) {
-  # library(dplyr)
 
   if (timeStep == aggNameLong[[aggPeriod]]) {
     out <- list(
@@ -158,6 +157,7 @@ aggregate_data <- function(data = NULL, times, timeStep, aggPeriod) {
       timeStep = timeStep
     )
   } else {
+    
     d1 <- data.frame(timePeriod = seq(
       from = times[1],
       to = times[length(times)],
@@ -172,9 +172,9 @@ aggregate_data <- function(data = NULL, times, timeStep, aggPeriod) {
 
     d3 <- d2 %>%
       dplyr::mutate(timePeriod = lubridate::floor_date(times, aggNameLong[[aggPeriod]])) %>%
-      dplyr::group_by(.data$timePeriod) %>%
+      dplyr::group_by(timePeriod) %>%
       dplyr::summarise(sum = sum(data)) %>%
-      dplyr::right_join(d1, by = dplyr::join_by(.data$timePeriod))
+      dplyr::right_join(d1, by = dplyr::join_by(timePeriod))
 
     out <- list(
       times = d3$timePeriod,
@@ -186,6 +186,10 @@ aggregate_data <- function(data = NULL, times, timeStep, aggPeriod) {
   return(out)
 }
 
+########################
+# define timePeriod as global variable to avoid timePeriod appearing as an 
+# undefined variable when performing devtools::check() 
+utils::globalVariables("timePeriod")
 ########################
 
 setup_datInd_agg <- function(simAgg, times, timeStep, nperiod = 1) {
