@@ -5,6 +5,7 @@ LinkingTo: Rcpp
 Imports: 
     ggplot2 (>= 3.3.0),
     GA (>= 3.0.2),
+    Rcpp,
     rlang,
     directlabels,
     cowplot,
@@ -85,8 +86,8 @@ Collate:
     'default_parameters.R'
     'SWG_BLRPM.R'
     'SWG_LV.R'
-    'SWG_WGEN.R'
-    'SWG_WGEN_LM.R'
+    'SWG_WGENotherVars.R'
+    'SWG_WGENprecip.R'
     'SWG_distScaling.R'
     'SWG_monAR1.R'
     'WGEN_lib.R'
