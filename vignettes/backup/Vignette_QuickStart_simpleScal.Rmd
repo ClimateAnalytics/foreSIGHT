@@ -1,6 +1,6 @@
 ---
 title: "Quick Start Guide: Rainwater Tank Case Study"
-author: "Anjana Devanand, Sam Culley, Bree Bennett, David McInerney, Seth Westra"
+author: "Anjana Devanand, David McInerney, Sam Culley, Bree Bennett, Seth Westra"
 date: "`r format(Sys.time(), '%d %b %Y')`"
 output: 
   rmarkdown::html_vignette:
@@ -21,7 +21,8 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, collapse = TRUE, comment = "#>")
-library(foreSIGHT)
+devtools::load_all("C:/Users/a1065639/Work/foreSIGHT")
+# library(foreSIGHT)
 ```
 
 # 1. Introduction
@@ -121,6 +122,11 @@ Daily observed precipitation and temperature over the period from 2007 to 2016 o
 
 A typical function call to the rainwater tank system model (`tankWrapper`) is shown below. The call returns the system performance metrics specified by the user.
 
+XXXXX data format XXXXX
+
+XXXXXX tank wrapper format, systemArgs, data inputs XXXXXX
+
+
 ``` {r demotank}
 # Load example climate data
 data(tankDat)
@@ -129,23 +135,24 @@ data(tankDat)
 tankMetrics <- viewTankMetrics()
 
 # User input: system model parameters
-systemArgs <- list(roofArea = 50,                           # roof area in m2
-                   nPeople = 1,                             # number of people using water
-                   tankVol = 3000,                          # tank volume in L
-                   firstFlush = 1,                          # depth of water removed each event in mm
-                   write.file = FALSE,                      # write output tank timeseries to file T/F?
-                   fnam = "tankperformance.csv")            # name of file
+systemArgs <- list(
+  roofArea = 50, # roof area in m2
+  nPeople = 1, # number of people using water
+  tankVol = 3000, # tank volume in L
+  firstFlush = 1, # depth of water removed each event in mm
+  write.file = FALSE, # write output tank timeseries to file T/F?
+  fnam = "tankperformance.csv"
+) # name of file
 
 # performance metric chosen for reporting
-metrics <- c("average daily deficit (L)", "reliability (fraction)")   
+metrics <- c("average daily deficit (L)", "reliability (fraction)")
 
-performanceOut <- tankWrapper(data = tank_obs, systemArgs = systemArgs, metrics = metrics)  
+performanceOut <- tankWrapper(data = tank_obs, systemArgs = systemArgs, metrics = metrics)
 performanceOut
 
 # Now try a different metric e.g. volumetric reliability
-performanceOut <- tankWrapper(data = tank_obs, systemArgs = systemArgs, metrics = tankMetrics[1])  
+performanceOut <- tankWrapper(data = tank_obs, systemArgs = systemArgs, metrics = tankMetrics[1])
 performanceOut
-
 ```
 
 # 2. Case Study - Climate 'Stress-test' of a Rainwater Tank System
@@ -165,6 +172,8 @@ To use the function `createExpSpace`, the user should provide information on the
 
 These are discussed in turn. 
 
+XXXXXX attHold not relevant for scaling XXXXXXXXXX
+
 **Choice of which attributes to perturb.** The selection of attributes to perturb is given by the argument `attPerturb`, and selection of attributes to be held at historical levels given by the argument `attHold`. The choice of which attributes to select for perturbation depends upon the anticipated sensitivity of the system; it is an important choice, but outside the scope of the work flow demonstrated in this vignette. When using stochastic models to generate the perturbed time series, it is important to specify `attHold` in addition to `attPerturb` to ensure that physically realistic time series are generated. This issue is discussed further in the Detailed Tutorial vignette.  
 
 **Number of ranges and number of samples/increments.** For each perturbed attribute, the maximum-minimum values of perturbation (`attPerturbMin`, `attPerturbMax`) should be specified, as well as either the number of samples to be generated (`attPerturbSamp`) or the sampling increment (`attPerturbBy`). The perturbations in the attributes of variables like rainfall are specified in multiplicative units, while the perturbations in the attributes of variables like temperature are specified in additive units. The function `createExpSpace` uses this information to create equidistant perturbation points between the minimum-maximum values. For example, if `attPerturbMin` of an attribute of rainfall is specified as 0.9, `attPerturbMax` as 1.1, and `attPerturbSamp` as 3, the perturbation points of the attribute will be 0.9, 1, and 1.1. 
@@ -174,7 +183,7 @@ These are discussed in turn.
 Attributes in *foreSIGHT* are specified as combinations of variables names (e.g. "P" for precipitation), stratification type (e.g. "ann" for annual), function name (e.g. "tot" for total), and operation (e.g. "m" for mean over years). Please refer to the Detailed Tutorial for further details on attribute definitions.  
 The definitions of climate attributes supported by *fore*SIGHT can be viewed using the helper function `viewAttributeDef()` available in the package.
 ``` {r atts, R.options = list(width = 100)}
-viewAttributeDef("P_ann_tot_m")
+viewAttributeDef("P_day_all_tot_m")
 ```
 
 The combinations of perturbed attributes specified by the user provide the intended sampling of the exposure space. The function `createExpSpace` can be used to create an exposure space by specifying `attPerturb` and relevant information regarding the sampling strategy for each attribute, as well as `attHold`. A typical usage of this function is shown below. Note that `attHold` is set to `NULL` since the method of 'simple scaling' will be used in Step B to generate perturbed time series, and this method does not have the capability to hold desired attributes at historical levels. The function `plotExpSpace` can be used to plot and check the range and sampling resolution of a created 2D exposure space.
@@ -183,25 +192,31 @@ In the below function call, the attribute `Temp_ann_avg_m` is perturbed from -1^
 
 ``` {r expSpace, fig.align = 'center', dpi = 100, fig.width = 5, fig.height = 5, out.width = "60%", fig.cap = "Target locations in the exposure space"}
 # specify perturbed attributes
-attPerturb <- c("Temp_ann_avg_m", "P_ann_tot_m")
+# attPerturb <- c("Temp_day_all_avg_m", "P_day_all_tot_m")
+attPerturb <- c("P_day_all_tot_m", "P_day_all_seasRatioMarAug")
 
 # specify perturbation type and minimum-maximum ranges of the perturbed attributes
 attPerturbType <- "regGrid"
-attPerturbSamp <- c(9, 13)
-attPerturbMin = c(-1, 0.80)
-attPerturbMax = c(1, 1.2)
+# attPerturbSamp <- c(9, 13)
+# attPerturbMin = c(-1, 0.80)
+# attPerturbMax = c(1, 1.2)
+
+attPerturbSamp <- c(9, 11)
+attPerturbMin <- c(0.7, 0.8)
+attPerturbMax <- c(1.1, 1.3)
 
 # create the exposure space
-expSpace <- createExpSpace(attPerturb = attPerturb, 
-                           attPerturbSamp = attPerturbSamp, 
-                           attPerturbMin = attPerturbMin,
-                           attPerturbMax = attPerturbMax, 
-                           attPerturbType = attPerturbType,
-                           attHold = NULL)                    # no attributes held at historical levels
+expSpace <- createExpSpace(
+  attPerturb = attPerturb,
+  attPerturbSamp = attPerturbSamp,
+  attPerturbMin = attPerturbMin,
+  attPerturbMax = attPerturbMax,
+  attPerturbType = attPerturbType,
+  attHold = NULL
+) # no attributes held at historical levels
 
 # plot the exposure space
 plotExpSpace(expSpace)
-
 ```
 
 <br>  
@@ -212,25 +227,31 @@ Each point in this exposure space is what is referred to as a 'target' location,
 
 Alternately, the argument `attPerturbBy` of the function `createExpSpace` may be used to specify the increments in perturbations instead of `attPerturbSamp`. The below code provides an example of this usage, which has been designed to generate an equivalent exposure space compared to the earlier example.
 
+XX remove this XXX
+
 ``` {r expSpace2}
 # specify perturbed attributes
-attPerturb <- c("Temp_ann_avg_m", "P_ann_tot_m")
+# attPerturb <- c("Temp_day_all_avg_m", "P_day_all_tot_m")
+attPerturb <- c("P_year_all_avg", "P_day_all_seasRatio")
 
 # specify perturbation type and minimum-maximum ranges of the perturbed attributes
 attPerturbType <- "regGrid"
-attPerturbBy <- c(0.25, 0.0333)  # to be used instead of attPerturbSamp
-attPerturbMin = c(-1, 0.80)
-attPerturbMax = c(1, 1.2)
+# attPerturbBy <- c(0.25, 0.0333)  # to be used instead of attPerturbSamp
+# attPerturbMin = c(-1, 0.80)
+# attPerturbMax = c(1, 1.2)
+attPerturbBy <- c(0.05, 0.05) # to be used instead of attPerturbSamp
+attPerturbMin <- c(0.7, 0.8)
+attPerturbMax <- c(1.1, 1.3)
 
 # create the exposure space
-expSpace2 <- createExpSpace(attPerturb = attPerturb, 
-                           attPerturbSamp = NULL,            # set to null
-                           attPerturbMin = attPerturbMin,
-                           attPerturbMax = attPerturbMax, 
-                           attPerturbType = attPerturbType,
-                           attPerturbBy = attPerturbBy,
-                           attHold = NULL)                   
-
+expSpace2 <- createExpSpace(
+  attPerturb = attPerturb,
+  attPerturbSamp = NULL, # set to null
+  attPerturbMin = attPerturbMin,
+  attPerturbMax = attPerturbMax,
+  attPerturbType = attPerturbType,
+  attPerturbBy = attPerturbBy
+)
 ```
 
 ## 2.2. Step B: Generate perturbed time series
@@ -243,21 +264,24 @@ The first step to implementing this approach is to supply observed time series a
 
 Finally, note that because we are using simple scaling, only a single perturbed weather time series is generated for each target, and that the length of the weather time series is identical to the observed data contained in `tank_obs`. If stochastic simulation was used, it becomes possible to generate weather time series of different lengths, and also to generate multiple 'realisations' (or 'replicates') of the perturbed weather time series for each target in order to simulate stochastic variability (sometimes referred to as 'weather noise'). These issues are discussed further in the Detailed Tutorial.
 
+XXX show format of dates, etc XXX
+
 ```{r genScen, message = FALSE}
 # Load example reference climate data
 data(tankDat)
 
 # Expected format of the input reference climate data
-head(tank_obs)
+# head(tank_obs)
 
 # generate perturbed time series using simple scaling
-sim <- generateScenarios(reference = tank_obs,             # input observed data
-                         expSpace = expSpace,        # exposure space created by the user
-                         controlFile = "scaling")    # using simple scaling
+sim <- generateScenarios(
+  reference = tank_obs, # input observed data
+  expSpace = expSpace, # exposure space created by the user
+  controlFile = "scaling"
+) # using simple scaling
 
 # get metadata for later use
 simSummary <- getSimSummary(sim)
-
 ```
 
 ## 2.3. Step C: Simulate system performance
@@ -268,23 +292,26 @@ A typical function call to `runSystemModel` is shown below.
 
 ```{r runSysM}
 # define the arguments of the systemModel, here tankWrapper
-systemArgs <- list(roofArea = 205, 
-                   nPeople = 1, 
-                   tankVol = 2400, 
-                   firstFlush = 2.0, 
-                   write.file = FALSE)
+systemArgs <- list(
+  roofArea = 205,
+  nPeople = 1,
+  tankVol = 2400,
+  firstFlush = 2.0,
+  write.file = FALSE
+)
 
 metrics <- c("average daily deficit (L)", "reliability (fraction)", "volumetric reliability (fraction)")
 
 # run the system model
-systemPerf <- runSystemModel(sim = sim,                     # simulation; the perturbed time series
-                            systemModel = tankWrapper,      # the system model function
-                            systemArgs = systemArgs,        # argument to the system model function
-                            metrics = metrics)              # selected performance metrics 
-                                                            
+systemPerf <- runSystemModel(
+  sim = sim, # simulation; the perturbed time series
+  systemModel = tankWrapper, # the system model function
+  systemArgs = systemArgs, # argument to the system model function
+  metrics = metrics
+) # selected performance metrics
+
 # the output contains three performance metrics for all target locations
 utils::str(systemPerf)
-
 ```
 
 
@@ -301,23 +328,24 @@ The *fore*SIGHT package contains functions to plot the system performance calcul
 
 For example, OAT plots may be created for the case study example in this vignette as shown below.
 
-```{r plotOAT, dpi = 100, fig.show = "hold", fig.width = 4, fig.height = 4, out.width = "47%", fig.cap = "Changes in performance for OAT perturbations"}
+```{r plotOAT, dpi = 100, fig.show = "hold", fig.width = 8, fig.height = 4, out.width = "47%", fig.cap = "Changes in performance for OAT perturbations"}
 # OAT perturbation plot of the first metric
-p1 <- plotPerformanceOAT(systemPerf[1],  # the first performance metric calculated using runSystemModel
-                         simSummary)     # summary of the simulation
-
+p1 <- plotPerformanceOAT(
+  systemPerf[1], # the first performance metric calculated using runSystemModel
+  simSummary
+) # summary of the simulation
 ```
 
 <br>
 
 Alternatively, the argument `metric` may be used to specify the name of the performance metric to be plotted. The code below provides an example.
 
-```{r plotOAT_2, dpi = 100, fig.show = "hide", fig.width = 4, fig.height = 4, out.width = "47%", fig.cap = "Changes in performance metric: volumetric reliability (fraction)"}
+```{r plotOAT_2, dpi = 100, fig.show = "hide", fig.width = 8, fig.height = 4, out.width = "47%", fig.cap = "Changes in performance metric: volumetric reliability (fraction)"}
 # OAT perturbation plot of the first metric
-p1_2 <- plotPerformanceOAT(systemPerf,                          # performance metrics 
-                           simSummary,                          # summary of the simulation
-                           metric = "volumetric reliability (fraction)")  # name of the metric      
-
+p1_2 <- plotPerformanceOAT(systemPerf, # performance metrics
+  simSummary, # summary of the simulation
+  metric = "volumetric reliability (fraction)"
+) # name of the metric
 ```
 
 <br>
@@ -330,11 +358,12 @@ The case study has only two perturbed attributes. The performance space heatmap 
 
 ```{r plotP, fig.show = 'hide', fig.align = 'center', dpi = 100, fig.width = 5.5, fig.height = 5.5, out.width = "60%", R.options = list(width = 100), message = FALSE, fig.cap = "Performance space and user defined threshold"}
 # performance space of the first metric with a user specified threshold of 27
-p2 <- plotPerformanceSpace(systemPerf,                            # performance metric
-                           simSummary,                            # simulation summary
-                           metric = "average daily deficit (L)",  # the name of the metric
-                           perfThresh = 28,                       # user-defined performance threshold
-                           perfThreshLabel = "Max Deficit")       # custom label for the threshold
+p2 <- plotPerformanceSpace(systemPerf, # performance metric
+  simSummary, # simulation summary
+  metric = "average daily deficit (L)", # the name of the metric
+  perfThresh = 28, # user-defined performance threshold
+  perfThreshLabel = "Max Deficit"
+) # custom label for the threshold
 ```
 
 <br> 
@@ -351,16 +380,20 @@ data("egClimData")
 # expected format of egClimData - the column names should match attribute and performance metric names!
 head(egClimData)
 
+### XXX FIX THIS XXX
+
+colnames(egClimData)[1:4] <- c("P_day_all_tot_m", "P_day_all_seasRatioMarAug", "P_day_all_nWet_m", "Temp_day_all_avg_m")
+
 # rename "Avg. Deficit" to match the name of the performance metric
 colnames(egClimData)[6] <- "average daily deficit (L)"
 
 # performance space overlaid with alternate climate data
-p3 <- plotPerformanceSpace(systemPerf[1],                       # performance metric
-                           simSummary,                          # simulation summary
-                           perfThresh = 28,                     # user-defined performance threshold
-                           perfThreshLabel = "Max Deficit",     # custom label for the threshold
-                           climData = egClimData)               # alternate climate data
-
+p3 <- plotPerformanceSpace(systemPerf[1], # performance metric
+  simSummary, # simulation summary
+  perfThresh = 28, # user-defined performance threshold
+  perfThreshLabel = "Max Deficit", # custom label for the threshold
+  climData = egClimData
+) # alternate climate data
 ```
 <br>
 
@@ -371,12 +404,13 @@ Using the case study data, the number of thresholds exceeded may be plotted as s
 
 ```{r plotMulti, fig.align = 'center', dpi = 100, fig.width = 5.5, fig.height = 5.5, out.width = "60%", R.options = list(width = 100), message = FALSE, fig.cap = "Total number of performance thresholds exceeded"}
 # plot number of performance thresholds exceeded
-p4 <- plotPerformanceSpaceMulti(systemPerf,                          # 3 performance metrics
-                           simSummary,                          # simulation summary
-                           perfThreshMin = c(NA, 0.8, 0.6),     # min thresholds for each metric
-                                                                #       use NA if not applicable
-                           perfThreshMax = c(28, NA, NA),       # max thresholds for each metric
-                           climData = egClimData)       
+p4 <- plotPerformanceSpaceMulti(systemPerf, # 3 performance metrics
+  simSummary, # simulation summary
+  perfThreshMin = c(NA, 0.8, 0.6), # min thresholds for each metric
+  #       use NA if not applicable
+  perfThreshMax = c(28, NA, NA), # max thresholds for each metric
+  climData = egClimData
+)
 ```
 
 <br>
@@ -389,39 +423,48 @@ To illustrate such a comparison in this case study, consider the following alter
 
 ```{r runSysM_alter}
 # plot number of performance thresholds exceeded
-systemArgsB <- list(roofArea = 205,
-                  nPeople = 1, 
-                  tankVol = 2600,
-                  firstFlush = 2.0,
-                  write.file = FALSE)
+systemArgsB <- list(
+  roofArea = 205,
+  nPeople = 1,
+  tankVol = 2600,
+  firstFlush = 2.0,
+  write.file = FALSE
+)
 
 # run the system model
-systemPerfB <- runSystemModel(sim = sim,                    # simulation; the perturbed time series
-                            systemModel = tankWrapper,      # the system model function
-                            systemArgs = systemArgsB,       # argument to the system model function
-                            metrics = metrics)              # selected performance metrics 
-
+systemPerfB <- runSystemModel(
+  sim = sim, # simulation; the perturbed time series
+  systemModel = tankWrapper, # the system model function
+  systemArgs = systemArgsB, # argument to the system model function
+  metrics = metrics
+) # selected performance metrics
 ```
 
 The performance spaces of the average daily deficit (L) for the two system configurations can be compared by generating the figures shown in Step D for system B, using the code below. We leave it to the user to create these figures.
 
 ```{r pSpaceB, dpi = 100, fig.show = "hide", fig.width = 7, fig.height = 5.5, out.width = "47%", message = FALSE, fig.cap = "Performance spaces for two alternate rain water tank configurations"}
 data("egClimData")
+
+### XXX FIX THIS XXX
+colnames(egClimData)[1:4] <- c("P_day_all_tot_m", "P_day_all_seasRatio", "P_day_all_nWet_m", "Temp_day_all_avg_m")
+
+
 colnames(egClimData)[6] <- "average daily deficit (L)"
-p5 <- plotPerformanceSpace(systemPerfB[1],                      # performance metric
-                           simSummary,                          # simulation summary
-                           perfThresh = 28,                     # user-defined performance threshold
-                           perfThreshLabel = "System B\n Max Deficit",  # custom label for the threshold
-                           climData = egClimData,               # alternate climate data
-                           colLim = c(22, 32))
+p5 <- plotPerformanceSpace(systemPerfB[1], # performance metric
+  simSummary, # simulation summary
+  perfThresh = 28, # user-defined performance threshold
+  perfThreshLabel = "System B\n Max Deficit", # custom label for the threshold
+  climData = egClimData, # alternate climate data
+  colLim = c(18, 36)
+)
 
-p6 <- plotPerformanceSpaceMulti(systemPerfB,                          # 3 performance metrics
-                           simSummary,                          # simulation summary
-                           perfThreshMin = c(NA, 0.8, 0.6),     # min thresholds for each metric
-                                                                #       use NA if not applicable
-                           perfThreshMax = c(28, NA, NA),       # max thresholds for each metric
-                           climData = egClimData)               # alternate climate data
-
+p6 <- plotPerformanceSpaceMulti(systemPerfB, # 3 performance metrics
+  simSummary, # simulation summary
+  perfThreshMin = c(NA, 0.8, 0.6), # min thresholds for each metric
+  #       use NA if not applicable
+  perfThreshMax = c(28, NA, NA), # max thresholds for each metric
+  climData = egClimData
+) # alternate climate data
 ```
 
 
@@ -429,16 +472,21 @@ In addition *fore*SIGHT contains a function named `plotOptions` that can be used
 
 ```{r pSpaceCompare, dpi = 100, fig.show = "hold", fig.width = 7, fig.height = 5.5, out.width = "47%", message = FALSE, fig.cap = "Performance spaces for two alternate rain water tank configurations"}
 data("egClimData")
-p7 <- plotOptions(performanceOpt1 = systemPerf[1],  # performance metrics of option 1
-                  performanceOpt2 = systemPerfB[1],  # performance metrics of option 2
-                  sim = simSummary,                    # simulation metadata
-                  opt1Label = "System A",                   # label of option 1
-                  opt2Label = "System B",                   # label of option 2
-                  titleText = "Avg Deficit: System B - System A", # plot title
-                  perfThresh = 28,                       # threshold value of the metric
-                  perfThreshLabel = "Max. Deficit (28L)",      # label of the threshold contour
-                  climData = egClimData)                 # other climate data
 
+### XXX FIX THIS XXX
+colnames(egClimData)[1:4] <- c("P_day_all_tot_m", "P_day_all_seasRatio", "P_day_all_nWet_m", "Temp_day_all_avg_m")
+
+p7 <- plotOptions(
+  performanceOpt1 = systemPerf[1], # performance metrics of option 1
+  performanceOpt2 = systemPerfB[1], # performance metrics of option 2
+  sim = simSummary, # simulation metadata
+  opt1Label = "System A", # label of option 1
+  opt2Label = "System B", # label of option 2
+  titleText = "Avg Deficit: System B - System A", # plot title
+  perfThresh = 28, # threshold value of the metric
+  perfThreshLabel = "Max. Deficit (28L)", # label of the threshold contour
+  climData = egClimData
+) # other climate data
 ```
 
 <br>
