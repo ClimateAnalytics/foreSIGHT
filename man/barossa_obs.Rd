@@ -8,7 +8,7 @@ Multi-site rainfall observations in the Barossa Valley used in examples and vign
 Dataset of observed rainfall for multiple sites in the Barossa Valley based on SILO point data 
 }
 %\usage{data(barossa_obs)}
-\format{A list of observed rainfall data with elements \emph{Year Month Day P}. \emph{P} is a matrix with rows corresponding to dates, and columns corresponding to 13 sites in the Barossa Valley}
+\format{A list of observed rainfall data with elements \emph{times} and \emph{P}. \emph{P} is a matrix with rows corresponding to dates, and columns corresponding to 13 sites in the Barossa Valley}
 %\details{
 %%  ~~ If necessary, more details than the __description__ above ~~
 %}
