@@ -5,12 +5,12 @@
 \alias{egClimData}
 \title{Climate attributes from projections.}
 \format{
-A data frame with 6 rows and 6 variables:
+A data frame with 15 rows and 12 variables:
 \describe{
-  \item{P_ann_tot_m}{change in mean annual total P, fraction}
-  \item{P_ann_seasRatio}{change in seasonal ratio of P, fraction}
-  \item{P_ann_nWet_m}{change in the number of wet days, fraction}
-  \item{Temp_ann_avg_m}{change in average annual Temp, additive}
+  \item{P_day_all_tot_m}{change in mean annual total P, fraction}
+  \item{P_day_all_seasRatioMarAug}{change in seasonal (Mar-Aug) ratio of P, fraction}
+  \item{P_day_all_P99}{change in 99th percentile of P, fraction}
+  \item{Temp_day_all_avg}{change in averageTemp, additive}
   \item{Name}{name of the climate model}
   \item{Avg. Deficit}{performance metric values}
 }

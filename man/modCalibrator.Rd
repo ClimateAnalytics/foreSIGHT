@@ -37,8 +37,10 @@ dependent on wet or dry day
 }
 \examples{
 
-data(tankDat)                               #Load tank data (tank_obs)
-modelTag=c("P-ann-wgen","Temp-har-wgenO")  #Select a rainfall and a temperature generator
-out<- modCalibrator(obs = tank_obs,         #Calibrate models
-                    modelTag = modelTag)
+data(tankDat) # Load tank data (tank_obs)
+modelTag <- c("P-ann-wgen", "Temp-har-wgenO") # Select a rainfall and a temperature generator
+out <- modCalibrator(
+  obs = tank_obs, # Calibrate models
+  modelTag = modelTag
+)
 }

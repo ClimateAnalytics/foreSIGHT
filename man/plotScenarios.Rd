@@ -42,26 +42,32 @@ generated using \code{getSimSummary}
 # the examples are not run since the run times are too long for CRAN
 # create an exposure space
 attPerturb <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m")
-attHold <- c("P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m",
-"P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m")
-attPerturbType = "regGrid"
-attPerturbSamp = c(2, 1, 1)
-attPerturbMin = c(0.9, 1, 1)
-attPerturbMax = c(1.1, 1, 1)
-expSpace <- createExpSpace(attPerturb = attPerturb,
-                           attPerturbSamp = attPerturbSamp,
-                           attPerturbMin = attPerturbMin,
-                           attPerturbMax = attPerturbMax,
-                           attPerturbType = attPerturbType,
-                           attHold = attHold,
-                           attTargetsFile = NULL)
+attHold <- c(
+  "P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m",
+  "P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m"
+)
+attPerturbType <- "regGrid"
+attPerturbSamp <- c(2, 1, 1)
+attPerturbMin <- c(0.9, 1, 1)
+attPerturbMax <- c(1.1, 1, 1)
+expSpace <- createExpSpace(
+  attPerturb = attPerturb,
+  attPerturbSamp = attPerturbSamp,
+  attPerturbMin = attPerturbMin,
+  attPerturbMax = attPerturbMax,
+  attPerturbType = attPerturbType,
+  attHold = attHold,
+  attTargetsFile = NULL
+)
 # load example data available in foreSIGHT
 data(tankDat)
 # perform stochastic simulation
-sim <- generateScenarios(reference = tank_obs,
-                         expSpace = expSpace,
-                         simLengthNyrs = 30,
-                         numReplicates = 2)
+sim <- generateScenarios(
+  reference = tank_obs,
+  expSpace = expSpace,
+  simLengthNyrs = 30,
+  numReplicates = 2
+)
 # plots heatmaps showing biases in simulated targets
 plotScenarios(sim)
 # using an example stochastic simulation summary provided with the package

@@ -7,26 +7,20 @@
 calculateAttributes(climateData, attSel, startYr = NULL, endYr = NULL)
 }
 \arguments{
-\item{climateData}{data.frame or list; daily climate data, the attributes of which are to be calculated. \cr 
-If \code{climateData} is a data.frame, it must have columns named \emph{year}, \emph{month}, \emph{day}, \emph{*variable_name1*}, \emph{*variable_name2*}. 
-Note that the first three columns of the data.frame contain the year, month, and day of the data. 
-The columns have to be named as specified. 
-Data.frame format is applicable for single site data only. \cr
-If \code{climateData} is a list, it must have elements named \emph{year}, \emph{month}, \emph{day}, \emph{*variable_name1*}, \emph{*variable_name2*}. List format is suitable for both single and multi-site data. 
-For multi-site data, climate variables are specified as matrices, with columns for each site. \cr   
-Use \code{viewModels()} to view the valid variable names. 
-Please refer to data provided with the package that may be loaded using \code{data(tankDat)} and \code{data(barossaDat)} for examples of the expected format of single site and multi-site \code{climateData}.}
+\item{climateData}{list; reference climate data, with vector \emph{times} in POSIXct format,
+and climate variables \emph{*variable_name1*}, \emph{*variable_name2*}. Climate variables are specified as vectors for single-site data, and matrices for multi-site data (with columns for each site). \cr
+           Please refer to data provided with the package that may be loaded using \code{data(tankDat)} and \code{data(barossaDat)} for examples of the expected format of single site and multi-site \code{reference}.}
 
 \item{attSel}{a vector; specifying the names of the attributes to be calculated.}
 
-\item{startYr}{a number (default \code{NULL}); to specify the starting year to subset \code{climateData} if required. 
+\item{startYr}{a number (default \code{NULL}); to specify the starting year to subset \code{climateData} if required.
 If \code{NULL}, \code{startYr} is starting year in the input \code{climateData}.}
 
-\item{endYr}{a number (default \code{NULL}); to specify the ending year to subset \code{climateData} if required. 
+\item{endYr}{a number (default \code{NULL}); to specify the ending year to subset \code{climateData} if required.
 If \code{NULL}, \code{endYr} is last year in the input \code{climateData}.}
 }
 \value{
-The function returns a vector of attributes with names of the attributes (\code{attSel}). 
+The function returns a vector of attributes with names of the attributes (\code{attSel}).
 For multi-site data, names are combinations of attribute and site names.
 }
 \description{
@@ -38,8 +32,10 @@ For multi-site data, names are combinations of attribute and site names.
 # load 'tank' example climate data available in the package
 data("tankDat")
 # specify rainfall and temperature attributes to calculate
-attSel <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m", 
-            "Temp_day_all_rng_m", "Temp_day_all_avg_m")
+attSel <- c(
+  "P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m",
+  "Temp_day_all_rng_m", "Temp_day_all_avg_m"
+)
 tank_obs_atts <- calculateAttributes(tank_obs, attSel = attSel)
 #----------------------------------------------------------------------
 # Example 2: Multi-site  input

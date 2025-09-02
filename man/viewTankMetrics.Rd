@@ -10,7 +10,7 @@ viewTankMetrics()
 \code{viewTankMetrics} prints the names of the performance metrics available in the example rain water tank system model. T
 }
 \details{
-This is a helper function that does not take any input arguments. The user may specify one or more of the metric names 
+This is a helper function that does not take any input arguments. The user may specify one or more of the metric names
 as the \code{metric} argument of \code{tankWrapper} to select the performance metrics from the tank system model.
 to select the performance metrics.
 }

@@ -2,11 +2,7 @@
 % Please edit documentation in R/eval_system_metrics.R
 \name{evaluate_system_metrics}
 \alias{evaluate_system_metrics}
-\title{Calculates system metrics for and observed and baseline stochastic climates 
- 
-\code{evaluate_system_metrics} runs observed climate and baseline 
-(unperturbed) stochastic climates through a system model and calculates system metrics for each. 
-This is used to perform evaluation of stochastic climates using the 'virtual observation' approach.}
+\title{Calculates system metrics for and observed and baseline stochastic climates}
 \usage{
 evaluate_system_metrics(
   sim,
@@ -35,10 +31,8 @@ The function is expected to be created by the user for specific system models.}
 a list containing \code{systemPerf_base} and \code{systemPerf_obsClim}, with performance metrics for baseline stochastic climate and observed climate, respectively.
 }
 \description{
-Calculates system metrics for and observed and baseline stochastic climates 
- 
-\code{evaluate_system_metrics} runs observed climate and baseline 
-(unperturbed) stochastic climates through a system model and calculates system metrics for each. 
+\code{evaluate_system_metrics} runs observed climate and baseline
+(unperturbed) stochastic climates through a system model and calculates system metrics for each.
 This is used to perform evaluation of stochastic climates using the 'virtual observation' approach.
 }
 \examples{

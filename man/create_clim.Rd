@@ -26,12 +26,13 @@ The function returns a list containing \code{times} in POSIXct format and climat
 \code{create_clim} produces reference climate data list.
 }
 \examples{
-# create small reference climate list (only 10 days) 
-clim = create_clim(timeStart='2007/01/01', # start date
-                   timeEnd='2007/01/10',   # end date 
-                   timeStep='day',         # time step 
-                   fmt='\%Y/\%m/\%d',         # format of start/end dates
-                   P=c(0,0,0,0,0,4.5,2.6,0,0,0), # precip data
-                   Temp=c(25,24,30,32,33,27,21,21,22,30) #temperature data
-                   )
+# create small reference climate list (only 10 days)
+clim <- create_clim(
+  timeStart = "2007/01/01", # start date
+  timeEnd = "2007/01/10", # end date
+  timeStep = "day", # time step
+  fmt = "\%Y/\%m/\%d", # format of start/end dates
+  P = c(0, 0, 0, 0, 0, 4.5, 2.6, 0, 0, 0), # precip data
+  Temp = c(25, 24, 30, 32, 33, 27, 21, 21, 22, 30) # temperature data
+)
 }

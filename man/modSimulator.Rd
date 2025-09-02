@@ -56,18 +56,20 @@ dependent on wet or dry day
 \item \code{"Radn-har-wgen"} a harmonic solar radiation model (MJ/m2) }
 }
 \examples{
-
 \dontrun{
-data(tankDat); obs=tank_obs                     #Get observed data
-modelTag=c("P-har-wgen","Temp-har-wgen")    #Select models
-pars=modCalibrator(obs=obs,modelTag=modelTag)   #Calibrate models
-sim=modSimulator(datStart="1970-01-01",         #Simulate!
-                 datFinish="1999-12-31",
-                 modelTag=modelTag,
-                 parS=pars,
-                 seed=123,
-                 file=paste0("tester.csv"),
-                 IOmode="verbose")
-plot(sim$P[1:365])                             #Plot first year of rainfall
+data(tankDat)
+obs <- tank_obs # Get observed data
+modelTag <- c("P-har-wgen", "Temp-har-wgen") # Select models
+pars <- modCalibrator(obs = obs, modelTag = modelTag) # Calibrate models
+sim <- modSimulator(
+  datStart = "1970-01-01", # Simulate!
+  datFinish = "1999-12-31",
+  modelTag = modelTag,
+  parS = pars,
+  seed = 123,
+  file = paste0("tester.csv"),
+  IOmode = "verbose"
+)
+plot(sim$P[1:365]) # Plot first year of rainfall
 }
 }

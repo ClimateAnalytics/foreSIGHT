@@ -18,20 +18,20 @@ createExpSpace(
 )
 }
 \arguments{
-\item{attPerturb}{A char vector; the names of the attributes to be perturbed. 
+\item{attPerturb}{A char vector; the names of the attributes to be perturbed.
 This vector can contain attributes of different hydroclimatic variables.}
 
-\item{attPerturbSamp}{An integer vector; the number of samples for each attribute \code{attPerturb}. 
+\item{attPerturbSamp}{An integer vector; the number of samples for each attribute \code{attPerturb}.
 The length of this vector should be equal to the length of \code{attPerturb}.}
 
-\item{attPerturbMin}{A numeric vector; the minimum bounds for sampling of \code{attPerturb}. 
-The length of this vector should be equal to the length of \code{attPerturb}. 
-For variables like precipitation, evapotranspiration, radiation, etc. \code{attPerturbMin} should specified as a fraction of the original 
+\item{attPerturbMin}{A numeric vector; the minimum bounds for sampling of \code{attPerturb}.
+The length of this vector should be equal to the length of \code{attPerturb}.
+For variables like precipitation, evapotranspiration, radiation, etc. \code{attPerturbMin} should specified as a fraction of the original
 (eg: 0.9 = 90\% of the original attribute). For temperature, \code{attPerturbMin} should be specified in K (eg: 0.9 = 0.9 K).}
 
-\item{attPerturbMax}{A numeric vector; the maximum bounds for sampling of \code{attPerturb}. 
-The length of this vector should be equal to the length of \code{attPerturb}. 
-For variables like precipitation, evapotranspiration, radiation, etc. \code{attPerturbMax} should specified as a fraction of the original 
+\item{attPerturbMax}{A numeric vector; the maximum bounds for sampling of \code{attPerturb}.
+The length of this vector should be equal to the length of \code{attPerturb}.
+For variables like precipitation, evapotranspiration, radiation, etc. \code{attPerturbMax} should specified as a fraction of the original
 (eg: 0.9 = 90\% of the original attribute). For temperature, \code{attPerturbMax} should be specified in K (eg: 0.9 = 0.9 K).
 Note that to create a single sample of the attribute, \code{attPerturbSamp} could be specified as 1 with \code{attPerturbMin} and \code{attPerturbMax} specified as equal.}
 
@@ -44,22 +44,22 @@ Note that to create a single sample of the attribute, \code{attPerturbSamp} coul
 \item{attPerturbBy}{A numeric vector; increment of values to create samples between \code{attPerturbMin} and \code{attPerturbMax}.
 If \code{attPerturbBy} is specified, attPerturbSamp should be set as \code{NULL}.}
 
-\item{attHold}{A char vector; the names of the attributes to be held at historical levels. 
+\item{attHold}{A char vector; the names of the attributes to be held at historical levels.
 This vector can contain attributes of different hydroclimatic variables.}
 
-\item{attTied}{A list; the attributes to be tied to other perturbed or held attributes. 
-First level of list is name of perturbed/held attributes. 
+\item{attTied}{A list; the attributes to be tied to other perturbed or held attributes.
+First level of list is name of perturbed/held attributes.
 Second level of list is vector of attributes that are tied (chnage with) to attribute in first level.}
 
-\item{targetTypes}{A list; target type ('frac','diff') used to calculate changes in attributes. 
-First level of list is name of attribute. 
+\item{targetTypes}{A list; target type ('frac','diff') used to calculate changes in attributes.
+First level of list is name of attribute.
 Second level of list is target type ('frac','diff').
 Specifying \code{targetTypes} overrides default target types ('diff' for temperature attributes, 'frac' for other)}
 
-\item{attTargetsFile}{String specifying the full path to a CSV file containing the target exposure space. 
-The column names in the file should correspond to the attributes specified in \code{attPerturb} and \code{attHold}. 
-\code{attTargetsFile} is alternate way to specify exposure space targets that do not form a regular grid. 
-If \code{attTargetsFile} is specified, the inputs arguments \code{attPerturbSamp}, \code{attPerturbMin}, \code{attPerturbMax}, 
+\item{attTargetsFile}{String specifying the full path to a CSV file containing the target exposure space.
+The column names in the file should correspond to the attributes specified in \code{attPerturb} and \code{attHold}.
+\code{attTargetsFile} is alternate way to specify exposure space targets that do not form a regular grid.
+If \code{attTargetsFile} is specified, the inputs arguments \code{attPerturbSamp}, \code{attPerturbMin}, \code{attPerturbMax},
 and \code{attPerturbType} should be set to \code{NULL} and will not be used by the function.}
 }
 \value{
@@ -86,11 +86,15 @@ attPerturbType <- "regGrid"
 attPerturbSamp <- c(3, 1, 1)
 attPerturbMin <- c(0.9, 1, 1)
 attPerturbMax <- c(1.1, 1, 1)
-attHold <- c("P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", 
-"P_day_MAM_tot_m", "P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m")
-expSpace <- createExpSpace(attPerturb = attPerturb, attPerturbSamp = attPerturbSamp, 
-attPerturbMin = attPerturbMin, attPerturbMax = attPerturbMax, 
-attPerturbType = attPerturbType, attHold = attHold, attTargetsFile = NULL)
+attHold <- c(
+  "P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m",
+  "P_day_MAM_tot_m", "P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m"
+)
+expSpace <- createExpSpace(
+  attPerturb = attPerturb, attPerturbSamp = attPerturbSamp,
+  attPerturbMin = attPerturbMin, attPerturbMax = attPerturbMax,
+  attPerturbType = attPerturbType, attHold = attHold, attTargetsFile = NULL
+)
 
 # Using attPerturbBy to specify the increment of perturbation (attPerturbSamp set to NULL)
 
@@ -99,23 +103,29 @@ attPerturbType <- "regGrid"
 attPerturbMin <- c(0.9, 1, 1)
 attPerturbMax <- c(1.1, 1, 1)
 attPerturbBy <- c(0.1, 0, 0)
-attHold <- c("P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m", 
-"P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m")
-expSpace <- createExpSpace(attPerturb = attPerturb, attPerturbSamp = NULL, 
-attPerturbMin = attPerturbMin, attPerturbMax = attPerturbMax, attPerturbType = attPerturbType, 
-attPerturbBy = attPerturbBy, attHold = attHold, attTargetsFile = NULL)
+attHold <- c(
+  "P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m",
+  "P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m"
+)
+expSpace <- createExpSpace(
+  attPerturb = attPerturb, attPerturbSamp = NULL,
+  attPerturbMin = attPerturbMin, attPerturbMax = attPerturbMax, attPerturbType = attPerturbType,
+  attPerturbBy = attPerturbBy, attHold = attHold, attTargetsFile = NULL
+)
 
 # To create an exposure space of observed attributes without perturbation
-# Note that attPerturbMin and attPerturbMax values are set to 1 for variables like precipitation, 
-# and 0 for temperature 
+# Note that attPerturbMin and attPerturbMax values are set to 1 for variables like precipitation,
+# and 0 for temperature
 attPerturb <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m", "Temp_day_DJF_avg_m")
 attPerturbType <- "regGrid"
 attPerturbSamp <- c(1, 1, 1, 1)
 attPerturbMin <- c(1, 1, 1, 0)
 attPerturbMax <- c(1, 1, 1, 0)
-expSpace <- createExpSpace(attPerturb = attPerturb, attPerturbSamp = attPerturbSamp, 
-attPerturbMin = attPerturbMin, attPerturbMax = attPerturbMax, attPerturbType = attPerturbType, 
-attHold = NULL, attTargetsFile = NULL)
+expSpace <- createExpSpace(
+  attPerturb = attPerturb, attPerturbSamp = attPerturbSamp,
+  attPerturbMin = attPerturbMin, attPerturbMax = attPerturbMax, attPerturbType = attPerturbType,
+  attHold = NULL, attTargetsFile = NULL
+)
 }
 \seealso{
 \code{generateScenarios}, \code{viewAttributeDef}

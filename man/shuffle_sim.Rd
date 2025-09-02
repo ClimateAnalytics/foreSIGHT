@@ -36,6 +36,6 @@ shuffle_sim(
 A list with simulated perturbed climates. Same format as output from \code{generateScenarios}.
 }
 \description{
-\code{shuffle_sim} changes the temporal structure of annual climate to match 
+\code{shuffle_sim} changes the temporal structure of annual climate to match
 a target change in a parturbed attribute
 }

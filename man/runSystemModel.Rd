@@ -9,12 +9,12 @@ runSystemModel(sim, systemModel, systemArgs, metrics, varNames = NULL)
 \arguments{
 \item{sim}{list; a simulation containing the scenarios generated using the function \code{generateScenarios}.}
 
-\item{systemModel}{a function; The function runs the system model using climate data in a data.frame as input.
+\item{systemModel}{a function; The function runs the system model using climate data in a list as input.
 The function is expected to be created by the user for specific system models. \code{tankWrapper} is an example system model function available in this package.
 \code{runSystemModel} calls the function \code{systemModel} with two arguments:
 \itemize{
-\item \code{data}: data.frame; the climate data in a data frame with columns named \emph{year} \emph{month} \emph{day} \emph{*variable_name1*} \emph{*variable_name2*}. 
-\item \code{systemArgs}: list; containing the other arguments required by the system model.\code{systemModel} unpack the arguments from the list and uses them as required. 
+\item \code{data}: list; the climate data as a list in reference format, with POSIXct formatted \emph{times} and climate variables \emph{*variable_name1*} \emph{*variable_name2*} in vector or matrix.
+\item \code{systemArgs}: list; containing the other arguments required by the system model.\code{systemModel} unpack the arguments from the list and uses them as required.
 \item \code{metrics}: string vector; containing the names of the performance metrics that the system model returns. It is recommended that the
 names also contain the units of the metric. See \code{viewTankMetrics()} for examples.
 }}
@@ -42,38 +42,40 @@ The \code{systemModel} function is expected to return a named list of performanc
 }
 \examples{
 # Example using tankWrapper as the systemModel
-#=====================================================
+# =====================================================
 \dontrun{
 # create an exposure space
-attPerturb <- c("P_ann_tot_m", "P_ann_nWet_m")
-attHold <- c("P_Feb_tot_m", "P_SON_dyWet_m", "P_JJA_avgWSD_m", "P_MAM_tot_m",
-"P_DJF_avgDSD_m", "Temp_ann_rng_m", "Temp_ann_avg_m")
-attPerturbType = "regGrid"
-attPerturbSamp = c(2, 2)
-attPerturbMin = c(0.9, 0.9)
-attPerturbMax = c(1.1, 1.1)
-expSpace <- createExpSpace(attPerturb = attPerturb,
-                           attPerturbSamp = attPerturbSamp,
-                           attPerturbMin = attPerturbMin,
-                           attPerturbMax = attPerturbMax,
-                           attPerturbType = attPerturbType,
-                           attHold = attHold,
-                           attTargetsFile = NULL)
-# load example observed data available in foreSIGHT
+attPerturb <- c("P_day_all_tot", "Temp_day_all_avg")
+attPerturbType <- "regGrid"
+attPerturbSamp <- c(10, 10)
+attPerturbMin <- c(0.8, -1)
+attPerturbMax <- c(1.2, 1)
+expSpace <- createExpSpace(
+  attPerturb = attPerturb,
+  attPerturbSamp = attPerturbSamp,
+  attPerturbMin = attPerturbMin,
+  attPerturbMax = attPerturbMax,
+  attPerturbType = attPerturbType
+)
 data(tankDat)
-# perform stochastic simulation
-sim <- generateScenarios(reference = tank_obs,
-                                  expSpace = expSpace,
-                                  simLengthNyrs = 30)
+simScaling <- generateScenarios(
+  reference = tank_obs,
+  expSpace = expSpace,
+  controlFile = "scaling"
+)
 # use the simulation to run a system model
-systemArgs <- list(roofArea = 205, nPeople = 1, tankVol = 2400,
-firstFlush = 2.0, write.file = FALSE)
+systemArgs <- list(
+  roofArea = 205, nPeople = 1, tankVol = 2400,
+  firstFlush = 2.0, write.file = FALSE
+)
 tankMetrics <- viewTankMetrics()
-systemPerf = runSystemModel(sim = sim,
-                            systemModel = tankWrapper,
-                            systemArgs = systemArgs,
-                            metrics = tankMetrics[1:2])
-                            }
+systemPerf <- runSystemModel(
+  sim = simScaling,
+  systemModel = tankWrapper,
+  systemArgs = systemArgs,
+  metrics = tankMetrics[1:2]
+)
+}
 }
 \seealso{
 \code{tankWrapper}, \code{generateScenarios}

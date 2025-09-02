@@ -14,8 +14,8 @@ plotMultiSiteScenarios(
 )
 }
 \arguments{
-\item{reference}{list; contains reference daily climate data, with elements named \emph{year}, \emph{month}, \emph{day}, \emph{*variable_name1*}, \emph{*variable_name2*}. List format is suitable for both single and multi-site data. 
-Climate variables are specified as matrices, with columns for each site. \cr   
+\item{reference}{list; contains reference daily climate data, with elements named \emph{year}, \emph{month}, \emph{day}, \emph{*variable_name1*}, \emph{*variable_name2*}. List format is suitable for both single and multi-site data.
+Climate variables are specified as matrices, with columns for each site. \cr
 Please refer to data provided with the package that may be loaded using \code{data(barossaDat)} for examples of the expected format of multi-site \code{reference}.}
 
 \item{sim}{a list; contains a multi-site stochastic simulation created using the function \code{generateScenarios}}
@@ -32,8 +32,8 @@ Please refer to data provided with the package that may be loaded using \code{da
 The function returns three R plots for each target and replicate showing the biases in single site attributes, catchment average attributes, and spatial correlations.
 }
 \description{
-\code{plotMultiSiteScenarios} uses a multi-site simulation performed using the function \code{generateScenarios} as input, 
-and creates heatmaps that show biases in simulated attributes and spatial correlation. 
+\code{plotMultiSiteScenarios} uses a multi-site simulation performed using the function \code{generateScenarios} as input,
+and creates heatmaps that show biases in simulated attributes and spatial correlation.
 The function creates heatmaps (for each replicate and target) that show:
 \itemize{
 \item{magnitude of biases in single site attributes}
@@ -44,10 +44,10 @@ The function creates heatmaps (for each replicate and target) that show:
 \examples{
 # load data from multi-site simulation
 data(egMultiSiteSim)
-# plot performance of simulated time series in terms of single site 
+# plot performance of simulated time series in terms of single site
 # and catchment attributes, and correlation between sites
 \dontrun{
-plotMultiSiteScenarios(reference=barossa_obs,sim=egMultiSiteSim)
+plotMultiSiteScenarios(reference = barossa_obs, sim = egMultiSiteSim)
 }
 }
 \seealso{

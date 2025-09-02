@@ -7,7 +7,7 @@
 tankWrapper(data, systemArgs, metrics)
 }
 \arguments{
-\item{data}{data.frame; contains observed daily precipitation and temperature to be used to run the rain water tank system model in a data.frame with columns named \emph{year} \emph{month} \emph{day} \emph{P} \emph{Temp}. 
+\item{data}{list; contains observed daily precipitation and temperature to be used to run the rain water tank system model in a list with entries  \emph{times}, \emph{P}, \emph{Temp}.
 Note that the first three columns of the data.frame contain the year, month, and day of observation. The columns have to be named as specified.
 Please refer data provided with the package that may be loaded using \code{data(tankDat)} for an example of the expected format of \code{data}.}
 
@@ -35,10 +35,13 @@ This function may also be used as an example to create wrapper functions for oth
 viewTankMetrics()
 # load example climate data to run the system model
 data(tankDat)
-systemArgs <- list(roofArea = 205, nPeople = 1, tankVol = 2400, 
-firstFlush = 2.0, write.file = FALSE)
-tankWrapper(tank_obs, systemArgs, 
-metrics = c("average daily deficit (L)", "reliability (fraction)"))
+systemArgs <- list(
+  roofArea = 205, nPeople = 1, tankVol = 2400,
+  firstFlush = 2.0, write.file = FALSE
+)
+tankWrapper(tank_obs, systemArgs,
+  metrics = c("average daily deficit (L)", "reliability (fraction)")
+)
 }
 \seealso{
 \code{runSystemModel}, \code{viewTankMetrics}

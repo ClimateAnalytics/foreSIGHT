@@ -19,7 +19,7 @@ plotPerformanceOAT(
 )
 }
 \arguments{
-\item{performance}{a named list; contains the system model performance calculated using \code{runSystemModel}. 
+\item{performance}{a named list; contains the system model performance calculated using \code{runSystemModel}.
 If the list contains more than one performance metric, the first metric will be plotted.}
 
 \item{sim}{a list; a summary of a simulation containing the scenarios generated using the function \code{generateScenarios} that is used to run the system model using \code{runSystemModel}.
@@ -27,7 +27,7 @@ The summary may be obtained using the function \code{getSimSummary}}
 
 \item{metric}{a string; the name of the performance metric to be plotted. The argument can be used to select a metric from performance for plotting.}
 
-\item{topReps}{an integer (default = NULL); the number of "top" replicates to be used. The "top" replicates will be identified for each target based on the simulation fitness. 
+\item{topReps}{an integer (default = NULL); the number of "top" replicates to be used. The "top" replicates will be identified for each target based on the simulation fitness.
 The average performance across \code{topReps} replicates will be plotted.}
 
 \item{climData}{data.frame; the values of attributes from other sources like climate models. This data will be plotted as "hairs" on the bottom of the plot.}
@@ -48,14 +48,14 @@ The average performance across \code{topReps} replicates will be plotted.}
 The plot of the performance space and the ggplot object.
 }
 \description{
-\code{plotPerformanceOAT} uses the system model performance calculated using the function \code{runSystemModel} and 
+\code{plotPerformanceOAT} uses the system model performance calculated using the function \code{runSystemModel} and
 the summary of the simulation generated using the function \code{generateScenarios} & \code{getSimSummary} as input.
-The function creates line plots, each panel shows the variations in performance with perturbations in a single attribute. The function is intended for 
+The function creates line plots, each panel shows the variations in performance with perturbations in a single attribute. The function is intended for
 use with simulations with attributes perturbed on a one-at-a-time (OAT) grid.
 }
 \details{
 The plots show the mean value of performance across replicates. The ranges between the minimum and maximum values of performance across replicates are shaded.
-The function is intended for use with simulations containing attributes perturbed on an "OAT" grid. If the perturbations are on a "regGrid", this function will subset 
+The function is intended for use with simulations containing attributes perturbed on an "OAT" grid. If the perturbations are on a "regGrid", this function will subset
 OAT perturbations, if available, to create the plots. The function creates separate plots for perturbations in attributes of temperature and other variables.
 The function may be called with \code{performance} argument specifying the metric to be plotted to plot other metrics.
 }
