@@ -291,6 +291,19 @@ assignHarmonicDailyParameters <- function(parNamesSWG, parS, datInd, parTS = lis
   return(parTS)
 }
 
+assignHarmonicMonthlyParameters <- function(parNamesSWG, parS, datInd, parTS = list()) {
+  for (par in parNamesSWG) {
+    parTS[[par]] <- harmonicFunc(
+      x = seq(1:datInd$nTimes),
+      mean = parS[paste0(par, ".m")],
+      amp = parS[paste0(par, ".amp")],
+      phase.ang = parS[paste0(par, ".ang")],
+      k = 1, nperiod = 12
+    )
+  }
+  return(parTS)
+}
+
 assignAnnualParameters <- function(parNamesSWG, parS, datInd, parTS = list()) {
   for (par in parNamesSWG) {
     parTS[[par]] <- rep(parS[par], datInd$nTimes)
