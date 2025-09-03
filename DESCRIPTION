@@ -30,7 +30,8 @@ Imports:
     dplyr,
     lubridate,
     tidyr,
-    methods
+    methods,
+    zoo
 Suggests: 
     knitr (>= 1.8),
     rmarkdown (>= 1.18),
@@ -42,6 +43,11 @@ Authors@R:
              role = "aut",
              email = "bree.bennett@adelaide.edu.au",
              comment = c(ORCID = "0000-0002-2131-088X")),
+      person(given = "David",
+             family = "McInerney",
+             role = c("aut", "cre"),
+             email = "david.mcinerney@adelaide.edu.au",
+             comment = c(ORCID = "0000-0003-4876-8281")),
       person(given = "Sam",
              family = "Culley",
              role = "aut",
@@ -52,11 +58,6 @@ Authors@R:
              role = "aut",
              email = "anjana.devanand@adelaide.edu.au",
              comment = c(ORCID = "0000-0001-9422-3894")),
-      person(given = "David",
-             family = "McInerney",
-             role = c("aut", "cre"),
-             email = "david.mcinerney@adelaide.edu.au",
-             comment = c(ORCID = "0000-0003-4876-8281")),
       person(given = "Seth",
              family = "Westra",
              role = "aut",
@@ -80,7 +81,9 @@ NeedsCompilation: no
 VignetteBuilder: knitr
 LazyData: true
 RoxygenNote: 7.3.2
+Config/testthat/edition: 3
 Collate: 
+    'GR4J_funcs.R'
     'LogfileEntry.R'
     'RcppExports.R'
     'default_parameters.R'
@@ -136,4 +139,3 @@ Collate:
     'summariseSimulatedSeries.R'
     'targetFinder.R'
     'zzz.R'
-Config/testthat/edition: 3
