@@ -31,7 +31,8 @@ Imports:
     lubridate,
     tidyr,
     methods,
-    zoo
+    zoo,
+    airGR
 Suggests: 
     knitr (>= 1.8),
     rmarkdown (>= 1.18),
