@@ -8,7 +8,7 @@ library(foreSIGHT)
 
 ############################################################################################################
 
-attPerturb <- c("P_day_all_tot_m","P_day_all_seasRatio","P_day_all_nWet_m", "P_day_all_R10_m")
+attPerturb <- c("P_day_all_tot_m","P_day_all_seasRatioMarAug","P_day_all_nWet_m", "P_day_all_R10_m")
 attHold <- c("P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m", "P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m")
 attPerturbType <- "OAT"
 attPerturbSamp <- c(7,7,5,8)

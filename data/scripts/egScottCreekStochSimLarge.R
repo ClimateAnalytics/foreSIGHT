@@ -16,7 +16,7 @@ clim_ref = list(times = data$times,
 
 attPerturbType = "regGrid"
 # perturb seasonality and 99% rainfall
-attPerturb = c('P_day_all_seasRatioMarMay','P_day_all_P99')
+attPerturb = c('P_day_all_seasRatioMarAug','P_day_all_P99')
 # consider a large 5x5 grid
 attPerturbSamp = c(5,5)
 attPerturbMin = c(0.7,1.)
@@ -36,7 +36,7 @@ attTied = list(P_day_all_P99=c('P_day_DJF_normP99',
                                'P_day_MAM_normP99',
                                'P_day_JJA_normP99',
                                'P_day_SON_normP99'),
-               P_day_all_seasRatioMarMay=c('P_day_MAM_tot')) # MAM rain tied to seasRatioSam
+               P_day_all_seasRatioMarAug=c('P_day_MAM_tot','P_day_JJA_tot')) # MAM, JJA rain tied to seasRatio
 
 expSpaceLarge = createExpSpace(attPerturb = attPerturb,
                                attPerturbSamp = attPerturbSamp,
@@ -61,7 +61,7 @@ modelSelection[["optimisationArguments"]] = list()
 modelSelection[["optimisationArguments"]][["OFtol"]] = 0.1 # stop optimization when OF < OFtol
 
 # set penalty weights. More weights to perturbed attributes and total rainfall (which is known to have large impact)
-modelSelection[["penaltyAttributes"]]=c('P_day_all_seasRatioMarMay',
+modelSelection[["penaltyAttributes"]]=c('P_day_all_seasRatioMarAug',
                                         'P_day_all_P99','P_day_all_tot',
                                         'P_day_all_avgDSD','P_day_all_nWet')
 modelSelection[["penaltyWeights"]] = c(3,3,3,1.5,1.5)
