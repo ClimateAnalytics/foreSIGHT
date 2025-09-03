@@ -288,22 +288,3 @@ simulateTarget <- function(
   return(out)
 }
 
-
-# TESTER
-# tmp=simulateTarget(optimArgs=optimArgs,
-#                    simVar=simVar,
-#                    modelTag=modelTag,
-#                    modelInfo=modelInfo,
-#                    attSel=attSel,
-#                    attPrim=attPrim,
-#                    attInfo=attInfo,
-#                    attInd=attInd,
-#                    datInd=datInd,
-#                    initCalibPars=NULL,
-#                    targetLoc=targetMat[1,],     #is  a vector  (just 1 target here)
-#                    attObs=attObs,
-#                    lambda.mult=1.0,
-#                    setSeed=1234)
-#
-# tmp[[simVar[mod]]]
-# tmp$attSim
