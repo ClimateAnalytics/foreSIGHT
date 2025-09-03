@@ -253,6 +253,7 @@
 #' If set to \code{"full"}, the colourmap limits are set to the minimum and maximum values in the data.
 #' If a numeric vector is specified, the colourmap limits are set to the first (minimum) and second (maximum) values in the vector.
 #' @param plotAbs logical value, defaults to TRUE; determines whether the absolute value of the data is plotted (TRUE), or the raw value (which can be positive/negative) is plotted (FALSE).
+#' @param showSD logical value, defaults to FALSE; determines whether to plot heat maps showing standard deviation in biases (TRUE), or only mean biases (FALSE).
 #' @details The argument \code{sim} may be a full stochastic simulation generated using the function \code{generateScenarrios} or the summary of the stochastic simulation
 #' generated using \code{getSimSummary}
 #' @return The function returns two R plots showing the biases in the targets of the scenarios generated using the function \code{generateScenarios}.
@@ -301,7 +302,8 @@ plotScenarios <- function(sim,
                           #                          writeToFile = FALSE,
                           #                          fileName = "plotScenarios.pdf",
                           colMapRange = "default",
-                          plotAbs = T) {
+                          plotAbs = T,
+                          showSD = F) {
   if (is.null(sim[["controlFile"]])) {
     cat("controlFile is missing in the simulation. Are the scenarios generated using simple scaling?\n")
     stop("plotScenarios cannot be used on simple scaled data")
@@ -432,13 +434,15 @@ plotScenarios <- function(sim,
     rel_heights <- 1
   }
 
-  print(cowplot::plot_grid(
-    plotlist = plots[["SD"]][[1]],
-    align = "v",
-    nrow = nrow,
-    ncol = ncol,
-    rel_heights = rel_heights
-  ))
+  if(showSD){
+    print(cowplot::plot_grid(
+      plotlist = plots[["SD"]][[1]],
+      align = "v",
+      nrow = nrow,
+      ncol = ncol,
+      rel_heights = rel_heights
+    ))
+  }
   print(cowplot::plot_grid(
     plotlist = plots[["mean"]][[1]],
     # axis = "l",
