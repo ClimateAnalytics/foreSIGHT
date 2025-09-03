@@ -71,12 +71,12 @@ evaluate_system_metrics <- function(sim, clim, systemModel, systemArgs, metrics,
 #################################################################################
 #' Draws a boxplot with the whiskers at specified probability limits
 #'
-#' \code{boxplot_prob} Draws a boxplot with the whiskers at the probability limits, provided by \code{whiskersProb}.
+#' \code{boxplot_prob} draws a boxplot with the whiskers at probability limits \code{whiskersProb}.
 #' @param xin a vector, matrix or dataframe; data to be plotted
 #' @param whiskersProb a vector of length 2; min and max probability limits
 #' @param at a vector; specifying x coordinates for boxes
-#' @param ... ; other arguments for \code{bxp}
-#' @return The function returns a boxplot figure.
+#' @param ... other arguments for \code{bxp}
+#' @return The function returns a boxplot. 
 #' @export
 boxplot_prob <- function(xin, whiskersProb = c(0.025, 0.975), at = NULL, ...) {
   # Draws a boxplot with the whiskers at the probability limits, provided by whiskersProb

@@ -22,12 +22,7 @@ calc_timeStep <- function(times) {
 #' Converts "old" reference climate data format (<V1.2) to "new" format with POSIXct dates.
 #'
 #' \code{convert_climYMD_POSIXct} produces reference climate data list for use in V2.0 and newer.
-#' @param clim data.frame or list; contains reference daily climate data. \cr
-#'            For single site data, \code{clim} is a data.frame with columns named \emph{year}, \emph{month}, \emph{day}, \emph{*variable_name1*}, \emph{*variable_name2*}.
-#'            Note that the first three columns of the data.frame contain the year, month, and day of the data.
-#'            The columns have to be named as specified.
-#'            For multi-site data, \code{clim} is a list, with elements named \emph{year}, \emph{month}, \emph{day}, \emph{*variable_name1*}, \emph{*variable_name2*}. List format is suitable for both single and multi-site data.
-#'            Climate variables are specified as matrices, with columns for each site. \cr
+#' @param clim data.frame or list; contains reference daily climate data from foreSIGHT V1.2 or earlier. \cr
 #' @return The function returns a list containing \code{times} in POSIXct format (corresponding to year, month and day from original data \code{clim}), and climate variables.
 #' @export
 convert_climYMD_POSIXct <- function(clim) {

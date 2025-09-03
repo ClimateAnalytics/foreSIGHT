@@ -30,7 +30,7 @@
 #' data("barossaDat")
 #' # specify rainfall attributes to calculate
 #' attSel <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_P99")
-#' barossa_obs_atts <- calculateAttributes(tank_obs, attSel = attSel)
+#' barossa_obs_atts <- calculateAttributes(barossa_obs, attSel = attSel)
 #' @export
 
 calculateAttributes <- function(climateData, # input data in the format of tank_obs (can be reference, obs, or, future projections)

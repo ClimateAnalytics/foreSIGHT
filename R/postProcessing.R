@@ -205,7 +205,7 @@ pp.annShuffle <- function(P, times, annAR1coeff, seed = 1, iyy = NULL, return.in
 #' Post-processing to apply changes in temporal structure of annual precipitation.
 #'
 #' \code{shuffle_sim} changes the temporal structure of annual climate to match
-#' a target change in a parturbed attribute
+#' a target change in a perturbed attribute
 #' @param sim a list; simulated climate object from \code{generateScenarios}
 #' @param clim a list; reference climate
 #' @param attPerturb a string; name of attribute to be perturbed
