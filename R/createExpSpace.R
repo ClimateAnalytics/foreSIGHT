@@ -361,32 +361,7 @@ setWDdayTiedAttributes <- function(attSel) {
   return(attsTied)
 }
 
-
-#     if(tieType=='wDdD'){
-#       for (att in attSel){
-#         i=which(colnames(expSpace$targetMat)==att)
-#         var = get.attribute.varType(att)
-#         if(grepl('/',var)){stop("can't have multivariable tied attributes in perturb/hold atts")}
-#         var.new = paste0(var,'.P')
-#         for (cond in c('WetDay','DryDay')){
-#           att.cond = gsub(var,var.new,att)
-#           att.cond = paste0('mv.',att.cond,cond)
-#           if (att.cond%in%expSpace$attTied){
-#             if (expSpace$targetType[i]=='frac'){
-#               expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]*expSpace$targetMat[att]
-#             } else if (expSpace$targetType[i]=='diff'){
-#               expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]+expSpace$targetMat[att]
-#             }
-#             expSpace$targetMat[att.cond] = expSpace$targetMat[att.cond]*expSpace$targetMat[att]
-#           } else {
-#             expSpace$targetMat[att.cond] = expSpace$targetMat[att]
-#             expSpace$attTied = c(expSpace$attTied,att.cond)
-#             expSpace$targetType = c(expSpace$targetType,expSpace$targetType[i])
-#           }
-#         }
-#       }
-
-##################################################
+#################################################
 # add tied attributes to expsire space
 tieAttributes <- function(expSpace, # initial exposure space (created by createExpSpace)
                           attTied) # list of tied attributes
