@@ -1,3 +1,4 @@
+# checks for calibrated parameters lying on bounds
 checkParsBounds <- function(sim) {
   nRep <- length(which(grepl("Rep", names(sim))))
   nTar <- length(sim[[1]])
