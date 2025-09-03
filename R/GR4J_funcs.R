@@ -1,26 +1,6 @@
 #####################################################################
-
-add_dummy_year = function(dates,P,PET,warmupYrs=1){
-  year1 = as.integer(format(dates,'%Y'))[1]
-  year0 = year1-warmupYrs
-  dates.tmp = seq(as.POSIXct(paste0(year0,'/01/01'),tz='UTC'),
-                  as.POSIXct(paste0(year0,'/12/31'),tz='UTC'),
-                  by='days')
-  P.tmp = P[1:length(dates.tmp)]
-  PET.tmp = PET[1:length(dates.tmp)]
-  
-  dates.new = c(dates.tmp,dates)
-  P.new = c(P.tmp,P)
-  PET.new = c(PET.tmp,PET)
-  
-  return(list(dates=dates.new,
-              P = P.new,
-              PET = PET.new))
-  
-}
-
-#####################################################################
 # setup and calibrate GR4J
+#' @import airGR
 #' @export
 setup_cal_GR4J = function(dates,P,PET,Qobs,plotResults=F){
   
@@ -69,7 +49,7 @@ setup_cal_GR4J = function(dates,P,PET,Qobs,plotResults=F){
 utils::globalVariables("year")
 #####################################################################
 
-#' @import zoo
+#' @import zoo airGR
 #' @export
 GR4J_wrapper = function(data,
                         systemArgs,
@@ -145,6 +125,27 @@ GR4J_wrapper = function(data,
   metricList['min3yr'] = min(annual_data$rolling_3yr,na.rm=T)
 
   return(metricList)
+  
+}
+
+#####################################################################
+
+add_dummy_year = function(dates,P,PET,warmupYrs=1){
+  year1 = as.integer(format(dates,'%Y'))[1]
+  year0 = year1-warmupYrs
+  dates.tmp = seq(as.POSIXct(paste0(year0,'/01/01'),tz='UTC'),
+                  as.POSIXct(paste0(year0,'/12/31'),tz='UTC'),
+                  by='days')
+  P.tmp = P[1:length(dates.tmp)]
+  PET.tmp = PET[1:length(dates.tmp)]
+  
+  dates.new = c(dates.tmp,dates)
+  P.new = c(P.tmp,P)
+  PET.new = c(PET.tmp,PET)
+  
+  return(list(dates=dates.new,
+              P = P.new,
+              PET = PET.new))
   
 }
 
