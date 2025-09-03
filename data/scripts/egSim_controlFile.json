@@ -33,6 +33,6 @@
     }
   },
 
-  "penaltyAttributes": ["P_day_all_tot_m", "P_day_all_seasRatio", "P_day_all_nWet_m", "P_day_all_R10_m"],
+  "penaltyAttributes": ["P_day_all_tot_m", "P_day_all_seasRatioMarAug", "P_day_all_nWet_m", "P_day_all_R10_m"],
   "penaltyWeights": [2,2,2,2]
 }
