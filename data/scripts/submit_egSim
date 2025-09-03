@@ -1,0 +1,12 @@
+#!/bin/bash
+#SBATCH -p icelake,a100cpu
+#SBATCH -J bree
+#SBATCH -o bree.%j.out
+#SBATCH -N 1              	                                # number of nodes 
+#SBATCH -n 25             	                                # number of cores 
+#SBATCH --time=0:20:00    	                                # time allocation
+#SBATCH --mem=64GB         	                                # memory pool for all cores 
+date
+Rscript egSim.R
+date
+
