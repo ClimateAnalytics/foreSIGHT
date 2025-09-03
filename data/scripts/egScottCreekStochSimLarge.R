@@ -1,5 +1,7 @@
 rm(list=ls())
 
+library(foreSIGHT)
+
 # load dates, precip, PET and streamflow data for Scott Creek
 data('data_A5030502_1976_1985')
 
@@ -82,4 +84,4 @@ sim.multiRepsLarge = generateScenarios(reference = clim_ref,
 time.2 = Sys.time()
 print(time.2-time.1)
 
-save(file='data/egScottCreekSimLarge.rda',sim.multiRepsLarge)
+save(file='../egScottCreekSimLarge.rda',sim.multiRepsLarge)
