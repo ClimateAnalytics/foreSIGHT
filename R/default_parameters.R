@@ -118,8 +118,7 @@ getVarUnits <- function(varNames) {
 defaultModelTags <- c(
   P = "P-seas-latent",
   Temp = "Temp-har-wgenO",
-  PET = "PET-har-wgenO",
-  Radn = "Radn-har-wgenO"
+  PET = "PET-har-wgenO"
 )
 
 # existing foreSIGHT variables
