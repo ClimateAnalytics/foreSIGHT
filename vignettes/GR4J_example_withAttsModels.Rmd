@@ -1,6 +1,6 @@
 ---
 title: "'Stress-Testing' using *fore*SIGHT: Stochastic simulation"
-author: "David McInerney, Seth Westra"
+author: "David McInerney, Seth Westra, Anjana Devanand, Michael Leonard, Sam Culley, Bree Bennett"
 date: "`r format(Sys.time(), '%d %b %Y')`"
 output: 
   rmarkdown::html_vignette:
@@ -8,7 +8,7 @@ output:
     number_sections: false
     css: "vignette.css"
 description: >
-  This vignette demonstrates how to use foreSIGHT for stochastic simulation in climate stress-testing.
+  This vignette demonstrates how to use *fore*SIGHT for stochastic simulation in climate stress-testing.
   It covers the generation of perturbed climate scenarios, the evaluation of these simulated climates, 
   and the assessment of hydrological responses to climate changes.
 
@@ -21,16 +21,16 @@ vignette: >
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, collapse = TRUE, comment = "#>")
 library(foreSIGHT)
-#devtools::load_all()
+rm(list=ls())
 ```
 
 # 1. Overview
 
-This vignette demonstrates the use of stochastic weather generators for producing perturbed climates for 'stress-testing' a system using *fore*SIGHT. The inverse approach (Guo et al. 2018) is used to optimise the parameters of one or more stochastic weather generators. The examples in this vignette both collate---and provide context to---information scattered in the function help files to discuss the considerations for application of *fore*SIGHT to more complex case studies and systems.
+This vignette demonstrates the use of stochastic weather generators for producing perturbed climates for 'stress-testing' a system using *fore*SIGHT. The inverse approach (Guo et al. 2018) is used to optimize the parameters of one or more stochastic weather generators. The examples in this vignette both collate---and provide context to---information scattered in the function help files to discuss the considerations for application of *fore*SIGHT to more complex case studies and systems.
 
-It is assumed that the reader has already read the *Quick Start Guide* vignette, and is familiar with the basic *fore*SIGHT work flow demonstrated below:
+It is assumed that the reader has already read the [***Quick Start Guide*****vignette**]{.underline}, and is familiar with the basic *fore*SIGHT work flow demonstrated below:
 
-```{r CRAFTWorkflow, echo=FALSE, fig.cap="Workflow of climate 'stress-testing' using foreSIGHT", out.width = '30%'}
+```{r CRAFTWorkflow, echo=FALSE, fig.cap="Workflow of climate 'stress-testing' using *fore*SIGHT", out.width = '30%'}
 knitr::include_graphics("stepsOfCRAFT.png")
 ```
 
@@ -40,16 +40,12 @@ In this vignette, you'll learn how to use *fore*SIGHT to generate and evaluate s
 -   **Creating an exposure space**: Defining perturbed, held, and tied attributes to generate realistic climate time series.
 -   **Selecting and configuring stochastic weather generators (SWGs)**: Choosing suitable models, generating perturbed series, and adjusting default model settings.
 -   **Applying post-processing routines**: Capturing climate features not represented directly by the SWGs.
--   **Customising optimisation settings**: Modifying optimisation settings and setting penalty weights for specific attributes.
+-   **Customizing optimization settings**: Modifying optimization settings and setting penalty weights for specific attributes.
 -   **Evaluating stochastic climates**: Assessing how well simulations match target attributes, capture secondary changes, and represent climate features relevant to your system model.
 
 We begin by introducing the key concepts and showing how they are implemented in the *fore*SIGHT package. These concepts are then illustrated through a case study, which stress-tests how streamflow in Scott Creek, South Australia, responds to changes in climate attributes across multiple metrics.
 
-# 2. Creating the exposure space
-
-[**Step A**]{.underline}
-
-## 2.1. Attribute naming convention
+# 2. Attribute naming convention
 
 *fore*SIGHT offers a uniquely flexible capability to perturb any number of climate attributes—either individually or in combination. To support this flexibility, attribute names follow a standardized naming convention in the format: “*var*\_*agg*\_*strat*\_*funcPars*\_*op*”, where
 
@@ -61,7 +57,7 @@ We begin by introducing the key concepts and showing how they are implemented in
 
 For example, “P_year_all_avg” is the average yearly calculated using all the data rainfall (i.e. mean annual rainfall) and “P_day_all_P99_m” is annual mean of the 99th percentile of rainfall calculated over all days.
 
-### **2.1.1. Variable names**
+### **2.1. Variable names**
 
 Any string (that does not contain the separating character '\_'), and could include:
 
@@ -69,13 +65,13 @@ Any string (that does not contain the separating character '\_'), and could incl
 -   “T”: temperature
 -   “PET”: Potential evapotranspiration
 
-### **2.1.2. Temporal stratifications**
+### **2.2. Temporal stratification**
 
 -   “ann”: data from entire year
 -   “JJA”, “SON”, etc: seasons
 -   “Jan”, “Feb”, etc: months
 
-### **2.1.3. Function names** (and optional parameters)
+### **2.3. Function names** (and optional parameters)
 
 -   “tot”: total
 -   “P99”: 99th percentile
@@ -131,7 +127,7 @@ A full list of attribute functions supported in *fore*SIGHT can be viewed using 
 | wettest6monSeasRatio | Ratio of wet season to dry season rainfall, based on wettest6monPeakDay | \-                  | \-                                           | \-                       | P (rainfall) |
 +----------------------+-------------------------------------------------------------------------+---------------------+----------------------------------------------+--------------------------+--------------+
 
-: *Table 1: List of attribute functions available in foreSIGHT.*
+: *Table 1: List of attribute functions available in* fore*SIGHT.*
 
 *fore*SIGHT also allows users to define their own custom functions. The names of these functions must have the format “func_customName”, where “customName” is the custom attribute function. These functions must have the argument “data”, which represents the time series of climate data. For example,
 
@@ -143,17 +139,19 @@ func_happyDays = function(data){
 
 can be used in the attribute “Temp_day_all_happyDays_m” for calculating the average number of days each year with temperatures between 25^o^C and 30^o^C.
 
-### **2.1.4. Operator name**
+### **2.4. Operator name**
 
 The operator name is optional, and currently is limited to “m”: mean value of metric calculated over all years. Often “*op*” will be left empty.
 
 The use of the operator “m” is a subtle, but important, choice. It determines whether the metric is calculated once using all the data (when operator is not specified), or whether the metric is calculated for each year, and then averaged over all years (when operator specified as "m"). For example, “P_day_all_P99” refers to the 99th percentile of daily rainfall calculated over all days, while “P_day_all_P99_m” would be the mean value of the 99th percentile of daily rainfall from each year.
 
-The flexibility of attribute names can lead to some equivalence in attributes. E.g. "P_day_all_tot_m" is mean annual value of the total of daily rainfall. This is equivalent to "P_year_all_avg" - the average of the yearly rainfall.
+This distinction becomes particularly important when comparing attributes across datasets of different lengths. For example, calculating the number of wet days without using `"m"` can be misleading, as longer time series will naturally accumulate more wet days. Including `"m"` ensures comparability by standardising the metric to an annual average.
+
+The flexibility of attribute names can lead to some equivalence in attributes. E.g. `"P_day_all_tot_m"` is mean annual value of the total of daily rainfall. This is equivalent to `"P_year_all_avg"` - the average of the yearly rainfall.
 
 It is noted that attributes are specified either as a fractional change relative to historical levels (and thus do not have units), or they are specified using the metric system.
 
-### 2.1.5. Viewing attribute definitions and values
+### 2.5. Viewing attribute definitions and calculating values
 
 The definition of climate attributes used in *fore*SIGHT can be viewed using the helper function `viewAttributeDef()` available in the package.
 
@@ -168,7 +166,7 @@ data("tankDat")
 calculateAttributes(climateData = tank_obs,attSel =c('P_day_all_tot_m','P_day_all_P99'))
 ```
 
-### 2.1.6. Multivariable attributes
+### 2.6. Multivariable attributes
 
 *fore*SIGHT also supports the calculation of multivariable climate attributes, which are based on the interaction between two time series (e.g., precipitation, P, and potential evapotranspiration, PET ).
 
@@ -188,13 +186,19 @@ Examples include
 
 Currently, a limited number of built-in multivariable attributes are available in *fore*SIGHT, as listed in Table 2.
 
++---------------+-------------------------------------------------------------------------------+--------------------+--------------------+
 | Function name | Description                                                                   | Typical variable 1 | Typical variable 2 |
-|---------------|-------------------------------------------------------------------------------|--------------------|--------------------|
++===============+===============================================================================+====================+====================+
 | avgDryDay     | Average value of variable 2 on dry days (assuming P is variable 1)            | P (rainfall)       | Temp, PET          |
++---------------+-------------------------------------------------------------------------------+--------------------+--------------------+
 | avgWetDay     | Average value of variable 2 on dry days (assuming P is variable 1)            | P (rainfall)       | Temp, PET          |
++---------------+-------------------------------------------------------------------------------+--------------------+--------------------+
 | cor           | Correlation between variables                                                 | P (rainfall)       | Temp, PET          |
++---------------+-------------------------------------------------------------------------------+--------------------+--------------------+
 | cvDryDay      | Coefficient of variation of variable 2 on dry days (assuming P is variable 1) | P (rainfall)       | Temp, PET          |
++---------------+-------------------------------------------------------------------------------+--------------------+--------------------+
 | cvWetDay      | Coefficient of variation of variable 2 on wet days (assuming P is variable 1) | P (rainfall)       | Temp, PET          |
++---------------+-------------------------------------------------------------------------------+--------------------+--------------------+
 
 : *Table 2: List of multivariable attribute functions*
 
@@ -204,35 +208,37 @@ Users can also define their own custom multivariable functions. For an example o
 mvFunc_cor
 ```
 
-## **2.2. Creating the exposure space**
+## 3. Creating the exposure space (Step A)
 
-The `createExpSpace()` function is used to define the **exposure space**—a set of perturbations applied to selected climate attributes. The general process for specifying perturbed attributes, along with the sampling strategy and bounds, follows the same principles outlined in the *Quick Start Guide* vignette.
+The `createExpSpace()` function is used to define the **exposure space**—a set of perturbations applied to selected climate attributes. The general process for specifying perturbed attributes, along with the sampling strategy and bounds, follows the same principles outlined in the [***Quick Start Guide*****vignette**]{.underline}.
 
-To generate **realistic climate time series**, it is often necessary not only to perturb key attributes but also to specify **held** and **tied** attributes. As a rule of thumb, the total number of **target attributes** (including perturbed, held, and tied attributes) should be at least as large as the number of fitted parameters in the stochastic weather generator (SWG). This relationship is discussed further in later sections.
+To generate **realistic climate time series**, it is often necessary not only to perturb key attributes but also to specify **held** and **tied** attributes. As a rule of thumb, the total number of **target attributes** (including perturbed, held, and tied attributes) should be at least as large as the number of fitted parameters in the stochastic weather generator (SWG).
 
-### **2.2.1. Perturbed attributes** 
+Selecting **held** and **tied** attributes is often a challenging task. It requires expert judgment to determine which climate changes are plausible, and typically involves an iterative process of evaluation and refinement to ensure the generated scenarios are both realistic and relevant.
 
-As shown in the *Quick Start Guide*, the **scaling approach** for generating perturbed climates allows only a limited set of attributes to be explicitly modified—typically:
+### **3.1. Perturbed attributes**
 
--    Annual averages and totals (e.g., `P_day_all_tot_m`, `Temp_day_all_avg`)
+As shown in the [***Quick Start Guide*****,**]{.underline} the **scaling approach** for generating perturbed climates allows only a limited set of attributes to be explicitly modified—typically:
+
+-   Annual averages and totals (e.g., `P_day_all_tot_m`, `Temp_day_all_avg`)
 
 -   Seasonality ratios (e.g., `P_day_all_seasRatioMarAug`)
 
-By contrast, **stochastic simulation** enables a much broader set of attributes to be perturbed. The actual attributes that can be modified depend on the capabilities of the specific stochastic generator being used (see Section 3.1.1 and 3.1.2 for more details).
+By contrast, **stochastic simulation** enables a much broader set of attributes to be perturbed. The actual attributes that can be modified depend on the capabilities of the specific stochastic generator being used (see Sections 4.3.1 and 4.3.2 for more details).
 
-### **2.2.2. Held attributes**
+### **3.2. Held attributes**
 
 To maintain realistic climate behavior, certain attributes can be **held constant**, typically at their historical values. This is especially useful to prevent perturbations from producing unrealistic extremes or seasonal patterns.
 
 Held attributes are specified using the `attHold` argument. For example:
 
-`attHold <- c("P_day_all_P99", "P_day_all_maxWSD_m", "P_day_all_seasRatioMarAug")`
+`attHold <- c("P_day_all_P99", "P_day_all_maxWSD_m", "P_day_all_seasRatioJunAug")`
 
-In this case, these three attributes are held at reference levels. The attributes 99th percentile rainfall, maximum length of the wet spells are held at reference levels so that the perturbations do not result in unrealistic extreme rainfall events. In addition, the attribute "P_day_all_seasRatioMarAug" is held at reference levels so that the seasonal cycle of the generated data is realistic.
+In this case, these three attributes are held at reference levels. The attributes 99th percentile rainfall, maximum length of the wet spells are held at reference levels so that the perturbations do not result in unrealistic extreme rainfall events. In addition, the attribute "P_day_all_seasRatioJunAug" is held at reference levels so that the seasonal cycle of the generated data is realistic.
 
-There are also mechanisms to ensure to preferentially matching the desired values of some attributes during time series generation (as described in Section 3.1.3).
+There are also mechanisms to ensure to preferentially matching the desired values of some attributes during time series generation (as described in Section 4.3.4).
 
-### 2.2.3. Tied attributes
+### 3.3. Tied attributes
 
 Attributes can also be **tied** together, meaning they share the same perturbation. This is useful when certain attributes are logically or physically linked.
 
@@ -249,7 +255,39 @@ attTied
 
 This will tie `P_day_DJF_P99` , `P_day_MAM_P9` , `P_day_JJA_P99 and P_day_SON_P99` to the attribute `P_day_all_P99`, ensuring consistent changes across seasons.
 
-[**Example**]{.underline}
+## 3.4 Example: Creating an exposure space
+
+This example demonstrates the use of `createExpSpace()` to define a climate exposure space, including **perturbed**, **held**, and **tied** attributes. As noted earlier, selecting held and tied attributes requires expert judgment, particularly in anticipating how different attributes are likely to co-vary with those being explicitly perturbed. The process is often iterative.
+
+#### **Perturbed Attributes**
+
+In this example, we are interested in perturbing two climate attributes
+
+-   **Seasonality ratio from June–August** (`"P_day_all_seasRatioMarMay")` which will be perturbed using factors from 0.7 to 1.3.
+
+-   **99th percentile of daily rainfall** ( `"P_day_all_P99"`) which will perturbed using factors from 1.0 to 1.3.
+
+These two attributes are perturbed over a 5×5 regular grid.
+
+#### **Held Attributes**
+
+To maintain realism and constrain the stochastic generation process, the following attributes are held constant (at historical levels):
+
+-   **Mean annual rainfall** `"P_day_all_tot_m"`
+
+-   **Seasonal rainfall**: `"P_day_DJF_tot_m"`, `"P_day_JJA_tot_m"`, `"P_day_SON_tot_m"`
+
+-   **Number of wet days** (annual and seasonal): `"P_day_all_nWet_m"`, `"P_day_DJF_nWet_m"`, `"P_day_MAM_nWet_m"`, `"P_day_JJA_nWet_m"`, `"P_day_SON_nWet_m"`
+
+-   **Average dry-spell duration** (annual and seasonal): e.g. `"P_day_all_avgDSD"`, `"P_day_DJF_avgDSD"`, etc.
+
+#### **Tied Attributes**
+
+To ensure consistent changes across related attributes, the following **tied relationships** are defined:
+
+-   **Normalised 99th percentile rainfall** **for each season** (`'P_day_DJF_normP99'`, `'P_day_MAM_normP99'`, `'P_day_JJA_normP99'`, `'P_day_SON_normP99')` is tied to changes in **99th percentile rainfall (**`"P_day_all_P99"`).
+
+-   **Spring rainfall** (`"P_day_MAM_tot"`) is tied to changes in the **seasonality ratio** (`"P_day_all_seasRatioMarMay"`)
 
 ```{r}
 ############################################################################
@@ -257,29 +295,30 @@ This will tie `P_day_DJF_P99` , `P_day_MAM_P9` , `P_day_JJA_P99 and P_day_SON_P9
 
 attPerturbType = "regGrid"
 # perturb seasonality and 99% rainfall
-attPerturb = c('P_day_all_seasRatioJunAug','P_day_all_P99')
-# consider a small 2x2 grid
-attPerturbSamp = c(2,2)
+attPerturb = c('P_day_all_seasRatioMarMay','P_day_all_P99')
+# consider a 5x5 grid
+attPerturbSamp = c(5,5)
 attPerturbMin = c(0.7,1.)
 attPerturbMax = c(1.3,1.3)
 # will hold a number of attributes to historical values
-attHold = c('P_day_all_tot','P_day_all_avgDSD',
-            'P_day_all_nWet',
+attHold = c('P_day_all_tot_m',
+            'P_day_DJF_tot_m','P_day_JJA_tot_m','P_day_SON_tot_m',
+            'P_day_all_nWet_m',
+            'P_day_DJF_nWet_m','P_day_MAM_nWet_m',
+            'P_day_JJA_nWet_m','P_day_SON_nWet_m',
+            'P_day_all_avgDSD',
             'P_day_DJF_avgDSD','P_day_MAM_avgDSD',
-            'P_day_JJA_avgDSD','P_day_SON_avgDSD',
-            'P_day_DJF_nWet','P_day_MAM_nWet',
-            'P_day_JJA_nWet','P_day_SON_nWet',
-            'P_day_DJF_tot','P_day_JJA_tot',
-            'P_day_SON_tot')
+            'P_day_JJA_avgDSD','P_day_SON_avgDSD'
+            )
 # tied attributes
 # note: normP = P99/avg rainfall. normP in each season is tied to P99 
 attTied = list(P_day_all_P99=c('P_day_DJF_normP99', 
                                'P_day_MAM_normP99',
                                'P_day_JJA_normP99',
                                'P_day_SON_normP99'),
-              P_day_all_seasRatioJunAug=c('P_day_JJA_tot')) # JJA rain tied to seasRatioJuneAug
+              P_day_all_seasRatioMarMay=c('P_day_MAM_tot_m')) # MAM rain tied to seasRatioMarMay
 
-expSpaceSmall = createExpSpace(attPerturb = attPerturb,
+expSpace = createExpSpace(attPerturb = attPerturb,
                           attPerturbSamp = attPerturbSamp,
                           attPerturbMin = attPerturbMin,
                           attPerturbMax = attPerturbMax,
@@ -288,39 +327,43 @@ expSpaceSmall = createExpSpace(attPerturb = attPerturb,
                           attTied = attTied)
 ```
 
-# **3. Generating perturbed climate scenarios**
+**Note:** The selection of **perturbed**, **held**, and **tied** attributes in this example creates some inherent conflicts, meaning that not all target values can be perfectly matched.
 
-[**Step B**]{.underline}
+For instance, perturbing **spring rainfall** via `"P_day_all_seasRatioMarMay"` and `"P_day_MAM_tot"` while simultaneously holding **total annual rainfall** (`"P_day_all_tot"`) and **non-winter seasonal rainfall** (`"P_day_DJF_tot"`, `"P_day_MAM_tot"`, `"P_day_SON_tot"`) at historical values introduces inconsistencies. It is not possible to satisfy all these constraints simultaneously.
 
-## 3.1. The inverse optimization approach 
+In such cases, the optimization process will aim to find the **best compromise** across the specified targets. The **relative importance** of each attribute can be adjusted using **attribute weights**, as described in Section 4.3.4.
 
-The 'inverse' approach to producing perturbed climates uses a numerical optimisation to calibrate parameters in a stochastic weather generator that produces time series with attributes that are as close as possible to the target attributes.
+# **4. Generating perturbed climate scenarios (Step B)**
 
-To understand what is going on, we need to get into a bit more theory. Let's imagine we have i=1,...,n different **attributes**, such as mean annual rainfall and 99th percentile of daily rainfall (in which case n=2). The optimisation approach seeks to generate time series that minimise the difference in target values between the attribute values of a simulated time series $a_{i,j}$ and target values $t_{i,j}$, as given by the following equation:
+## 4.1. The inverse optimization approach
+
+The 'inverse' approach to producing perturbed climates uses a numerical optimization to calibrate parameters in a stochastic weather generator that produces time series with attributes that are as close as possible to the target attributes.
+
+To understand what is going on, we need to get into a bit more theory. Let's imagine we have i=1,...,n different **attributes**, such as mean annual rainfall and 99th percentile of daily rainfall (in which case n=2). The optimization approach seeks to generate time series that minimize the difference in target values between the attribute values of a simulated time series $a_{i,j}$ and target values $t_{i,j}$, as given by the following equation:
 
 $O(\mathbf{a}_j, \mathbf{t}_j) = \sqrt{\sum_{i=1}^{n} [\lambda_i(a_{i,j} - t_{i,j})]^2}$
 
-Here $\lambda_i$ represents a user-specified penalty parameter for each attribute $i$. The use of larger values for $\lambda_i$ emphasises those attributes in the calibration.
+Here $\lambda_i$ represents a user-specified penalty parameter for each attribute $i$. The use of larger values for $\lambda_i$ emphasizes those attributes in the calibration.
 
-## 3.2. Generating scenarios with generateScenarios()
+## 4.2. Generating scenarios with generateScenarios()
 
-Generating stochastic perturbed climates in foreSIGHT is carried out using the `generateScenarios().` function. The foreSIGHT help file for this functions provides details on the use of `generateScenarios().Some`key inputs to this function are as follows.
+Generating stochastic perturbed climates in *fore*SIGHT is carried out using the `generateScenarios().` function. The *fore*SIGHT help file for this functions provides details on the use of `generateScenarios().Some`key inputs to this function are as follows.
 
-#### **Control file** `(controlFile)`
+**Control file** `(controlFile)`
 
 The `controlFile` argument specifies:
 
--   The stochastic weather generator (SWG) and any post-priocessing of SWG outputs
+-   The stochastic weather generator (SWG) and any post-processing of SWG outputs
 
 -   The optimization settings (weights, numerical optimizer)
 
 -   Parameter bounds
 
-The format and available optoipns for the control file are described in Section 3.1.
+The format and available options for the control file are described in Section 4.3.
 
-(Note that if the `controlFile` argument is not specified or set to `NULL`, the default stochastic model and associated settings will be used to generate the scenarios. If `controlFile='scaling'` , then scaling approaches are used instead of stochastic simulation - see the *Quick Start Guide* vignette.)
+(Note that if the `controlFile` argument is not specified or set to `NULL`, the default stochastic model and associated settings will be used to generate the scenarios. If `controlFile='scaling'` , then scaling approaches are used instead of stochastic simulation - see the *Introduction to climate stress testing using* fore*SIGHT* vignette.)
 
-#### **Length of perturbed series (**`simLengthNyrs)`
+**Length of perturbed series** (`simLengthNyrs)`
 
 The argument `simLengthNyrs` can be used to specify the desired length of the stochastically generated perturbed time series in years using `generateScenarios`
 
@@ -328,31 +371,31 @@ The argument `simLengthNyrs` can be used to specify the desired length of the st
 simLengthNyrs = 100
 ```
 
-#### **Number of replicates (**`numReplicates)`
+**Number of replicates** (`numReplicates)`
 
-By default, `generateScenarios` will generate a single replicate (or stochastic realisation) of the perturbed time series. More replicates can be generated by specifying the `numReplicates` argument of `generateScenarios`.
+By default, `generateScenarios` will generate a single replicate (or stochastic realization) of the perturbed time series. More replicates can be generated by specifying the `numReplicates` argument of `generateScenarios`.
 
 ```{r, numRep}
 numReplicates = 5
 ```
 
-#### **The random seed (`seedID`)**
+**The random seed** (`seedID`)
 
 The random seed used for stochastic generation of the first replicate is specified by `seedID`. The random seeds for the subsequent replicates are incremented by 1. Thus, the perturbed stochastic data generated using `generateScenarios()` for the same function arguments would typically be different.
 
-#### **Numbers of core in parallel processing (`cores`)**
+**Numbers of core in parallel processing** (`cores`)
 
-The inverse approach is computationally intensie approach to SWG calibration, as it requires many evaluations of the objective function, with each objective function calculation requiring simulation of the SWG and calculating attributes. Furthewrmore, objective function surface can be complex, making optimization challenging.
+The inverse approach is a computationally intense approach to SWG calibration, as it requires many evaluations of the objective function, with each objective function calculation requiring simulation of the SWG and calculating attributes. Furthermore, objective function surface can be complex, making optimization challenging.
 
-Combinined with large numbers of replicates and targets and or longer time series, can result in the generation of sceanrios becoming infeasible using a single processor. `generateScenarios()` supports **parallel execution** using multiple cores using the `cores` argument.
+Combined with large numbers of replicates and targets and or longer time series, can result in the generation of scenarios becoming infeasible using a single processor. `generateScenarios()` supports **parallel execution** using multiple cores using the `cores` argument.
 
-## 3.3. S**tochastic simulation options (the control file)**
+## 4.3. S**tochastic simulation options (the control file)**
 
-### 3.1.1. Control file format
+### 4.3.1. Control file format
 
 Options for stochastic simulation can be modified using the `controlFile` argument in `generateScenarios()`, defining the location of a JSON file.
 
-For example, stochastic models are defined using the `modelType` and `modelParameterVariation` fields in the `controlFile` (as described in Section 3.1.1). The user can create a JSON file for input to `generateScenarios`. As an example, the following text may be used in the JSON file to select alternate models for precipitation and temperature.
+For example, stochastic models are defined using the `modelType` and `modelParameterVariation` fields in the `controlFile` (as described in Section 4.3.2). The user can create a JSON file for input to `generateScenarios`. As an example, the following text may be used in the JSON file to select alternate models for precipitation and temperature.
 
 ```{r, jsonFileModel1, eval = FALSE}
 # Example text to be copied to a text JSON file
@@ -397,7 +440,7 @@ write(modelSelectionJSON, file = paste0(tempdir(), "\\eg_controlFile.json"))
 controlFile = paste0(tempdir(), "\\eg_controlFile.json")  
 ```
 
-### 3.1.1. Stochastic weather generators
+### 4.3.2. Stochastic weather generators
 
 There is a plethora of options for stochastic weather generators described in the scientific literature, each with different features and assumptions. This variety provides a high degree of flexibility for perturbing weather time series in a variety of ways to comprehensively 'stress test' a climate-sensitive system. The *fore*SIGHT software currently supports a number of weather generators, and is developed such that developers and advanced users can add other weather generators over time.
 
@@ -460,7 +503,7 @@ A summary of these models is provided in Table 1 below.
 | PET      | "          | "         | harWD               | 13 parameter WGEN AR(1) model for PET, with separate parameters for wet and dry days, and harmonic variations in parameters. A single autocorrelation parameter is used for all seasons and wet-dry days.         |
 +----------+------------+-----------+---------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
-: Table 1: Description of models available in *fore*SIGHT.
+: *Table 3: Description of models available in* fore*SIGHT.*
 
 The selection of model type and parameter variation can specified in the `controlFile`, as seen in the following example:
 
@@ -475,46 +518,46 @@ modelSelection$modelParameterVariation$P = "seas"
 modelSelection$modelParameterVariation$PET = "harWD"
 ```
 
-#### Multisite rainfall
+**Multisite rainfall**
 
-*fore*SIGHT supports the generation of multisite precipitation using the latent variable model with the approach introduced by *McInerney et al. (2023)*. This method allows the simulation of rainfall at multiple locations simultaneously, capturing key spatial dependcies. It also allows the exploration of changes in spatial correlation between sites.
+*fore*SIGHT supports the generation of multisite precipitation using the latent variable model with the approach introduced by *McInerney et al. (2023)*. This method allows the simulation of rainfall at multiple locations simultaneously, capturing key spatial dependencies. It also allows the exploration of changes in spatial correlation between sites.
 
-To implement this, the reference data must contain precipitation data at multiple sites (see *Quick Start Guide* vignette, Section 2.2), and the latent variable model is specified in the control file. An example is provided in the help documentation for `generateScenarios()`.
+To implement this, the reference data must contain precipitation data at multiple sites (see *Introduction to climate stress testing using* fore*SIGHT* vignette, Section 4.1), and the latent variable model is specified in the control file. An example is provided in the help documentation for `generateScenarios()`.
 
-### [**3.1.2.** Post-Processing of Stochastic Weather Generator Output]{.underline}
+### **4.3.3.** Post-Processing of Stochastic Weather Generator Output
 
-[In addition to generating climate time series using stochastic weather generators (SWGs), **foreSIGHT** provides the ability to apply **post-processing adjustments** to the simulated output. This step helps to address known limitations of SWGs and ensures that certain climate features are better represented or that unrealistic behaviour is constrained.]{.underline}
+In addition to generating climate time series using stochastic weather generators (SWGs), ***fore*****SIGHT** provides the ability to apply **post-processing adjustments** to the simulated output. This step helps to address known limitations of SWGs and ensures that certain climate features are better represented or that unrealistic behavior is constrained.
 
-[These post-processing steps are applied **after** the SWG has generated the time series and are independent of the SWG model itself—meaning they can be used flexibly across different SWG types.]{.underline}
+These post-processing steps are applied **after** the SWG has generated the time series and are independent of the SWG model itself—meaning they can be used flexibly across different SWGs in *fore*SIGHT.
 
-#### [Available Post-Processing Options:]{.underline}
+Available post-processing options are:
 
--   [**Annual Variability Adjustment (`annVar`)**\
-    Adjusts the interannual variability of the generated time series to better match historical or target levels. This can be important for systems sensitive to year-to-year fluctuations.]{.underline}
+-   **Annual variability adjustment (`annVar`)**\
+    Adjusts the interannual variability of the generated time series to better reflect historical or target levels. This is especially important because many SWGs tend to underestimate annual variability, which can significantly affect systems that are sensitive to year-to-year climate fluctuations.
 
--    [**Extreme Value Scaling (`scaleExtremes`, `scaleExtremesSeas`)**\
-    Applies constraints to the upper tail of the distribution. This ensures that changes in very high percentiles (e.g. \>99%) scale consistently with the 99th percentile.]{.underline}
+-   **Extreme value scaling (`scaleExtremes`, `scaleExtremesSeas`)**\
+    Applies constraints to the upper tail of the distribution to ensure that changes in very high percentiles (e.g. \>99%) scale consistently with the 99th percentile. This helps prevent disproportionate increases in extreme values during perturbation.
 
-    -   [`scaleExtremes`: Applies the adjustment across all data.]{.underline}
+    -   **`scaleExtremes`**: Applies the adjustment across the **entire time series**.
 
-    -    [`scaleExtremesSeas`: Applies the adjustment separately for each season.]{.underline}
+    -   **`scaleExtremesSeas`**: Applies the adjustment **separately for each season**, preserving seasonal differences in extremes.
 
-[These options are particularly useful for controlling **unrealistic extreme values**, such as excessive rainfall events, which could otherwise lead to distorted or misleading system responses in downstream modelling.]{.underline}
+    These options are especially useful for avoiding **unrealistic extremes**, such as excessively high rainfall events, which can result from large shifts in the distribution tails. Without this control, such anomalies may lead to **distorted or misleading outcomes** in downstream impact modelling.
 
-[Implemented as follows:]{.underline}
+An example of the specification of post-processing options is:
 
 ```{r}
 modelSelection[['postProcessing']] = list(P=list())
 modelSelection[['postProcessing']]$P$types = c('scaleExtremes','annVar')
 ```
 
-### **3.1.3. Optimization**
+### **4.3.4. Optimization**
 
-#### Objective function weights 
+#### Objective function weights
 
-The objective function shownin Section 3.1 allows different attributes to be prioritised in the calibration through the use of the weights $\lambda$ . The precise value of these weights depends on the overall objectives of the problem and will often be adjusted after assessing the diagnostics of the stochastically generated time series (discussed later in this section). The likely usage of this is to provide a means of instructing the optimiser to: 'generate stochastic realisations that reflect the perturbed attributes, while keeping other relevant features of the time series described by the held attributes as close to the reference time series as possible'--- by placing greater priority on the perturbed attributes.
+The objective function shown in Section 4.1 allows different attributes to be prioritized in the calibration through the use of the weights $\lambda$ . The precise value of these weights depends on the overall objectives of the problem and will often be adjusted after assessing the diagnostics of the stochastically generated time series (discussed later in this section). The likely usage of this is to provide a means of instructing the optimizer to: 'generate stochastic realizations that reflect the perturbed attributes, while keeping other relevant features of the time series described by the held attributes as close to the reference time series as possible'--- by placing greater priority on the perturbed attributes.
 
-The weights are specified by specifying "`penaltyAttributes`" and "`penaltyWeights`" in the control file. For example, if we want to apply $\lambda=3$ for "P_day_all_tot_m", and $\lambda=2$ for "P_day_all_P99", this is achieved as follows:
+The weights are specified by specifying "`penaltyAttributes`" and "`penaltyWeights`" in the control file. For example, if we want to apply $\lambda=3$ for `"P_day_all_tot_m"`, and $\lambda=2$ for `"P_day_all_P99"`, this is achieved as follows:
 
 ```{r}
 modelSelection[["penaltyAttributes"]] <- c("P_day_all_tot_m","P_day_all_P99")
@@ -523,17 +566,19 @@ modelSelection[["penaltyWeights"]] = c(3,2)
 
 Weights for other attributes have the default value of 1.
 
-#### [Parameter bounds]{.underline}
+#### Parameter Bounds
 
-The
+When using numerical optimization to estimate parameters of a stochastic weather generator (SWG), parameter bounds must be specified. These bounds define the allowable range for each model parameter during the calibration process.
 
-[viewModelParameters()]{.underline}
+The **default bounds** for each supported model can be viewed using the `viewModelParameters()` function by specifying the variable name, model type, and type of parameter variation. For example, to view the bounds for rainfall (`"P"`) using the latent variable model with seasonal parameter variation:
 
 ```{r}
-viewModelParameters(variable = 'PET',modelType='wgenO',modelParameterVariation='seas')
+viewModelParameters(variable = 'P',modelType='latent',modelParameterVariation='seas')
 ```
 
-[change model parameter bounds:]{.underline}
+Users can override default parameter bounds by specifying them in the `controlFile` using the `"modelParameterBounds"` argument.
+
+For example, to modify the bounds of the `"sigma.SON"` parameter for rainfall so that it ranges from 0.001 to 20 (instead of the default range of 0.5 to 8), use the following:
 
 ```{r}
 modelSelection[["modelParameterBounds"]] <- list()
@@ -541,32 +586,76 @@ modelSelection[["modelParameterBounds"]][["P"]] <- list()
 modelSelection[["modelParameterBounds"]][["P"]][["sigma.SON"]] <- c(0.001, 20)
 ```
 
-#### [Optimization arguments]{.underline}
+#### Optimization arguments
 
-```         
+The choice of numerical optimization routine and settings plays a large role in how well the simulated attributes match the desired targets. The default optimization routine used in \*\*fore*SIGHT* is the Robust Gauss Newton (RGN) algorithm (Qin et al, 2018). Default values for optimization arguments in *fore*SIGHT can be viewed using the `viewDefaultOptimArgs()` helper function in the package.
+
+```{r optimArgsDef}
 viewDefaultOptimArgs()
 ```
 
-```{r}
-modelSelection[["optimisationArguments"]] <- list()
-modelSelection[["optimisationArguments"]][["nMultiStart"]] <- 5
-modelSelection[["optimisationArguments"]][['RGN.control']]=list(iterMax=50)
+This shows that RGN is the default optimizer, and that optimization will be performed using 5 different initial parameter sets (multi-starts) to improve optimization. It also shows control settings used in the RGN algorithm.
 
+\*\*fore*SIGHT* has the capability to use alternate optimization routines, including a genetic algorithm ('GA'), the shuffled complex evolution algorithm ('SCE'), and the Nelder-Mead method ('NM'). Default settings for 'GA' are shown using
+
+```{r optimArgsDefGA}
+viewDefaultOptimArgs('GA')
 ```
 
-### [**3.1.4. Advice for dealing with number of parameters and attributes**]{.underline}
+The code below demonstrates how user-specified optimisation arguments can be used in the `controlFile` input to `generateScenarios`.
 
--   [recommend that number of target attributes at least as large as number of fitted parameters]{.underline}
+This first example shows how the number of multi-starts can be changed to 1 (from the default value of 5)
 
--   [fix parameters: mod calibrator or baseline climate]{.underline}
+```{r modOptimArgs, R.options = list(width = 100), eval = TRUE}
+# add user-specified values for optimisation arguments
+controlFileList[["optimisationArguments"]] <- list()
+controlFileList[["optimisationArguments"]][["nMultiStart"]] <- 1
+```
 
--   [tie attributes, hold attributes]{.underline}
+This second example shows how we can change the optimizer to 'GA', and specify GA::ga() arguments for maximum iterations ('maxiter') and stopping criteria ('run')
 
-## 3.4. Example
+```{r modOptimArgs1, R.options = list(width = 100), eval = TRUE}
+# add user-specified values for optimisation arguments
+controlFileList[["optimisationArguments"]] <- list()
+controlFileList[["optimisationArguments"]][["optimizer"]] <- 'GA'
+controlFileList[["optimisationArguments"]][["nMultiStart"]] <- 1
+controlFileList[["optimisationArguments"]][["GA.args"]] <- list(maxiter=100,run=40)
+```
 
-[For computational reasons, the code below is constructed for small 2x2 exposure space and single replicate. This should take \~3 mins to run.]{.underline}
+### 4.3.5. Advice for managing the number of parameters and target attributes
 
-```{r sim.singleRep, eval=TRUE}
+When using the inverse approach to estimate stochastic weather generator (SWGs) parameters in *fore*SIGHT, it is recommended that the number of target attributes be at least equal to the number of fitted model parameters. Otherwise, the optimization process may be under-constrained, leading to non-unique solutions and potentially large uncertainty in climates.
+
+Several strategies can help ensure this balance:
+
+-   **Use of tied and held attributes**: Increasing the number of tied and held parameters
+
+-   **Fixing SWG parameters**: Some model parameters can be fixed based on prior knowledge or separate calibration exercises, reducing the number of parameters that need to be fitted during optimization.
+
+    -   Parameters can be estimated using methods such as the Method of Moments or Maximum Likelihood Estimation. The function `modCalibrator()` is available in ***fore*****SIGHT** for this purpose and supports a subset of SWG models.
+
+    -   As an alternative, parameters can be estimated using `generateScenarios()` by specifying the exposure space with attributes held to their historical (i.e. unperturbed) values, effectively calibrating the SWG to reproduce observed conditions before introducing perturbations.
+
+    Parameters can then be fixed by setting the parameter bounds to these values.
+
+### 4.3.6. Example: Generating perturbed stochastic climates
+
+This example demonstrates how the `generateScenarios()` function can be used to produce perturbed stochastic climates. We focus on daily rainfall perturbations for the Scott Creek catchment in South Australia (see Appendix for case study details). The exposure space defined in Section 3.4 provides the basis for the perturbations applied in this example.
+
+The `controlFile` is configured to specify the following:
+
+-   **Stochastic Weather Generator (SWG) model type and parameterisation**:\
+    We use the latent-variable SWG with seasonally varying parameters.
+
+-   **Optimization settings**:\
+    A tolerance value is set to define the stopping criteria for the multistart optimization procedure.
+
+-   **Weights for the objective function**:\
+    Highest weights are assigned to the perturbed attributes `'P_day_all_seasRatioJunAug'` and `'P_day_all_P99'`, along with `'P_day_all_tot_m'`, a known key driver of system response.
+
+For computational simplicity, the example below targets a single point from the exposure space and generates a single stochastic climate replicate. The code is expected to run in approximately one minute.
+
+```{r sim.stoch.single, eval=TRUE}
 
 # load dates, precip, PET and streamflow data for Scott Creek
 data('data_A5030502_1976_1985')
@@ -592,22 +681,26 @@ modelSelection[["optimisationArguments"]] = list()
 modelSelection[["optimisationArguments"]][["OFtol"]] = 0.1 # stop multi-start optimization when OF < OFtol
 
 # set penalty weights. More weights to perturbed attributes and total rainfall (which is known to have large impact)
-modelSelection[["penaltyAttributes"]]=c('P_day_all_seasRatioJunAug',
-                                        'P_day_all_P99','P_day_all_tot',
-                                           'P_day_all_avgDSD','P_day_all_nWet')
-modelSelection[["penaltyWeights"]] = c(3,3,3,1.5,1.5)
+modelSelection[["penaltyAttributes"]]=c('P_day_all_seasRatioMarMay',
+                                        'P_day_all_P99','P_day_all_tot_m',
+                                           'P_day_all_avgDSD','P_day_all_nWet_m')
+modelSelection[["penaltyWeights"]] = c(4,4,4,2,2)
 
 # write to JSON file
 modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
 controlFile = paste0(tempdir(), "\\eg_controlFile.json")
 write(modelSelectionJSON, file = controlFile)
 
+# consider only a single target in exposure space
+expSpaceTmp = expSpace
+expSpaceTmp$targetMat = expSpace$targetMat[1,]
+
 ###############
 # generate scenarios
 
 time.1 = Sys.time()
-sim.singleRep = generateScenarios(reference = clim_ref,
-                       expSpace = expSpaceSmall,
+sim.stoch.single = generateScenarios(reference = clim_ref,
+                       expSpace = expSpaceTmp,
                        controlFile = controlFile,
                        seedID = 1,
                        numReplicates = 1,
@@ -617,77 +710,127 @@ print(time.2-time.1)
 
 ```
 
-## 4. Evaluation of perturbed climates
+Simulated climates for the full exposure space, and with 50 replicates, have been pre-computed and can be loaded as follows:
 
-[users responsibility to evaluate climates.]{.underline}
+```{r}
+data("egScottCreekSimStoch") # this loads object sim.stoch
+```
 
-[if poor, can lead to wrong interpretations about impact of changes in climate attributes.]{.underline}
+# 5. Evaluation of perturbed climates
 
-### **4.1. Evaluation of target attributes**
+The generation of perturbed climates through stochastic simulation requires careful evaluation on the part of the user to ensure that:
 
-[*fore*SIGHT contains a function named `plotScenarios()` which can be used to create plots of the biases in attributes of the simulated data relative to the specified target values, for perturbed, held and target attributes. The function uses a simulation performed using `generateScenarios()` as input and plots the mean and standard deviation of the absolute biases of each attribute and target, across all the replicates in heatmap-like plots. The function can be called using a single argument, which is the simulation generated using `generateScenarios()`.]{.underline}
+-   **Target attributes** are accurately achieved through optimization,
+
+-   The **simulated climates** realistically represent key features of the historical climate, and
+
+-   **Other attributes** respond to perturbations in a reasonable and interpretable manner.
+
+Failure to perform proper evaluation can lead to misleading conclusions about the impacts of changes in climate attributes.
+
+The following sections introduce diagnostic tools available in ***fore*****SIGHT** for evaluating the performance of stochastic climates and help identify common issues. We also offer strategies for resolving problems. Diagnostics are best used as part of an **iterative workflow**—producing, evaluating, and refining stochastic climates until performance is satisfactory.
+
+## **5.1. Evaluation of target attributes**
+
+*fore*SIGHT contains a function named `plotScenarios()` which can be used to create plots of the biases in attributes of the simulated data relative to the specified target values, for perturbed, held and target attributes. The function uses a simulation performed using `generateScenarios()` as input and plots the mean and standard deviation of the absolute biases of each attribute and target, across all the replicates in heatmap-like plots. It is implemented as follows:
 
 [`p <- plotScenarios(sim)   # sim the output from generateScenarios`]{.underline}
 
-[The figures can be used to assess how well the simulations capture the desired target values of the attributes.]{.underline}
+The figures can be used to assess how well the simulations capture the desired target values of the attributes.
 
-[As a rough estimate, biases around or less than 5% are acceptable. If there are larger mean biases, we recommend that you evaluate the following:]{.underline}
+As a rough estimate, biases around or less than 5% are acceptable. If there are larger mean biases, we recommend that you evaluate the following:
 
--   [**Optimiser configuration**: Has it had enough scope to find a good solution? If not, adjust its settings.]{.underline}
+-   **Optimizer configuration**: Has it had enough scope to find a good solution? If not, adjust its settings.
 
--   [**Model structure**: Can the model simulate the desired attribute combinations? If not, a different model structure may be required.]{.underline}
+-   **Model structure**: Can the model simulate the desired attribute combinations? If not, a different model structure may be required.
 
--   [**Over-constraint**: Are the target combinations unrealistic or conflicting? If so, revise targets or adjust penalties to prioritise key attributes.]{.underline}
+-   **Over-constraint**: Are the target combinations unrealistic or conflicting? If so, potentially revise targets or adjust penalties to prioritize key attributes. Note that it may be OK, or even expected, that some held or tied attributes have large attributes based on the combinations of target attributes.
 
-[If the standard deviation of the absolute biases across the replicates are high, this indicates that the attribute value is highly variable across the replicates in the generated data. You may need to]{.underline}
+If the standard deviation of the absolute biases across the replicates are high, this indicates that the attribute value is highly variable across the replicates in the generated data. This could be due to
 
--   [**Under-constrained**: increase number of target attributes (held/tied) or reduce the number of fitted parameters. Require at least the same number of target attributes as fitted parameters.]{.underline}
+-   **Under-constrained calibration**: Increase the number of target attributes (held/tied) or reduce the number of fitted parameters. Properly constrained calibration requires at least the same number of target attributes as fitted parameters.
 
--   [**Optimization performance**: unable to consistently find parameters that give good performance. Adjust the optimisation parameters]{.underline}
+-   **Optimization performance**: If the optmiizer is unable to consistently find parameters that give good performance, you may need to adjust the optimization settings.
 
-```{r plotScenariosSingleRep, fig.width = 10, fig.height = 10, eval=TRUE}
-plotScenarios(sim.singleRep)
-```
-
-[We have pre-computed simulated climates for larger 5x5 exposure space, with 10 replicates:]{.underline}
+[**XXX We have pre-computed simulated climates for larger 5x5 exposure space, with 10 replicates:**]{.underline}
 
 ```{r plotExpSpace, eval=FALSE}
 #load object sim.multiRepsLarge for full output
-data("egScottCreekSimLarge2")
-
-# plot sexposure space
-plotExpSpace(sim.multiRepsLarge$expSpace)
+data('../data/')
 ```
 
-[Evaluate how well the target attributes are captured by the simulated climates:]{.underline}
+[**XXX Evaluate how well the target attributes are captured by the simulated climates:**]{.underline}
 
 ```{r plotScenariosMultiRepsLarge, fig.width = 10, fig.height = 10, eval=TRUE}
-plotScenarios(sim.multiRepsLarge)
+plotScenarios(sim.stoch)
 ```
 
-### 4.2. E[valuating changes in attributes]{.underline}
+## 5.2. Evaluating changes in attributes
 
-[Explore the response of a wide range of attributes (including perturbed/held/tied attributes and independent attributes) to perturbations.]{.underline}
+This section explores how a wide range of climate attributes respond to imposed perturbations—including those that are explicitly perturbed, held, or tied, as well as independent (unconstrained) attributes.
+
+Key aspects to examine include:
+
+-   **Large deviations from target values** for target attributes, especially perturbed attributes.
+
+-   **Significant biases** in attributes not used in the optimization process when compared to the historical baseline climate.
+
+-   **Unexpected changes** in attributes that were not intended to be perturbed.
+
+If such issues are observed, consider the following actions:
+
+-   Reassess the selection of **held** and **tied** attributes.
+
+-   Explore alternative **SWG model structures**, or apply **post-processing techniques** to improve attribute alignment or unrealistic responses.
+
+The example below evaluates changes across a wide set of attributes for the simulated climates generated in Section 4.3.6 (which includes additional targets and replicates compared with the example code).
+
+In particular, we examine perturbations to the attribute `"P_day_all_seasRatioJunAug"`, and assess responses across:
+
+-   Attributes included in the exposure space
+
+-   Measures of temporal persistence, such as `'P_year_all_avgDwellTime'`
+
+-   Wet spell characteristics, e.g., `'P_day_all_avgWSD'`
+
+-   Indicators of extreme events, including the 99.9th percentiles for all and seasonal data, i.e. `'P_day_all_P99.9','P_day_JJA_P99.9'`, `'P_day_SON_P99.9'`, `'P_day_DJF_P99.9'`, `'P_day_MAM_P99.9'`
 
 ```{r plotPerformanceAtts1, fig.width = 10, fig.height = 20, eval=TRUE}
+
+# load dates, precip, PET and streamflow data for Scott Creek
+data('data_A5030502_1976_1985')
+clim_ref = list(times = data$times,P = data$P)  
+
+data("egScottCreekSimStoch")
+
 # select target attributes (perturbed/held/tied)
-attSel = colnames(sim.multiRepsLarge$expSpace$targetMat)
+attSel = colnames(sim.stoch$expSpace$targetMat)
 # other attributes
-attSel = c(attSel,'P_year_all_dwellTime','P_day_all_avgWSD',
+attSel = c(attSel,'P_year_all_avgDwellTime','P_day_all_avgWSD',
            'P_day_all_P99.9','P_day_JJA_P99.9','P_day_SON_P99.9',
            'P_day_DJF_P99.9','P_day_MAM_P99.9')
 
 # plot changes in attributes for perturbations in seasonality ratio
-att = "P_day_all_seasRatioJunAug"
+att = "P_day_all_seasRatioMarMay"
 old_par <- par(no.readonly = TRUE)  # Save current settings
-par(mfrow=c(9,3),mar=c(4,7,2,1))
+par(mfrow=c(10,3),mar=c(4,7,2,1))
 # plot changes in a single attribute with respect to perturbed attrbiutes
 plotPerformanceAttributesOAT(clim=clim_ref,
-                             sim=sim.multiRepsLarge,
+                             sim=sim.stoch,
                              attPerturb=att,
                              attEval=attSel,
                              cex.main = 1.5,cex.xaxis = 1,cex.yaxis = 1)    
 ```
+
+In these plots,
+
+-   Dashed blue lines indicate the target values for the perturbed attributes.
+-   Green lines represent the target values for held and tied attributes.
+-   The black line shows the median of the simulated attribute values, while the grey band indicates the 90% range (5th to 95th percentiles).
+-   Red lines highlight attributes that change significantly more than the intended perturbation (i.e. the slope of attribute vs. perturbed attribute \> 1.5).
+-   Red crosses mark attributes with large biases—greater than 20%—relative to their observed (unperturbed) historical values.
+
+The results show that [**XXXXX**]{.underline}
 
 ```{r plotPerformanceAtts, fig.width = 10, fig.height = 20, eval=TRUE}
 # plot changes in attrtibutes for perturbations in P99
@@ -704,13 +847,11 @@ plotPerformanceAttributesOAT(clim=clim_ref,
 par(old_par)
 ```
 
-## 4.3. Evaluating system response
+## 5.3. Evaluating ability of SWG to capture climate features relevant to system model XXX
 
-As in user guide.
+Crosses over between perturbed stochastic climates and system response.
 
-Loops over multiple replicates.
-
-[Calculate system response using GR4J_wrapper]{.underline}
+Want stochastic model
 
 ```{r GR4JsystemPerf, eval=TRUE}
 
@@ -722,19 +863,29 @@ PET = data$PET
 dates = as.Date(clim_ref$times)
 
 # calibrate GR4J parameters
-Param = setup_cal_GR4J(dates = dates,P=clim_ref$P,PET=PET,Qobs=Qobs)
+Param = calGR4J(dates = dates,P=clim_ref$P,PET=PET,Qobs=Qobs)
 
 # setup systemArgs and metrics
 systemArgs = list(dates=dates,Param=Param,PET=PET)
 metrics = c('meanQ','P99','P25','min3yr')
 
-# calculate system performance metrics for simulated climates
-sysOutSim = runSystemModel(sim=sim.multiRepsLarge,systemModel = GR4J_wrapper,systemArgs = systemArgs,metrics = metrics)
+eval = evaluate_system_metrics(sim = sim.multiRepsLarge,
+                        clim = clim_ref,
+                        systemModel = GR4J_wrapper,
+                        systemArgs = systemArgs,metrics = metrics)
+
+par(mfrow=c(2,2),mar=c(3,5,1,1))
+for (m in 1:length(metrics)){
+  metric = metrics[m]
+  yAll = c(eval$systemPerf_base[[metric]],eval$systemPerf_obsClim[metric])
+  ylim = c(min(yAll),max(yAll))
+  boxplot_prob(as.vector(eval$systemPerf_base[[metric]]),ylim=ylim)
+  points(eval$systemPerf_obsClim[metric],col='red',pch=19)
+  title(metric)
+}
 ```
 
-# 
-
-## Evaluating ability of SWG to capture climate features relevant to system model
+## 
 
 Compare system response using observed and (unperturbed) stochastic climates.
 
@@ -756,22 +907,24 @@ for (m in 1:length(metrics)){
 
 ```
 
-# [5. Evaluate performance]{.underline}
+# [6. Evaluate performance XXX]{.underline}
 
 [**Step D**]{.underline}
 
 [Plot OAT performance:]{.underline}
 
-```{r, GR4J_OATplots, fig.align = 'center', fig.width = 10, fig.height = 10, eval=TRUE}
+```{r, GR4J_OATplotsSeasRatio, fig.align = 'center', fig.width = 10, fig.height = 10, eval=TRUE}
 # performance for changes in P_day_all_seasRatioMarMay (1st attribute)
-plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'meanQ',attSel=attPerturb[1])
-plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P99',attSel=attPerturb[1])
-plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P25',attSel=attPerturb[1])
+plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'meanQ',attSel=attPerturb[1],topReps=40)
+plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P99',attSel=attPerturb[1],topReps=40)
+plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P25',attSel=attPerturb[1],topReps=40)
+```
 
+```{r, GR4J_OATplotsP99, fig.align = 'center', fig.width = 10, fig.height = 10, eval=TRUE}
 # performance for changes in P_day_all_P99 (2nd attribute)
-plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'meanQ',attSel=attPerturb[2])
-plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P99',attSel=attPerturb[2])
-plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P25',attSel=attPerturb[2])
+plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'meanQ',attSel=attPerturb[2],topReps=40)
+plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P99',attSel=attPerturb[2],topReps=40)
+plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P25',attSel=attPerturb[2],topReps=40)
 ```
 
 [Plot 2D performance spaces:]{.underline}
@@ -779,32 +932,42 @@ plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P2
 ```{r, GR4J_perfSpace, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "47%", fig.cap = "Plots of 2D performance spaces", eval=TRUE}
 
 # plot 2D performance spaces
-plotPerformanceSpace(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'meanQ',type='filled.contour',nContour=5)
-plotPerformanceSpace(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P99',type='filled.contour',nContour=5)
-plotPerformanceSpace(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P25',type='filled.contour',nContour=5)
+plotPerformanceSpace(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'meanQ',type='filled.contour',nContour=5,topReps = 40)
+plotPerformanceSpace(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P99',type='filled.contour',nContour=5,topReps = 40)
+plotPerformanceSpace(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P25',type='filled.contour',nContour=5,topReps = 40)
 ```
 
 ### 
 
-# [6. Conclusion]{.underline}
+# **7. Conclusion**
 
-# [Appendix: Case study - Rainfall-runoff response in Scott Creek, South Australia]{.underline}
+This vignette has demonstrated how stochastic weather generators can be used within *fore*SIGHT to generate perturbed climates for stress testing water systems. Unlike simple scaling approaches introduced in the *Quick Start* vignette, stochastic generation enables exploration of a much broader range of climate attributes, offering a more comprehensive assessment of system vulnerabilities.
 
-[Simulated precipitation is generated using a single-site, latent-variable stochastic weather generator (SWG). Streamflow is modelled using the GR4J rainfall-runoff model, implemented via the **airGR** package in R. Key hydrological metrics assessed include mean flow, low flow (25%), and high flow (99%).]{.underline}
+We have shown how to generate and evaluate stochastic climates and integrate them into system models. Key challenges—such as selecting appropriate weather generator models, defining held and tied attributes, and managing numerical optimization—have also been discussed. While these challenges persist, this vignette has illustrated how they can be addressed within *fore*SIGHT.
 
-?setup_cal_GR4J
+Ongoing work continues to refine these methods and address remaining limitations. Users are encouraged to contact the *fore*SIGHT development team for further guidance, to share feedback, or to contribute suggestions for future improvements.
 
-?GR4J_wrapper
+# **Appendix: Case Study Methods – Rainfall-Runoff Response in Scott Creek, South Australia**
+
+This case study performs stress-testing on streamflow in the Scott Creek catchment, South Australia, to changes in climate variables—specifically winter rainfall and extreme rainfall events. The analysis uses data from the CAMEL-AUS dataset (Fowler et al., 2021) for the period 1976–1985.
+
+Streamflow is simulated using the GR4J rainfall-runoff model, implemented via the airGR package in R (Coron et al., 2017). Model parameters are calibrated using the `calGR4J()` function, and system response metrics are calculated with `GR4J_wrapper()`. For further details, refer to `?calGR4J` and `?GR4J_wrapper` in the R documentation.
+
+Rainfall inputs are generated using a single-site, latent-variable stochastic weather generator (SWG). Hydrological indicators evaluated include mean flow, low flow (25th percentile), and high flow (99th percentile).
 
 # References
 
 -   Coron, L., Thirel, G., Delaigue, O., Perrin, C., & Andréassian, V. (2017). The suite of lumped GR hydrological models in an R package. *Environmental Modelling & Software, 94*, 166-171. \doi{ [10.1016/j.envsoft.2017.05.002](http://dx.doi.org/10.1016/j.envsoft.2017.05.002)}
+
+-   Fowler, K. J. A., Acharya, S. C., Addor, N., Chou, C., & Peel, M. C. (2021). CAMELS-AUS: hydrometeorological time series and landscape attributes for 222 catchments in Australia. *Earth Syst. Sci. Data, 13*(8), 3847-3867. \doi{10.5194/essd-13-3847-2021}
 
 -   Guo, D., Westra, S., & Maier, H. R. (2018). An inverse approach to perturb historical rainfall data for scenario-neutral climate impact studies. *Journal of Hydrology, 556*, 877-890. \doi{ [10.1016/j.jhydrol.2016.03.025](https://doi.org/10.1016/j.jhydrol.2016.03.025)}
 
 -   McInerney, D., Westra, S., Leonard, M., Bennett, B., Thyer, M., & Maier, H. R. (2023). A climate stress testing method for changes in spatially variable rainfall. *Journal of Hydrology, 625*, 129876. \doi{ [10.1016/j.jhydrol.2023.129876](https://doi.org/10.1016/j.jhydrol.2023.129876)}
 
 -   Nguyen, T. H. T., Bennett, B., & Leonard, M. (2023). Evaluating stochastic rainfall models for hydrological modelling. *Journal of Hydrology, 627*, 130381. \doi{[10.1016/j.jhydrol.2023.130381](https://doi.org/10.1016/j.jhydrol.2023.130381)}
+
+-   Qin, Y., Kavetski, D., & Kuczera, G. (2018). A Robust Gauss-Newton Algorithm for the Optimization of Hydrological Models: From Standard Gauss-Newton to Robust Gauss-Newton. *Water Resources Research, 54*(11), 9655-9683. \doi{<https://doi.org/10.1029/2017WR022488>}
 
 -   Rasmussen, P. F. (2013). Multisite precipitation generation using a latent autoregressive model. *Water Resources Research, 49*(4), 1845-1857. \\doi{[0.1002/wrcr.20164](https://doi.org/10.1002/wrcr.20164)}
 
