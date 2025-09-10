@@ -27,7 +27,6 @@
 #' \code{tankWrapper} is a wrapper function for a rainwater tank system model in foreSIGHT. This function is used in examples in function help files and vignettes.
 #' This function may also be used as an example to create wrapper functions for other system models with scenarios generated using foreSIGHT in \code{R} or other programming languages.
 #' @param data list; contains observed daily precipitation and temperature to be used to run the rain water tank system model in a list with entries  \emph{times}, \emph{P}, \emph{Temp}.
-#'            Note that the first three columns of the data.frame contain the year, month, and day of observation. The columns have to be named as specified.
 #'            Please refer data provided with the package that may be loaded using \code{data(tankDat)} for an example of the expected format of \code{data}.
 #' @param systemArgs a list; contains the input arguments to the rain water tank system model. The valid fields in the list are:
 #' \itemize{
