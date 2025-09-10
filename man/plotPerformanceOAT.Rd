@@ -66,7 +66,7 @@ data("egSimPerformance")
 plotPerformanceOAT(egSimPerformance[2], egSimSummary)
 plotPerformanceOAT(egSimPerformance[1], egSimSummary)
 # using the metric argument
-plotPerformanceOAT(egSimPerformance, egSimSummary, metric = "Reliability (-)")
+plotPerformanceOAT(egSimPerformance, egSimSummary, metric = "reliability (fraction)")
 }
 \seealso{
 \code{runSystemModel}, \code{generateScenarios}, \code{plotPerformanceSpace}, \code{getSimSummary}

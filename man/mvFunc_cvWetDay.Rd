@@ -7,9 +7,9 @@
 mvFunc_cvWetDay(data.1, data.2)
 }
 \arguments{
-\item{data1}{represents a non-rainfall time series}
+\item{data.1}{represents a non-rainfall time series}
 
-\item{data2}{represents rainfall time series}
+\item{data.2}{represents rainfall time series}
 }
 \description{
 Calculates the coefficient of variation (sdev/mean) value of a non-rainfall time series on wet-days

@@ -7,7 +7,9 @@
 mvFunc_cor(data.1, data.2)
 }
 \arguments{
-\item{data1}{and data2 are vectors, representing a time series}
+\item{data.1}{a vector for the first climate variable}
+
+\item{data.2}{a vector for the second climate variable}
 }
 \description{
 Calculates the correlation between two time series

@@ -14,7 +14,7 @@ viewAttributeDef(attribute)
 }
 \examples{
 # To view the definition of any valid attribute
-viewAttributeDef("P_ann_tot_m")
+viewAttributeDef("P_day_all_tot_m")
 }
 \seealso{
 \code{createExpSpace}

@@ -222,8 +222,8 @@ plotPerformanceSpace(performance = egSimPerformance[1],
   ggplot2::geom_point(
     data = egClimData,
     mapping = ggplot2::aes(
-      x = .data[["P_ann_tot_m"]],
-      y = .data[["P_ann_seasRatio"]],
+      x = .data[["P_day_all_tot_m"]],
+      y = .data[["P_day_all_seasRatioMarAug"]],
       shape = .data[["Name"]]
     ),
     show.legend = TRUE, size = 5, colour = "black", fill = "lightgray"
