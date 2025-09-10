@@ -25,9 +25,9 @@
 #' # load example datasets
 #' data("egSimSummary")
 #' data("egSimPerformance") # performance of option1
-#' data("egSimPerformance_systemB") # performance of option2
+#' data("egSimPerformanceB") # performance of option2
 #' data("egClimData")
-#' plotOptions(egSimPerformance[1], egSimPerformance_systemB[1], egSimSummary,
+#' plotOptions(egSimPerformance[1], egSimPerformanceB[1], egSimSummary,
 #'   attX = "P_ann_seasRatio", attY = "P_ann_tot_m", topReps = 7, perfThreshLabel = "Threshold (28L)",
 #'   perfThresh = 28, opt1Label = "System A", opt2Label = "System B", climData = egClimData
 #' )
