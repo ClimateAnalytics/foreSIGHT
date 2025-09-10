@@ -667,8 +667,8 @@ data('data_A5030502_1976_1985')
 ############################################################################
 
 # create reference data - won't include PET here since not modelled 
-clim_ref = list(times = data$times,
-                 P = data$P)  
+clim_ref = list(times = data_A5030502$times,
+                 P = data_A5030502$P)  
 
 ############################################################################
 # setup model settings
@@ -758,14 +758,14 @@ If the standard deviation of the absolute biases across the replicates are high,
 
 The use of `plotScenarios()` is demonstrated for the simulated climates generated in Section 4.3.6. (for the full exposure space, and with 50 replicates) as follows:
 
-```{r plotScenariosMultiRepsLarge, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 22, out.width = "60%"}
+```{r plotScenariosMultiRepsLarge, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "60%"}
 data("egScottCreekSimStoch") # this loads object sim.stoch
 plotScenarios(sim.stoch)
 ```
 
 These figures show the following:
 
--    **Mean values**: Most attributes exhibit small mean biases, particularly the perturbed attributes—such as the 99th percentile rainfall and the seasonality ratio—which are closely aligned with their target values. The largest bias is observed for JJA rainfall, an issue that will be examined further in Section 5.2.
+-   **Mean values**: Most attributes exhibit small mean biases, particularly the perturbed attributes—such as the 99th percentile rainfall and the seasonality ratio—which are closely aligned with their target values. The largest bias is observed for JJA rainfall, an issue that will be examined further in Section 5.2.
 
 -   **Standard deviation**: Variability is generally low for the perturbed attributes and those assigned higher weights during optimization. The greatest variability is seen in the number of wet days.
 
@@ -802,8 +802,8 @@ In particular, we examine perturbations to the attribute `"P_day_all_seasRatioJu
 ```{r plotPerformanceAtts1, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 22, out.width = "90%", fig.cap = "Evaluation of changes in climate attributes for perturbations in P_day_all_seasRatioMarMay", eval=TRUE}
 
 # load dates, precip, PET and streamflow data for Scott Creek
-data('data_A5030502_1976_1985')
-clim_ref = list(times = data$times,P = data$P)  
+data('data_A5030502')
+clim_ref = list(times = data_A5030502$times,P = data_A5030502$P)  
 
 data("egScottCreekSimStoch")
 
@@ -856,7 +856,7 @@ att = "P_day_all_P99"
 par(mfrow=c(10,3),mar=c(4,7,2,1))
 # plot changes in a single attribute with respect to perturbed attrbiutes
 plotPerformanceAttributesOAT(clim=clim_ref,
-                             sim=sim.multiRepsLarge,
+                             sim=sim.stoch,
                              attPerturb=att,
                              attEval=attSel,
                              cex.main = 1.5,cex.xaxis = 1,cex.yaxis = 1)   
@@ -896,9 +896,9 @@ First, we setup the system model for this application:
 ```{r GR4JsystemPerf, eval=TRUE}
 
 # observed flow
-Qobs = data$Qobs
+Qobs = data_A5030502$Qobs
 # observed PET 
-PET = data$PET 
+PET = data_A5030502$PET 
 
 dates = as.Date(clim_ref$times)
 
@@ -913,7 +913,7 @@ metrics = c('meanQ','P99','P25','min3yr')
 Next, `evaluate_system_metrics()` is used to calculate streamflow metrics for the observed and baseline stochastic climates, with boxplots used to compare these values.
 
 ```{r, virtualObs, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "60%", fig.cap = "Evaluation of stochastic climates in terms of capturing hydrological response to observed climates", eval=TRUE}
-eval = evaluate_system_metrics(sim=sim.multiRepsLarge,clim=clim_ref,
+eval = evaluate_system_metrics(sim=sim.stoch,clim=clim_ref,
                                systemModel=GR4J_wrapper,systemArgs=systemArgs,
                                metrics=metrics)
 
@@ -955,18 +955,18 @@ First, the response to perturbations in the seasonality ratio is explored
 
 ```{r, GR4J_OATplotsSeasRatio, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "47%", eval=TRUE}
 # performance for changes in P_day_all_seasRatioMarMay (1st attribute)
-plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'meanQ',attSel=attPerturb[1],topReps=40,col='orange')
-plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P99',attSel=attPerturb[1],topReps=40,col='orange')
-plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P25',attSel=attPerturb[1],topReps=40,col='orange')
+plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'meanQ',attSel=attPerturb[1],topReps=40,col='orange')
+plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'P99',attSel=attPerturb[1],topReps=40,col='orange')
+plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'P25',attSel=attPerturb[1],topReps=40,col='orange')
 ```
 
 Next, the response to perturbations in extreme rainfall is shown:
 
 ```{r, GR4J_OATplotsP99, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "47%", eval=TRUE}
 # performance for changes in P_day_all_P99 (2nd attribute)
-plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'meanQ',attSel=attPerturb[2],topReps=40,col='orange')
-plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P99',attSel=attPerturb[2],topReps=40,col='orange')
-plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P25',attSel=attPerturb[2],topReps=40,col='orange')
+plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'meanQ',attSel=attPerturb[2],topReps=40,col='orange')
+plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'P99',attSel=attPerturb[2],topReps=40,col='orange')
+plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'P25',attSel=attPerturb[2],topReps=40,col='orange')
 ```
 
 ## 6.2. Plot 2D performance spaces:
@@ -975,10 +975,13 @@ To explore joint responses to multiple attribute changes, we can generate 2D per
 
 ```{r, GR4J_perfSpace, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "47%", fig.cap = "Plots of 2D performance spaces", eval=TRUE}
 
+attX = "P_day_all_seasRatioMarMay"
+attY = "P_day_all_P99"
+
 # plot 2D performance spaces
-plotPerformanceSpace(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'meanQ',type='filled.contour',nContour=5,topReps = 40)
-plotPerformanceSpace(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P99',type='filled.contour',nContour=5,topReps = 40)
-plotPerformanceSpace(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P25',type='filled.contour',nContour=5,topReps = 40)
+plotPerformanceSpace(performance = sysOutSim, sim=sim.stoch, metric = 'meanQ',type='filled.contour',nContour=5,topReps = 40,attX = attX,attY = attY)
+plotPerformanceSpace(performance = sysOutSim, sim=sim.stoch, metric = 'P99',type='filled.contour',nContour=5,topReps = 40,attX = attX,attY = attY)
+plotPerformanceSpace(performance = sysOutSim, sim=sim.stoch, metric = 'P25',type='filled.contour',nContour=5,topReps = 40,attX = attX,attY = attY)
 ```
 
 # **7. Conclusion**
@@ -989,7 +992,7 @@ We have shown how to generate and evaluate stochastic climates and integrate the
 
 Ongoing work continues to refine these methods and address remaining limitations. Users are encouraged to contact the *fore*SIGHT development team for further guidance, to share feedback, or to contribute suggestions for future improvements.
 
-# **Appendix: Scott Creek case study** 
+# **Appendix: Scott Creek case study**
 
 This case study performs stress-testing on streamflow in the Scott Creek catchment, South Australia, to changes in climate variables—specifically winter rainfall and extreme rainfall events. The analysis uses data from the CAMEL-AUS dataset (Fowler et al., 2021) for the period 1976–1985.
 

@@ -562,7 +562,7 @@ The performance space heatmap and contours may be plotted using the code shown b
 In this case a threshold of 28 litres per day for the average maximum water deficit is used to illustrate a hypothetical case where the rainwater tank is no longer economically viable for deficit values above this threshold.
 This threshold assumes that the rainwater tank was sized on the threshold of economic viability using historical climate assumptions.The threshold of 28L/day corresponds to about 10% of the peak (summer) season residential water use of a single person household.
 
-```{r plotP, fig.align = 'center', dpi = 100, fig.width = 5.5, fig.height = 5.5, out.width = "60%", R.options = list(width = 100), message = FALSE, fig.cap = "Performance space and user defined threshold"}
+```{r plotP, dpi = 100, fig.show = "hold", fig.width = 7, fig.height = 7, out.width = "75%", message = FALSE, fig.cap = "Performance space and user defined threshold"}
 # performance space of the first metric with a user specified threshold of 27
 p2 <- plotPerformanceSpace(systemPerf.regGrid, # performance metric
   simSummary.regGrid, # simulation summary
