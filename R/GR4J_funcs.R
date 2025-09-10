@@ -1,8 +1,16 @@
 #####################################################################
-# setup and calibrate GR4J
+#' Calibrate GR4J rainfall runoff model parameters
+#' 
+#' \code{calGR4J} calibrates the GR4J model using the airGR package. The NSE is used as the objective function.  
+#' @param dates is a vector of daily dates 
+#' @param P is a vector of daily precipitation data (in mm)
+#' @param PET is a vector of daily potential evapotranspiration data (in mm)
+#' @param Qobs is the observed daily streamflow (in mm)
+#' @param plotResults is a logical indicating whether airGR summary plots are to be produced
+#' @return A vector with GR4J parameter values
 #' @import airGR
 #' @export
-setup_cal_GR4J = function(dates,P,PET,Qobs,plotResults=F){
+calGR4J = function(dates,P,PET,Qobs,plotResults=F){
   
   o = add_dummy_year(dates,P,PET)
   dates.new = o$dates; P.new = o$P; PET.new = o$PET
@@ -49,7 +57,23 @@ setup_cal_GR4J = function(dates,P,PET,Qobs,plotResults=F){
 utils::globalVariables("year")
 #####################################################################
 
-#' @import zoo airGR
+#####################################################################
+#' System model wrapper GR4J 
+#' 
+#' \code{GR4J_wrapper} runs the GR4J model, using the airGR package, for a given 
+#' set of climate inputs and parameter values and produces a set of runoff metrics  
+#' @param data list; contains daily precipitation and PET to be used in GR4J, 
+#' in a list with entries  \emph{times}, \emph{P} and optionally \emph{PET}.
+#' @param systemArgs list; contains \code{Param} which is a vector of GR4J 
+#' parameters (obtained from \code{calGR4J}),
+#' \code{dates} which is a vector of dates, 
+#' and \code{PET} which is a optional vector of potential transpiration 
+#' (required if PET not included in \code{data}) 
+#' @param metrics a vector of metric names (including 'meanQ' for 
+#' mean daily flow, 'P99' and 'P25' for 99th and 25th percentile daily flows, 
+#' and 'min3yr' for minimum 3-year total flow)
+#' @return A vector of metric values
+#' @import airGR
 #' @export
 GR4J_wrapper = function(data,
                         systemArgs,
@@ -124,6 +148,8 @@ GR4J_wrapper = function(data,
   
   metricList['min3yr'] = min(annual_data$rolling_3yr,na.rm=T)
 
+  metricList = metricList[metrics]
+  
   return(metricList)
   
 }
