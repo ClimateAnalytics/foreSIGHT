@@ -302,15 +302,16 @@ func_ma3P99 <- function(data) {
 
 
 #' Calculates the correlation between two time series 
-#' @param data1 and data2 are vectors, representing a time series
+#' @param data.1 a vector for the first climate variable
+#' @param data.2 a vector for the second climate variable
 #' @export
 mvFunc_cor <- function(data.1, data.2) {
   return(stats::cor(data.1, data.2, use = "pairwise.complete.obs"))
 }
 
 #' Calculates the average value of a non-rainfall time series on wet-days   
-#' @param data1 represents a non-rainfall time series
-#' @param data2 represents rainfall time series
+#' @param data.1 represents a non-rainfall time series
+#' @param data.2 represents rainfall time series
 #' @export
 mvFunc_avgWetDay <- function(data.1, data.2) {
   return(base::mean(data.1[data.2 > 0], na.rm = T))
@@ -321,8 +322,8 @@ mvFunc_sdWetDay <- function(data.1, data.2) {
 }
 
 #' Calculates the average value of a non-rainfall time series on dry-days   
-#' @param data1 represents a non-rainfall time series
-#' @param data2 represents rainfall time series
+#' @param data.1 represents a non-rainfall time series
+#' @param data.2 represents rainfall time series
 #' @export
 mvFunc_avgDryDay <- function(data.1, data.2) {
   return(base::mean(data.1[data.2 == 0], na.rm = T))
@@ -360,16 +361,16 @@ mvFunc_xP90DryDay <- function(data.1, data.2) {
 # }
 
 #' Calculates the coefficient of variation (sdev/mean) value of a non-rainfall time series on wet-days   
-#' @param data1 represents a non-rainfall time series
-#' @param data2 represents rainfall time series
+#' @param data.1 represents a non-rainfall time series
+#' @param data.2 represents rainfall time series
 #' @export
 mvFunc_cvWetDay <- function(data.1, data.2) {
   return(func_cv(data.1[data.2 > 0]))
 }
 
 #' Calculates the coefficient of variation (sdev/mean) value of a non-rainfall time series on dry-days   
-#' @param data1 represents a non-rainfall time series
-#' @param data2 represents rainfall time series
+#' @param data.1 represents a non-rainfall time series
+#' @param data.2 represents rainfall time series
 #' @export
 mvFunc_cvDryDay <- function(data.1, data.2) {
   return(func_cv(data.1[data.2 == 0]))

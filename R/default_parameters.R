@@ -182,7 +182,7 @@ attributeFuncs <- function() {
 #' @seealso \code{createExpSpace}
 #' @examples
 #' # To view the definition of any valid attribute
-#' viewAttributeDef("P_ann_tot_m")
+#' viewAttributeDef("P_day_all_tot_m")
 #' @export
 viewAttributeDef <- function(attribute) {
   print(tagBlender(attribute))

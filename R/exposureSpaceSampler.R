@@ -182,13 +182,6 @@ oatSample <- function(samp = 30, # scalar or vector (in order of attributes)
   return(list(targets = targets, attRot = attRot))
 }
 
-
-# TESTER
-# attSel_test=c("P_ann_tot_m","Temp_ann_dyAll_m","P_ann_tot_med")
-# varType_test=c("P","Temp","P")
-# targetType_test=c("frac","diff","frac")
-# test=expSpaceSampler(type="regGrid",samp=10,bounds=genSampBounds,varType=varType_test,targetType=targetType_test,attSel=attSel_test)
-
 regSample <- function(samp = 30, # scalar or vector (in order of attributes)
                       bounds = genSampBounds,
                       varType = NULL,
@@ -237,22 +230,6 @@ regSample <- function(samp = 30, # scalar or vector (in order of attributes)
 
   return(targets)
 }
-
-# TESTER
-# attBounds=list(
-#   P_ann_tot_m=c(0.7,1.3),
-#   Temp_ann_dyAll_m=c(0),
-#    P_ann_tot_med=c(0.5,1.3)
-# )
-# attSel_test=c("P_ann_tot_m","Temp_ann_dyAll_m")
-# varType_test=c("P","Temp","P")
-# targetType_test=c("frac","diff","frac")
-# regSample(samp=5,bounds=attBounds,varType=varType_test,targetType=targetType_test,attSel=attSel_test)
-
-# attSel_test=c("P_ann_tot_m","Temp_ann_dyAll_m","P_ann_tot_med")
-# varType_test=c("P","Temp","P")
-# targetType_test=c("frac","diff","frac")
-# regSample(samp=5,bounds=genSampBounds,varType=varType_test,targetType=targetType_test,attSel=attSel_test)
 
 #------------------------------
 checkBounds <- function(bounds = NULL,

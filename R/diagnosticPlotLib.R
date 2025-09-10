@@ -401,14 +401,6 @@ trafficAttPlot <- function(attSel = NULL,
   #   }
   # }
 }
-# TESTER
-# windows(height=8.72,width=11.9)
-# trafficAttPlot(attSel=c("P_ann_tot_m","P_ann_dyWet_m","P_ann_DSD_m","P_ann_dyWet_99p"),
-#                attPrim=c("P_ann_tot_m"),
-#                simPt=c(100,100,101,53),
-#                target=c(101,101,120,55),
-#                targetType=c("pc","diff","pc","frac")
-#                  )
 
 simTS.overlayMonthlyObsRange <- function(obsDat = NULL, # obsData
                                          simTS = NULL, # simulated timeseries

@@ -14,10 +14,10 @@
 #' @export
 #' @examples
 #' # create an exposure space that has more than 2 dimensions
-#' attPerturb <- c("P_ann_tot_m", "P_ann_nWet_m", "P_Feb_tot_m")
+#' attPerturb <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_Feb_tot_m")
 #' attHold <- c(
-#'   "P_SON_dyWet_m", "P_JJA_avgWSD_m", "P_MAM_tot_m", "P_DJF_avgDSD_m",
-#'   "Temp_ann_rng_m", "Temp_ann_avg_m"
+#'   "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m", "P_day_DJF_avgDSD_m",
+#'   "Temp_day_all_rng_m", "Temp_day_all_avg_m"
 #' )
 #' attPerturbType <- "regGrid"
 #' attPerturbSamp <- c(5, 5, 5)
@@ -35,7 +35,7 @@
 #' # plot the first two dimensions
 #' plotExpSpace(expSpace)
 #' # plot another slice
-#' plotExpSpace(expSpace, y = "P_ann_tot_m", x = "P_Feb_tot_m")
+#' plotExpSpace(expSpace, y = "P_day_all_tot_m", x = "P_day_Feb_tot_m")
 plotExpSpace <- function(expSpace,
                          y = expSpace[["attPerturb"]][1],
                          x = expSpace[["attPerturb"]][2]) {

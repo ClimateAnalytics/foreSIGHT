@@ -5,22 +5,35 @@
 
 #' Plots the differences in performance metrics from two system options
 #'
-#' \code{plotOptions} uses the system model performances calculated using the function \code{runSystemModel} for two alternate system model options,
-#' and the summary of the simulation generated using the functions \code{generateScenarios} & \code{getSimSummary} as input. The function plots the differences in
-#' the performance metrics between the two options, and the changes in performance thresholds in the space.
-#' The user may specify the attributes to be used as the axes of the plot. The function contains arguments to control the finer details of the plot.
+#' \code{plotOptions} uses the system model performances calculated using the 
+#' function \code{runSystemModel} for two alternate system model options,
+#' and the summary of the simulation generated using the functions 
+#' \code{generateScenarios} & \code{getSimSummary} as input. The function 
+#' plots the differences in the performance metrics between the two options, 
+#' and the changes in performance thresholds in the space.
+#' The user may specify the attributes to be used as the axes of the plot. 
+#' The function contains arguments to control the finer details of the plot.
 #' @inheritParams plotPerformanceSpace
-#' @param performanceOpt1 a named list; contains the system model performance calculated using \code{runSystemModel} for system model option 1.
-#' If the list contains more than one performance metric, the argument \code{metric} can be used to specify the metric to be used.
-#' @param performanceOpt2 a named list; contains the system model performance calculated using \code{runSystemModel} for system model option 2.
-#' If the list contains more than one performance metric, the argument \code{metric} can be used to specify the metric to be used.
-#' @param metric a string; the name of the performance metric to be plotted. The argument can be used to select the metric from
-#' \code{performanceOpt1} and \code{performanceOpt2} lists for plotting. If \code{NULL} (the default), the first metric in the lists will be used.
+#' @param performanceOpt1 a named list; contains the system model performance 
+#' calculated using \code{runSystemModel} for system model option 1.
+#' If the list contains more than one performance metric, the argument 
+#' \code{metric} can be used to specify the metric to be used.
+#' @param performanceOpt2 a named list; contains the system model performance 
+#' calculated using \code{runSystemModel} for system model option 2.
+#' If the list contains more than one performance metric, the argument 
+#' \code{metric} can be used to specify the metric to be used.
+#' @param metric a string; the name of the performance metric to be plotted. 
+#' The argument can be used to select the metric from
+#' \code{performanceOpt1} and \code{performanceOpt2} lists for plotting. 
+#' If \code{NULL} (the default), the first metric in the lists will be used.
 #' @param opt1Label a string; the text to label \code{performanceOpt1}.
 #' @param opt2Label a string; the text to label \code{performanceOpt2}.
-#' @param titleText a string; text for the title of the plot. The default is \code{paste0(opt2Label, " - ", opt1Label)}.
-#' @return The plot of the differences in the performance metrics (option 2 - option 1) in a ggplot object.
-#' @seealso \code{runSystemModel}, \code{plotPerformanceSpace}, \code{generateScenarios}, \code{getSimSummary}
+#' @param titleText a string; text for the title of the plot. The default is 
+#' \code{paste0(opt2Label, " - ", opt1Label)}.
+#' @return The plot of the differences in the performance metrics 
+#' (option 2 - option 1) in a ggplot object.
+#' @seealso \code{runSystemModel}, \code{plotPerformanceSpace}, 
+#' \code{generateScenarios}, \code{getSimSummary}
 #' @examples
 #' # load example datasets
 #' data("egSimSummary")
@@ -28,8 +41,10 @@
 #' data("egSimPerformanceB") # performance of option2
 #' data("egClimData")
 #' plotOptions(egSimPerformance[1], egSimPerformanceB[1], egSimSummary,
-#'   attX = "P_ann_seasRatio", attY = "P_ann_tot_m", topReps = 7, perfThreshLabel = "Threshold (28L)",
-#'   perfThresh = 28, opt1Label = "System A", opt2Label = "System B", climData = egClimData
+#'   attX = "P_day_all_seasRatioMarAug", attY = "P_day_all_tot_m", topReps = 7, 
+#'   perfThreshLabel = "Threshold (28L)",
+#'   perfThresh = 28, opt1Label = "System A", opt2Label = "System B", 
+#'   climData = egClimData
 #' )
 #' @export
 
