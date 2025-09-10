@@ -104,3 +104,15 @@
 #'   \item{controlFile}{the setting in the control file}
 #' }
 "egMultiSiteSim"
+
+#' Catchment data for Scott Creek in South Australia for period 1976-1985.
+#'
+#' @format A list with 4 elements
+#' \describe{
+#'   \item{times}{Vector of times in POSIXct format}
+#'   \item{P}{Vector of precipitation data (mm)}
+#'   \item{PET}{Vector of PET data (mm) (seasonally variable, no changes annually)}
+#'   \item{Qobs}{Vector of observed streamflow (mm)}
+#' }
+"data_A5030502"
+

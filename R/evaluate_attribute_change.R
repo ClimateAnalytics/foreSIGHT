@@ -83,10 +83,29 @@ calcPerformanceAttributes <- function(clim, # reference climate
 #' Red lines highlight attributes that change significantly more than the intended perturbation 
 #' (i.e. the slope of attribute vs. perturbed attribute > \code{slope_thresh}).
 #' Red crosses mark attributes with large biases—greater than \code{bias_base_thresh} 
-#' relative to their observed (unperturbed) historical values.
-#'  \cr
+#' relative to their observed (unperturbed) historical values.\cr
 #' @examples
-#' # XXXXXXXXXX ADD EXAMPLE FROM VIGNETTE
+#' \dontrun{
+#' # load dates, precip, PET and streamflow data for Scott Creek
+#' data('data_A5030502')
+#' clim_ref = list(times = data_A5030502$times,P = data_A5030502$P)  
+#' data("egScottCreekSimStoch")
+# select target attributes (perturbed/held/tied)
+#' attSel = colnames(sim.stoch$expSpace$targetMat)
+#' # other attributes
+#' attSel = c(attSel,'P_year_all_avgDwellTime','P_day_all_avgWSD',
+#'            'P_day_all_P99.9','P_day_JJA_P99.9','P_day_SON_P99.9',
+#'            'P_day_DJF_P99.9','P_day_MAM_P99.9')
+#' # plot changes in attributes for perturbations in seasonality ratio
+#' att = "P_day_all_seasRatioMarMay"
+#' par(mfrow=c(3,3),mar=c(4,7,2,1))
+#' # plot changes in a single attribute with respect to perturbed attrbiutes
+#' plotPerformanceAttributesOAT(clim=clim_ref,
+#'                              sim=sim.stoch,
+#'                              attPerturb=att,
+#'                              attEval=attSel,
+#'                              cex.main = 1.5,cex.xaxis = 1,cex.yaxis = 1) 
+#' }                                
 #' @export
 plotPerformanceAttributesOAT <- function(clim,
                                          sim,
