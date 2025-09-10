@@ -7,7 +7,8 @@
 setSeasonalTiedAttributes(attSel)
 }
 \arguments{
-\item{attSel}{A char vector; the names of the attributes (perturbed/held) for which seasonal attributes will be tied to.}
+\item{attSel}{A char vector; the names of the attributes (perturbed/held) for 
+which seasonal attributes will be tied to.}
 }
 \value{
 A list describing tied attributes with first level corresponding to

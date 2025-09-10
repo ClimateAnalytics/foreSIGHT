@@ -7,12 +7,7 @@
 convert_climYMD_POSIXct(clim)
 }
 \arguments{
-\item{clim}{data.frame or list; contains reference daily climate data. \cr
-For single site data, \code{clim} is a data.frame with columns named \emph{year}, \emph{month}, \emph{day}, \emph{*variable_name1*}, \emph{*variable_name2*}.
-Note that the first three columns of the data.frame contain the year, month, and day of the data.
-The columns have to be named as specified.
-For multi-site data, \code{clim} is a list, with elements named \emph{year}, \emph{month}, \emph{day}, \emph{*variable_name1*}, \emph{*variable_name2*}. List format is suitable for both single and multi-site data.
-Climate variables are specified as matrices, with columns for each site. \cr}
+\item{clim}{data.frame or list; contains reference daily climate data from foreSIGHT V1.2 or earlier. \cr}
 }
 \value{
 The function returns a list containing \code{times} in POSIXct format (corresponding to year, month and day from original data \code{clim}), and climate variables.

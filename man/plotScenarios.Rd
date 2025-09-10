@@ -4,7 +4,7 @@
 \alias{plotScenarios}
 \title{Creates summary plots of the biases in the scenarios}
 \usage{
-plotScenarios(sim, colMapRange = "default", plotAbs = T)
+plotScenarios(sim, colMapRange = "default", plotAbs = T, showSD = T)
 }
 \arguments{
 \item{sim}{a list; contains a stochastic simulation or the summary of a stochastic simulation created using the function \code{generateScenarios}}
@@ -17,6 +17,8 @@ If set to \code{"full"}, the colourmap limits are set to the minimum and maximum
 If a numeric vector is specified, the colourmap limits are set to the first (minimum) and second (maximum) values in the vector.}
 
 \item{plotAbs}{logical value, defaults to TRUE; determines whether the absolute value of the data is plotted (TRUE), or the raw value (which can be positive/negative) is plotted (FALSE).}
+
+\item{showSD}{logical value, defaults to FALSE; determines whether to plot heat maps showing standard deviation in biases (TRUE), or only mean biases (FALSE).}
 }
 \value{
 The function returns two R plots showing the biases in the targets of the scenarios generated using the function \code{generateScenarios}.

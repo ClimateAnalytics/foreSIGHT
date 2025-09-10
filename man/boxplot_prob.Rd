@@ -13,11 +13,11 @@ boxplot_prob(xin, whiskersProb = c(0.025, 0.975), at = NULL, ...)
 
 \item{at}{a vector; specifying x coordinates for boxes}
 
-\item{...}{; other arguments for \code{bxp}}
+\item{...}{other arguments for \code{bxp}}
 }
 \value{
-The function returns a boxplot figure.
+The function returns a boxplot.
 }
 \description{
-\code{boxplot_prob} Draws a boxplot with the whiskers at the probability limits, provided by \code{whiskersProb}.
+\code{boxplot_prob} draws a boxplot with the whiskers at probability limits \code{whiskersProb}.
 }

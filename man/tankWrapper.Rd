@@ -8,7 +8,6 @@ tankWrapper(data, systemArgs, metrics)
 }
 \arguments{
 \item{data}{list; contains observed daily precipitation and temperature to be used to run the rain water tank system model in a list with entries  \emph{times}, \emph{P}, \emph{Temp}.
-Note that the first three columns of the data.frame contain the year, month, and day of observation. The columns have to be named as specified.
 Please refer data provided with the package that may be loaded using \code{data(tankDat)} for an example of the expected format of \code{data}.}
 
 \item{systemArgs}{a list; contains the input arguments to the rain water tank system model. The valid fields in the list are:

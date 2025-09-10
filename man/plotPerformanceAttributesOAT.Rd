@@ -12,6 +12,7 @@ plotPerformanceAttributesOAT(
   vSel = NULL,
   cSel = NULL,
   ylim = NULL,
+  baseSettings = list(),
   cex.main = 0.8,
   cex.xaxis = 0.5,
   cex.yaxis = 0.5
@@ -32,6 +33,9 @@ plotPerformanceAttributesOAT(
 
 \item{ylim}{numeric vector of length 2; min and max y limits for plotting \cr}
 
+\item{baseSettings}{list containing 'bias_base_thresh' for threshold for bias in baseline performance (%), 
+and 'slope_thresh' for threshold for slope of relationship between perturbed and plotted attribute}
+
 \item{cex.main}{number; size for title \cr}
 
 \item{cex.xaxis}{number; size for x-axis \cr}
@@ -39,11 +43,21 @@ plotPerformanceAttributesOAT(
 \item{cex.yaxis}{number; size for y-axis \cr}
 }
 \value{
-The function returns a single plot showing changes in attribute \code{attEval} for changes in perturbed attribute \code{attPerturb} \cr
+The function returns a single plot showing changes in attribute \code{attEval} 
+for changes in perturbed attribute \code{attPerturb}. 
+Dashed blue lines indicate the target values for the perturbed attributes.
+Green lines represent the target values for held and tied attributes.
+Black line shows the median of the simulated attribute values, while the grey 
+band indicates the 90% range (5th to 95th percentiles).
+Red lines highlight attributes that change significantly more than the intended perturbation 
+(i.e. the slope of attribute vs. perturbed attribute > \code{slope_thresh}).
+Red crosses mark attributes with large biases—greater than \code{bias_base_thresh} 
+relative to their observed (unperturbed) historical values.
+ \cr
 }
 \description{
 \code{plotPerformanceAttributesOAT} plots OAT changes in attributes based on simulated climate object, for a given perturbed attribute.
 }
 \examples{
-# XXXXXXXXXX
+# XXXXXXXXXX ADD EXAMPLE FROM VIGNETTE
 }
