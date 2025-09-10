@@ -69,12 +69,24 @@ calcPerformanceAttributes <- function(clim, # reference climate
 #' @param vSel string; variable name for selection site/aggregation \cr
 #' @param cSel integer or string 'mean'; how to summarize multisite data - select site number or 'mean' for average \cr
 #' @param ylim numeric vector of length 2; min and max y limits for plotting \cr
+#' @param baseSettings list containing 'bias_base_thresh' for threshold for bias in baseline performance (%), 
+#' and 'slope_thresh' for threshold for slope of relationship between perturbed and plotted attribute
 #' @param cex.main number; size for title \cr
 #' @param cex.xaxis number; size for x-axis \cr
 #' @param cex.yaxis number; size for y-axis \cr
-#' @return The function returns a single plot showing changes in attribute \code{attEval} for changes in perturbed attribute \code{attPerturb} \cr
+#' @return The function returns a single plot showing changes in attribute \code{attEval} 
+#' for changes in perturbed attribute \code{attPerturb}. 
+#' Dashed blue lines indicate the target values for the perturbed attributes.
+#' Green lines represent the target values for held and tied attributes.
+#' Black line shows the median of the simulated attribute values, while the grey 
+#' band indicates the 90% range (5th to 95th percentiles).
+#' Red lines highlight attributes that change significantly more than the intended perturbation 
+#' (i.e. the slope of attribute vs. perturbed attribute > \code{slope_thresh}).
+#' Red crosses mark attributes with large biases—greater than \code{bias_base_thresh} 
+#' relative to their observed (unperturbed) historical values.
+#'  \cr
 #' @examples
-#' # XXXXXXXXXX
+#' # XXXXXXXXXX ADD EXAMPLE FROM VIGNETTE
 #' @export
 plotPerformanceAttributesOAT <- function(clim,
                                          sim,
@@ -83,17 +95,24 @@ plotPerformanceAttributesOAT <- function(clim,
                                          #                                        Perf=NULL,
                                          vSel = NULL, cSel = NULL,
                                          ylim = NULL,
+                                         baseSettings = list(),
                                          cex.main = 0.8, cex.xaxis = 0.5, cex.yaxis = 0.5) {
+  
+  if(!attPerturb%in%sim$expSpace$attPerturb){
+    stop(paste0(attPerturb,' not in sim$expSpace$attPerturb'))
+  }
+
   #  if (is.null(Perf)){
   Perf <- calcPerformanceAttributes(clim = clim, sim = sim, attSel = attEval, vSel = vSel, cSel = cSel)
   #  }
-
+  
   for (att in names(Perf)) {
     o <- plotPerformanceOAT(Perf, sim, metric = att, attSel = attPerturb, returnPlotData = T)
     plotPerformanceOAT.baseR(
       plotData = o$plotData, sim = sim, metric = att, targetVal = o$targetVal,
       attSel = attPerturb,
       ylim = ylim,
+      baseSettings=baseSettings,
       cex.main = cex.main, cex.xaxis = cex.xaxis, cex.yaxis = cex.yaxis
     )
   }
@@ -201,12 +220,12 @@ plotPerformanceOAT.baseR <- function(plotData, # list containing changes in attr
   }
 
   title_str <- metric
-  if (bias_base_hi) {
-    title_str <- paste0(title_str, " B")
-  }
-  if (inflated_response) {
-    title_str <- paste0(title_str, " I")
-  }
+  # if (bias_base_hi) {
+  #   title_str <- paste0(title_str, " B")
+  # }
+  # if (inflated_response) {
+  #   title_str <- paste0(title_str, " I")
+  # }
   graphics::title(title_str, cex.main = cex.main)
 
   # attribute = unique(plotData[[m]][,'attribute'])
