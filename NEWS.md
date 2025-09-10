@@ -1,3 +1,15 @@
+foreSIGHT 2.0.0
+----------------------------------------------------------------
+- Enabled use of flexible time steps (hourly to annual) instead of just daily
+- Updated attribute names to reflect different time steps and aggregation periods
+- Implemented sub-daily and monthly stochastic weather generators (SWGs)
+- Added post-processing routines for modifying SWG output
+- Changed format of reference climate data to support multiple time steps
+- Created functionality for tied attributes, which match changes to perturbed attributes
+- Added diagnostic plots for exploring how perturbed attributes affect other attributes
+- Supported multivariable attributes
+
+
 foreSIGHT 1.2.0
 ----------------------------------------------------------------
 - Implemented Robust Gauss Newton (RGN) optimization
