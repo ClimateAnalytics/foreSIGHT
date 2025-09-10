@@ -106,7 +106,7 @@ plotScenarios <- function(sim,
                           #                          fileName = "plotScenarios.pdf",
                           colMapRange = "default",
                           plotAbs = T,
-                          showSD = F) {
+                          showSD = T) {
   if (is.null(sim[["controlFile"]])) {
     cat("controlFile is missing in the simulation. Are the scenarios generated using simple scaling?\n")
     stop("plotScenarios cannot be used on simple scaled data")
