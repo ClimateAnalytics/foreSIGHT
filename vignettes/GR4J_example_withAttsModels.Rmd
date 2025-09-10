@@ -30,7 +30,7 @@ This vignette demonstrates the use of stochastic weather generators for producin
 
 It is assumed that the reader has already read the  *Introduction to climate stress testing using* fore*SIGHT* vignette, and is familiar with the basic *fore*SIGHT work flow demonstrated below:
 
-```{r CRAFTWorkflow, echo=FALSE, fig.cap="Workflow of climate 'stress-testing' using *fore*SIGHT", out.width = '30%'}
+```{r CRAFTWorkflow, echo=FALSE, fig.cap="Workflow of climate 'stress-testing' using *fore*SIGHT", out.width = '50%'}
 knitr::include_graphics("stepsOfCRAFT.png")
 ```
 
@@ -62,7 +62,7 @@ For example, “P_year_all_avg” is the average yearly calculated using all the
 The variable name “*var*” can be any string (that does not contain the separating character ‘\_’), and could include:
 
 -   “P”: rainfall
--   “T”: temperature
+-   “Temp”: temperature
 -   “PET”: Potential evapotranspiration
 
 ### **2.2. Temporal stratification**
@@ -528,7 +528,7 @@ controlFileList$modelParameterVariation$PET = "harWD"
 
 To implement this, the reference data must contain precipitation data at multiple sites (see *Introduction to climate stress testing using* fore*SIGHT* vignette, Section 4.1), and the latent variable model is specified in the control file. An example is provided in the help documentation for `generateScenarios()`.
 
-### **4.3.3.** Post-Processing of Stochastic Weather Generator Output
+### **4.3.3.** Post-processing of stochastic weather generator output
 
 In addition to generating climate time series using stochastic weather generators (SWGs), ***fore*****SIGHT** provides the ability to apply **post-processing adjustments** to the simulated output. This step helps to address known limitations of SWGs and ensures that certain climate features are better represented or that unrealistic behavior is constrained.
 
@@ -738,7 +738,7 @@ The following sections introduce diagnostic tools available in ***fore*****SIGHT
 
 *fore*SIGHT contains a function named `plotScenarios()` which can be used to create plots of the biases in attributes of the simulated data relative to the specified target values, for perturbed, held and target attributes. The function uses a simulation performed using `generateScenarios()` as input and plots the mean and standard deviation of the absolute biases of each attribute and target, across all the replicates in heatmap-like plots. It is implemented as follows:
 
-[`p <- plotScenarios(sim)   # sim the output from generateScenarios`]{.underline}
+`p <- plotScenarios(sim)   # sim the output from generateScenarios`
 
 The figures can be used to assess how well the simulations capture the desired target values of the attributes.
 
@@ -756,12 +756,18 @@ If the standard deviation of the absolute biases across the replicates are high,
 
 -   **Optimization performance**: If the optmiizer is unable to consistently find parameters that give good performance, you may need to adjust the optimization settings.
 
-[**XXX Evaluate how well the target attributes are captured by the simulated climates:**]{.underline}
+The use of `plotScenarios()` is demonstrated for the simulated climates generated in Section 4.3.6. (for the full exposure space, and with 50 replicates) as follows:
 
-```{r plotScenariosMultiRepsLarge, fig.width = 10, fig.height = 10, eval=TRUE}
+```{r plotScenariosMultiRepsLarge, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 22, out.width = "60%"}
 data("egScottCreekSimStoch") # this loads object sim.stoch
 plotScenarios(sim.stoch)
 ```
+
+These figures show the following:
+
+-    **Mean values**: Most attributes exhibit small mean biases, particularly the perturbed attributes—such as the 99th percentile rainfall and the seasonality ratio—which are closely aligned with their target values. The largest bias is observed for JJA rainfall, an issue that will be examined further in Section 5.2.
+
+-   **Standard deviation**: Variability is generally low for the perturbed attributes and those assigned higher weights during optimization. The greatest variability is seen in the number of wet days.
 
 ## 5.2. Evaluating changes in attributes
 
@@ -793,7 +799,7 @@ In particular, we examine perturbations to the attribute `"P_day_all_seasRatioJu
 
 -   Indicators of extreme events, including the 99.9th percentiles for all and seasonal data, i.e. `'P_day_all_P99.9','P_day_JJA_P99.9'`, `'P_day_SON_P99.9'`, `'P_day_DJF_P99.9'`, `'P_day_MAM_P99.9'`
 
-```{r plotPerformanceAtts1, fig.width = 10, fig.height = 20, eval=TRUE}
+```{r plotPerformanceAtts1, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 22, out.width = "90%", fig.cap = "Evaluation of changes in climate attributes for perturbations in P_day_all_seasRatioMarMay", eval=TRUE}
 
 # load dates, precip, PET and streamflow data for Scott Creek
 data('data_A5030502_1976_1985')
@@ -844,10 +850,10 @@ These results can be interpreted as follows:
 
 Next we evaluate the response to perturbations in `"P_day_all_P99":`
 
-```{r plotPerformanceAtts2, fig.width = 10, fig.height = 20, eval=TRUE}
+```{r plotPerformanceAtts2, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 22, out.width = "90%", fig.cap = "Evaluation of changes in climate attributes for perturbations in P_day_all_P99", eval=TRUE}
 # plot changes in attrtibutes for perturbations in P99
 att = "P_day_all_P99"
-par(mfrow=c(9,3),mar=c(4,7,2,1))
+par(mfrow=c(10,3),mar=c(4,7,2,1))
 # plot changes in a single attribute with respect to perturbed attrbiutes
 plotPerformanceAttributesOAT(clim=clim_ref,
                              sim=sim.multiRepsLarge,
@@ -902,26 +908,11 @@ Param = calGR4J(dates = dates,P=clim_ref$P,PET=PET,Qobs=Qobs)
 # setup systemArgs and metrics
 systemArgs = list(dates=dates,Param=Param,PET=PET)
 metrics = c('meanQ','P99','P25','min3yr')
-
-eval = evaluate_system_metrics(sim = sim.multiRepsLarge,
-                        clim = clim_ref,
-                        systemModel = GR4J_wrapper,
-                        systemArgs = systemArgs,metrics = metrics)
-
-par(mfrow=c(2,2),mar=c(3,5,1,1))
-for (m in 1:length(metrics)){
-  metric = metrics[m]
-  yAll = c(eval$systemPerf_base[[metric]],eval$systemPerf_obsClim[metric])
-  ylim = c(min(yAll),max(yAll))
-  boxplot_prob(as.vector(eval$systemPerf_base[[metric]]),ylim=ylim)
-  points(eval$systemPerf_obsClim[metric],col='red',pch=19)
-  title(metric)
-}
 ```
 
 Next, `evaluate_system_metrics()` is used to calculate streamflow metrics for the observed and baseline stochastic climates, with boxplots used to compare these values.
 
-```{r, virtualObs, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "47%", fig.cap = "Evaluation of stochastic climates in terms of capturing hydrological response to observed climates", eval=TRUE}
+```{r, virtualObs, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "60%", fig.cap = "Evaluation of stochastic climates in terms of capturing hydrological response to observed climates", eval=TRUE}
 eval = evaluate_system_metrics(sim=sim.multiRepsLarge,clim=clim_ref,
                                systemModel=GR4J_wrapper,systemArgs=systemArgs,
                                metrics=metrics)
@@ -952,7 +943,7 @@ sysOutSim = runSystemModel(sim=sim.stoch,systemModel = GR4J_wrapper,systemArgs =
 
 Plotting system performance was introduced in the *Introduction to Climate Stress Testing using foreSIGHT* vignette. The use of multiple stochastic replicates adds further flexibility and insights.
 
-## 6.1. Plotting OAT (One-At-a-Time) Performance
+## 6.1. Plotting OAT (One-At-a-Time) performance
 
 For each attribute perturbation, performance can be visualized using probability bounds across multiple stochastic replicates.
 
@@ -962,7 +953,7 @@ For each attribute perturbation, performance can be visualized using probability
 
 First, the response to perturbations in the seasonality ratio is explored
 
-```{r, GR4J_OATplotsSeasRatio, fig.align = 'center', fig.width = 10, fig.height = 10, eval=TRUE}
+```{r, GR4J_OATplotsSeasRatio, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "47%", eval=TRUE}
 # performance for changes in P_day_all_seasRatioMarMay (1st attribute)
 plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'meanQ',attSel=attPerturb[1],topReps=40,col='orange')
 plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P99',attSel=attPerturb[1],topReps=40,col='orange')
@@ -971,14 +962,12 @@ plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P2
 
 Next, the response to perturbations in extreme rainfall is shown:
 
-```{r, GR4J_OATplotsP99, fig.align = 'center', fig.width = 10, fig.height = 10, eval=TRUE}
+```{r, GR4J_OATplotsP99, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "47%", eval=TRUE}
 # performance for changes in P_day_all_P99 (2nd attribute)
 plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'meanQ',attSel=attPerturb[2],topReps=40,col='orange')
 plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P99',attSel=attPerturb[2],topReps=40,col='orange')
 plotPerformanceOAT(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P25',attSel=attPerturb[2],topReps=40,col='orange')
 ```
-
-[**this shows XXX**]{.underline}
 
 ## 6.2. Plot 2D performance spaces:
 
@@ -991,8 +980,6 @@ plotPerformanceSpace(performance = sysOutSim, sim=sim.multiRepsLarge, metric = '
 plotPerformanceSpace(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P99',type='filled.contour',nContour=5,topReps = 40)
 plotPerformanceSpace(performance = sysOutSim, sim=sim.multiRepsLarge, metric = 'P25',type='filled.contour',nContour=5,topReps = 40)
 ```
-
-[**this shows XXX**]{.underline}
 
 # **7. Conclusion**
 
@@ -1024,6 +1011,6 @@ Rainfall inputs are generated using a single-site, latent-variable stochastic we
 
 -   Qin, Y., Kavetski, D., & Kuczera, G. (2018). A Robust Gauss-Newton Algorithm for the Optimization of Hydrological Models: From Standard Gauss-Newton to Robust Gauss-Newton. *Water Resources Research, 54*(11), 9655-9683. \doi{<https://doi.org/10.1029/2017WR022488>}
 
--   Rasmussen, P. F. (2013). Multisite precipitation generation using a latent autoregressive model. *Water Resources Research, 49*(4), 1845-1857. \\doi{[0.1002/wrcr.20164](https://doi.org/10.1002/wrcr.20164)}
+-   Rasmussen, P. F. (2013). Multisite precipitation generation using a latent autoregressive model. *Water Resources Research, 49*(4), 1845-1857. \doi{[0.1002/wrcr.20164](https://doi.org/10.1002/wrcr.20164)}
 
 -   Richardson, C. W. (1981). Stochastic simulation of daily precipitation, temperature, and solar radiation. *Water Resources Research, 17*(1), 182-190. \doi{[10.1029/WR017i001p00182](https://doi.org/10.1029/WR017i001p00182)}

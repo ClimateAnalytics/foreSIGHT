@@ -21,8 +21,8 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, collapse = TRUE, comment = "#>")
 rm(list = ls())
-devtools::load_all("C:/Users/a1065639/Work/foreSIGHT")
-# library(foreSIGHT)
+#devtools::load_all("C:/Users/a1065639/Work/foreSIGHT")
+library(foreSIGHT)
 ```
 
 # 1. Introduction
