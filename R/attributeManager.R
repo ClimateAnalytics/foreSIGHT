@@ -116,6 +116,18 @@ func_seasRatio <- function(data, attArgs) {
 #   return(xP99.9overPave)
 # }
 
+#' Calculates the average dwell time, i.e. average time for below median value spells
+#' @param data is a vector, representing a time series
+#' @export
+func_avgDwellTime <- function(data) {
+    spell.lengths <- get.spell.lengths(
+      data = data,
+      thresh = stats::median(data),
+    type = "dry"
+  )
+  return(mean(spell.lengths))
+}
+
 #' Calculates number of wet days (above threshold)
 #' @param data is a vector, representing a time series
 #' @param attArgs is a list, with attArgs$threshold denoting the threshold
@@ -190,14 +202,17 @@ func_avg <- function(data) mean(data, na.rm = T)
 #' @export
 func_rng <- function(data, attArgs) get.quantile.rng(data = data, lim = attArgs$lim)
 
-#' Calculates the growing season length
-#' @param data is a vector, representing a time series
-#' @export
+# Calculates the growing season length
+# @param data is a vector, representing a time series
+# @export
+# NOTE: currently note exported since this is not generalised 
+# (e.g. uses fixed threshold of 5 deg C, and moving window of 6 days) 
 func_GSL <- function(data) GSLcalc(x = data)
 
-#' Calculates the cold season length
-#' @param data is a vector, representing a time series
-#' @export
+# Calculates the cold season length
+# @param data is a vector, representing a time series
+# @export
+# NOTE: currently note exported since this is not generalised (e.g. uses fixed threshold of 17 deg C) 
 func_CSL <- function(data) CSLcalc(x = data)
 
 #' Calculates the number of frost days
@@ -285,10 +300,18 @@ func_ma3P99 <- function(data) {
 
 ###############
 
+
+#' Calculates the correlation between two time series 
+#' @param data1 and data2 are vectors, representing a time series
+#' @export
 mvFunc_cor <- function(data.1, data.2) {
   return(stats::cor(data.1, data.2, use = "pairwise.complete.obs"))
 }
 
+#' Calculates the average value of a non-rainfall time series on wet-days   
+#' @param data1 represents a non-rainfall time series
+#' @param data2 represents rainfall time series
+#' @export
 mvFunc_avgWetDay <- function(data.1, data.2) {
   return(base::mean(data.1[data.2 > 0], na.rm = T))
 }
@@ -297,6 +320,10 @@ mvFunc_sdWetDay <- function(data.1, data.2) {
   return(stats::sd(data.1[data.2 > 0], na.rm = T))
 }
 
+#' Calculates the average value of a non-rainfall time series on dry-days   
+#' @param data1 represents a non-rainfall time series
+#' @param data2 represents rainfall time series
+#' @export
 mvFunc_avgDryDay <- function(data.1, data.2) {
   return(base::mean(data.1[data.2 == 0], na.rm = T))
 }
@@ -322,20 +349,28 @@ mvFunc_xP90DryDay <- function(data.1, data.2) {
   return(stats::quantile(data.1[data.2 == 0], probs = 0.9, na.rm = T, names = F))
 }
 
-func_cv <- function(data) {
-  m <- base::mean(data, na.rm = T)
-  if (m == 0) {
-    cv <- 9999.
-  } else {
-    cv <- stats::sd(data, na.rm = T) / m
-  }
-  return(cv)
-}
+# func_cv <- function(data) {
+#   m <- base::mean(data, na.rm = T)
+#   if (m == 0) {
+#     cv <- 9999.
+#   } else {
+#     cv <- stats::sd(data, na.rm = T) / m
+#   }
+#   return(cv)
+# }
 
+#' Calculates the coefficient of variation (sdev/mean) value of a non-rainfall time series on wet-days   
+#' @param data1 represents a non-rainfall time series
+#' @param data2 represents rainfall time series
+#' @export
 mvFunc_cvWetDay <- function(data.1, data.2) {
   return(func_cv(data.1[data.2 > 0]))
 }
 
+#' Calculates the coefficient of variation (sdev/mean) value of a non-rainfall time series on dry-days   
+#' @param data1 represents a non-rainfall time series
+#' @param data2 represents rainfall time series
+#' @export
 mvFunc_cvDryDay <- function(data.1, data.2) {
   return(func_cv(data.1[data.2 == 0]))
 }
@@ -783,7 +818,7 @@ calcFuncNamesAndArgs <- function(funcNameLong, # long function name (including p
                                  datInd, # dat indices and properties (e.g. datInd$nyr, datInd$i.yy)
                                  type) {
   # functions that require threshold arguments
-  funcsWithThresh <- c("nWet", "dyWet", "maxDSD", "maxWSD", "avgWSD", "avgDSD", "fracNwet")
+  funcsWithThresh <- c("nWet", "dyWet", "maxDSD", "maxWSD", "avgWSD", "avgDSD")#, "fracNwet")
 
   attArgs <- NULL
 
