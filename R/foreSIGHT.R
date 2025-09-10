@@ -91,7 +91,7 @@
 #'   \item{Avg. Deficit}{average daily deficit of water, litres}
 #'   \item{Reliability}{reliability of the tank, fraction}
 #' }
-"egSimPerformance_systemB"
+"egSimPerformanceB"
 
 
 #' Output from call to generateScenarios() using multi-site model (see example 5 in generateScenarios).
