@@ -81,6 +81,7 @@ Encoding: UTF-8
 NeedsCompilation: no
 VignetteBuilder: knitr
 LazyData: true
+LazyDataCompression: xz
 RoxygenNote: 7.3.2
 Config/testthat/edition: 3
 Collate: 
