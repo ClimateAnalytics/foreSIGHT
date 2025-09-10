@@ -28,12 +28,12 @@ modelInfoList[["Temp-seas-wgenO"]] <- list(
   minBound = c(
     0.45, 0.45, 0.45, 0.45,
     -10, -10, -10, -10,
-    1, 1, 1, 1, 1
+    1, 1, 1, 1
   ),
   maxBound = c(
     0.9, 0.9, 0.9, 0.9,
     40, 40, 40, 40,
-    20, 20, 20, 20, 20
+    20, 20, 20, 20
   ),
   WDcondition = FALSE
 )
@@ -56,16 +56,16 @@ modelInfoList[["Temp-har-wgenO"]] <- list(
 
 ##########
 
-modelInfoList[["Temp-annWD-wgenO"]] <- list(
-  simVar = "Temp",
-  timeStep = "1 day",
-  simPriority = 2,
-  npars = 3,
-  parNam = c("cor0", "mu.W", "sigma.W", "mu.D", "sigma.D"),
-  minBound = c(0.45, -10, 0.1, -10, 1),
-  maxBound = c(0.95, 40, 20, 40, 20),
-  WDcondition = TRUE, WDthresh = 0
-)
+# modelInfoList[["Temp-annWD-wgenO"]] <- list(
+#   simVar = "Temp",
+#   timeStep = "1 day",
+#   simPriority = 2,
+#   npars = 3,
+#   parNam = c("cor0", "mu.W", "sigma.W", "mu.D", "sigma.D"),
+#   minBound = c(0.45, -10, 0.1, -10, 1),
+#   maxBound = c(0.95, 40, 20, 40, 20),
+#   WDcondition = TRUE, WDthresh = 0
+# )
 
 modelInfoList[["Temp-seasWD-wgenO"]] <- list(
   simVar = "Temp",
@@ -262,17 +262,17 @@ parManager.wgenO <- function(parS, SWGparameterization, datInd, auxInfo = NULL) 
     )
   } else if (SWGparameterization == "seas") {
     parTS <- assignSeasonalParameters(parNamesSWG = c("cor0", "mu", "sigma"), parS = parS, datInd = datInd)
-  } else if (SWGparameterization == "annWD") {
-    parTStmp <- assignAnnualParameters(
-      parNamesSWG = c("cor0", "mu.D", "mu.W", "sigma.D", "sigma.W"), parS = parS,
-      datInd = datInd
-    )
-    # select parameters mu and sigma based on wet-dry days
-    mu <- parTStmp$muD
-    mu[auxInfo$wdStatus] <- parTStmp$muW[auxInfo$wdStatus]
-    sigma <- parTStmp$sigmaD
-    sigma[auxInfo$wdStatus] <- parTStmp$sigmaW[auxInfo$wdStatus]
-    parTS <- list(cor0 = parTStmp$cor0, mu = mu, sigma = sigma)
+  # } else if (SWGparameterization == "annWD") {
+  #   parTStmp <- assignAnnualParameters(
+  #     parNamesSWG = c("cor0", "mu.D", "mu.W", "sigma.D", "sigma.W"), parS = parS,
+  #     datInd = datInd
+  #   )
+  #   # select parameters mu and sigma based on wet-dry days
+  #   mu <- parTStmp$muD
+  #   mu[auxInfo$wdStatus] <- parTStmp$muW[auxInfo$wdStatus]
+  #   sigma <- parTStmp$sigmaD
+  #   sigma[auxInfo$wdStatus] <- parTStmp$sigmaW[auxInfo$wdStatus]
+  #   parTS <- list(cor0 = parTStmp$cor0, mu = mu, sigma = sigma)
   } else if (SWGparameterization == "seasWD") {
     # setup seasonally varying parameter time series for all 5 parameters (including separate wet-dry day params)
     parTStmp <- assignSeasonalParameters(
