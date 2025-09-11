@@ -8,7 +8,19 @@
 #' @param Qobs is the observed daily streamflow (in mm)
 #' @param plotResults is a logical indicating whether airGR summary plots are to be produced
 #' @return A vector with GR4J parameter values
-#' @import airGR
+#' @examples
+#' # load dates, precip, PET and streamflow data for Scott Creek
+#' data('data_A5030502')
+#' clim_ref = list(times = data_A5030502$times,P = data_A5030502$P)  
+#' data("egScottCreekSimStoch")
+#' # observed flow
+#' Qobs = data_A5030502$Qobs
+#' # observed PET 
+#' PET = data_A5030502$PET 
+#' dates = as.Date(clim_ref$times)
+#' # calibrate GR4J parameters
+#' Param = calGR4J(dates = dates,P=clim_ref$P,PET=PET,Qobs=Qobs)
+#' #' @import airGR
 #' @export
 calGR4J = function(dates,P,PET,Qobs,plotResults=F){
   
@@ -73,6 +85,28 @@ utils::globalVariables("year")
 #' mean daily flow, 'P99' and 'P25' for 99th and 25th percentile daily flows, 
 #' and 'min3yr' for minimum 3-year total flow)
 #' @return A vector of metric values
+#' @examples
+#' # load dates, precip, PET and streamflow data for Scott Creek
+#' data('data_A5030502')
+#' 
+#' clim_ref = list(times = data_A5030502$times,P = data_A5030502$P)  
+#' 
+#' # observed flow
+#' Qobs = data_A5030502$Qobs
+#' # observed PET 
+#' PET = data_A5030502$PET 
+#' 
+#' dates = as.Date(clim_ref$times)
+#' 
+#' # calibrate GR4J parameters
+#' Param = calGR4J(dates = dates,P=clim_ref$P,PET=PET,Qobs=Qobs)
+#' 
+#' # setup systemArgs and metrics
+#' systemArgs = list(dates=dates,Param=Param,PET=PET)
+#' metrics = c('meanQ','P99','P25','min3yr')
+#' 
+#' metricsObs = GR4J_wrapper(data=clim_ref,systemArgs = systemArgs,metrics=metrics)
+#' metricsObs
 #' @import airGR
 #' @export
 GR4J_wrapper = function(data,
