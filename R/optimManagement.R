@@ -3,79 +3,12 @@
 #######################################
 
 #-----------------------------------------------
-
-findFixedPars <- function(xLo, xHi) {
-  fixParLoc <- fixParVal <- fitParLoc <- c()
-  for (i in 1:length(xLo)) {
-    if (xLo[i] == xHi[i]) {
-      fixParLoc <- c(fixParLoc, i)
-      fixParVal <- c(fixParVal, xLo[i])
-    } else {
-      fitParLoc <- c(fitParLoc, i)
-    }
-  }
-  return(list(fixParLoc = fixParLoc, fixParVal = fixParVal, fitParLoc = fitParLoc))
-}
-
-#-----------------------------------------------
-
-calcParFixedPars <- function(x, fixedPars) {
-  if (!is.null(fixedPars$fixParLoc)) {
-    xAll <- c()
-    xAll[fixedPars$fixParLoc] <- fixedPars$fixParVal
-    xAll[fixedPars$fitParLoc] <- x
-  } else {
-    xAll <- x
-  }
-  #  browser()
-  return(xAll)
-}
-
-#-----------------------------------------------
-
-targetFinderFixPars <- function(x, fixedPars = NULL, returnThis = "objFunc", ...) {
-  # deal with fixed and fitted pars
-  xAll <- calcParFixedPars(x, fixedPars)
-  target <- targetFinder(x = xAll, returnThis = returnThis, ...)
-  # save obj func value to vector
-  if (returnThis == "objFunc") {
-    assign("fTrace", c(
-      foreSIGHT_optimizationDiagnosticsEnv$fTrace,
-      target
-    ),
-    envir = foreSIGHT_optimizationDiagnosticsEnv
-    )
-  } else if (returnThis == "resid") {
-    assign("fTrace", c(
-      foreSIGHT_optimizationDiagnosticsEnv$fTrace,
-      -sqrt(sum(target^2))
-    ),
-    envir = foreSIGHT_optimizationDiagnosticsEnv
-    )
-  }
-  return(target)
-}
-
-#-----------------------------------------------
-
-negTargetFinder <- function(x, ...) {
-  target <- -targetFinder(x = x, ...)
-  return(target)
-}
-
-#-----------------------------------------------
-
-negTargetFinderFixPars <- function(x, fixedPars = NULL, ...) {
-  target <- -targetFinderFixPars(x = x, fixedPars = fixedPars, ...)
-  return(target)
-}
-
-#-----------------------------------------------
-
+# setup environment for saving optimization info 
 foreSIGHT_optimizationDiagnosticsEnv <- new.env(parent = emptyenv())
 
 #-----------------------------------------------
-
+# Main optimization called by simulateTarget
+# Performs multiple calls to optimization routine to improve performance
 multiStartOptim <- function(optimArgs,
                             modelInfo,
                             target,
@@ -150,7 +83,7 @@ multiStartOptim <- function(optimArgs,
       suggestions = parSuggest
     )
 
-
+    # call optimization routine for a single multistart
     optOutput <- singleOptim(optInput, ...)
 
 
@@ -239,6 +172,8 @@ multiStartOptim <- function(optimArgs,
 }
 
 #-----------------------------------------------
+# this funciton checks to see if this exact optimization has been performed already 
+# (which can occur when multiple variables/models are used)
 
 singleOptim <- function(optInput, ...) {
   optInputAll <- c(optInput, list(...))
@@ -494,4 +429,77 @@ outBound <- function(ind = NULL, # index of pars being evaluated
   }
   return(ok)
 }
+
+#-----------------------------------------------
+
+# Following functions get parameters/obj func in format required for different optimizers 
+
+#-----------------------------------------------
+
+findFixedPars <- function(xLo, xHi) {
+  fixParLoc <- fixParVal <- fitParLoc <- c()
+  for (i in 1:length(xLo)) {
+    if (xLo[i] == xHi[i]) {
+      fixParLoc <- c(fixParLoc, i)
+      fixParVal <- c(fixParVal, xLo[i])
+    } else {
+      fitParLoc <- c(fitParLoc, i)
+    }
+  }
+  return(list(fixParLoc = fixParLoc, fixParVal = fixParVal, fitParLoc = fitParLoc))
+}
+
+#-----------------------------------------------
+
+calcParFixedPars <- function(x, fixedPars) {
+  if (!is.null(fixedPars$fixParLoc)) {
+    xAll <- c()
+    xAll[fixedPars$fixParLoc] <- fixedPars$fixParVal
+    xAll[fixedPars$fitParLoc] <- x
+  } else {
+    xAll <- x
+  }
+  #  browser()
+  return(xAll)
+}
+
+#-----------------------------------------------
+
+targetFinderFixPars <- function(x, fixedPars = NULL, returnThis = "objFunc", ...) {
+  # deal with fixed and fitted pars
+  xAll <- calcParFixedPars(x, fixedPars)
+  target <- targetFinder(x = xAll, returnThis = returnThis, ...)
+  # save obj func value to vector
+  if (returnThis == "objFunc") {
+    assign("fTrace", c(
+      foreSIGHT_optimizationDiagnosticsEnv$fTrace,
+      target
+    ),
+    envir = foreSIGHT_optimizationDiagnosticsEnv
+    )
+  } else if (returnThis == "resid") {
+    assign("fTrace", c(
+      foreSIGHT_optimizationDiagnosticsEnv$fTrace,
+      -sqrt(sum(target^2))
+    ),
+    envir = foreSIGHT_optimizationDiagnosticsEnv
+    )
+  }
+  return(target)
+}
+
+#-----------------------------------------------
+
+negTargetFinder <- function(x, ...) {
+  target <- -targetFinder(x = x, ...)
+  return(target)
+}
+
+#-----------------------------------------------
+
+negTargetFinderFixPars <- function(x, fixedPars = NULL, ...) {
+  target <- -targetFinderFixPars(x = x, fixedPars = fixedPars, ...)
+  return(target)
+}
+
 

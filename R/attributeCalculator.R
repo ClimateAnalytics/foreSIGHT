@@ -203,8 +203,8 @@ setup_datInd_agg <- function(simAgg, times, timeStep, nperiod = 1) {
 }
 
 ########################
-
-# aggregate_calculate_attributes = function(varList=NULL,aggList=NULL,data,attSel,datInd,attInfo=NULL){
+# this function calculate attribute values for attSel based on data
+# temporal aggregation is performed depending on attSel
 aggregate_calculate_attributes <- function(data, attSel, datInd, attInfo = NULL) {
   # varList = unique(sapply(X=attSel,FUN=get.attribute.varType))
   varList <- unique(attInfo$varType)

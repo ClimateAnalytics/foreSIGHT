@@ -100,6 +100,7 @@ insert_NAs_breaks_V2 <- function(data, indx) {
 # GENERIC EXTRACTOR FUNCTION
 extractor <- function(func = NULL, data = NULL, indx = NULL, attArgs = NULL, ...) { # returns a number
 
+  # we introduce NAs in between periods where times are not continuous
   if (is.list(data)) {
     data.1 <- data[[1]]
     data.2 <- data[[2]]
@@ -151,7 +152,7 @@ extractor.summaryMean <- function(func = NULL,
 
 ####### NOTE: calling the following separately is inefficient (annual totals calculated for each)
 
-### followup note: this is resolved using aggrtegation periods of 1 year ion attributes
+### followup note: this is resolved using aggregation periods of 1 year ion attributes
 
 # EXTRACTOR FOR MULTIPLE PERIODS (TEMPORARY FUNCTION here)
 extractor.summarySD <- function(func = NULL,
