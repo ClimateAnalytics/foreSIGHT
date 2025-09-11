@@ -1,14 +1,17 @@
 ## Test environments
-* R version 4.4.2 (2023-10-31) on Windows 11 [devtools::check(args = "--as-cran")
-]
+* R version 4.4.2 (2023-10-31) on Windows 11 [devtools::check(args = "--as-cran")]
 * R-devel on win-builder [devtools::check_win_devel()]
 
 ## R CMD check results
 There were no ERRORs or WARNINGs.
 
 There were 2 NOTES [devtools::check(args = "--as-cran") only]:
-* NOTE about size of LazyData database (30.6MB). Compression has been enabled using `LazyDataCompression: xz`. The large size is due to included datasets used in examples and vignettes.
-* NOTE about large number of packages. All packages in imports are considered to be essential for this package. 
+
+NOTE 1: Imports includes 25 non-default packages.
+The package imports a larger number of packages due to its integration of multiple statistical, hydrological, and visualization tools to support a comprehensive climate scenario evaluation framework. Further reduction is being considered for future versions.
+
+NOTE 2: Installed size is 29.2Mb (data: 26.4Mb, doc: 1.2Mb)
+The majority of the package size is due to example datasets (in data/) used to illustrate and validate the package functionality. These datasets are important for reproducibility, examples, and vignettes. The size has been minimized where feasible without compromising usability.
 
 ## Downstream dependencies
 There are no known reverse dependencies.
