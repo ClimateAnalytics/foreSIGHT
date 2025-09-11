@@ -1,4 +1,7 @@
 #################################
+# Bartlett-Lewis rectangular pulse sub-daily rainfall model
+# Implemented using BLRPM R package
+#################################
 
 #' @include default_parameters.R
 

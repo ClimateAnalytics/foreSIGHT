@@ -1,4 +1,8 @@
 #################################
+# Distributional scaling. 
+# Allows shape of rainfall distribution to change.
+# Fits gamma distribution to observed P, fits gamma distribution to match target values, then applies quantile mapping
+#################################
 
 #' @include default_parameters.R
 

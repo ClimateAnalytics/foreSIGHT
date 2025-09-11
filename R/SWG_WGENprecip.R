@@ -1,4 +1,6 @@
 # #################################
+# Richardson WGEN daily rainfall model
+# #################################
 
 #' @include default_parameters.R
 
@@ -130,6 +132,7 @@ SWGsim.wgen <- function(SWGpar,
   return(simP$sim)
 }
 
+#################################
 #' @import Rcpp
 Pstatus_WGEN <- function(parPwd, # vector of pars for pwd (length = nperiod) - The modified cpp code expects vector of length ndays (not nperiod)
                          parPdd, # vector of pars for pdd (length = nperiod) - The modified cpp code expects vector of length ndays (not nperiod)
@@ -139,6 +142,7 @@ Pstatus_WGEN <- function(parPwd, # vector of pars for pwd (length = nperiod) - T
   return(drywet_TS)
 }
 
+#################################
 Pamount_WGEN <- function(parAlpha = NULL, # vector of pars for alpha (length = nperiod) - alpha has to be of length ndays (as per the code)
                          parBeta = NULL, # vector of pars for beta (length = nperiod)
                          status_ts = NULL, # TS vector of wet/dry statuses-obtained from the output of 'wvar_gen_Pstatus'

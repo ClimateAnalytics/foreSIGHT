@@ -1,4 +1,6 @@
 #################################
+# Ramussen's latent variable daily rainfall model
+#################################
 
 #' @include default_parameters.R
 

@@ -1,4 +1,7 @@
 #################################
+# Monthly rainfall model based on transformed AR1 model.
+# Very similar to Rasmussen's model for daily rainfall (should consolidate later)
+#################################
 
 #' @include default_parameters.R
 

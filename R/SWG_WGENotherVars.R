@@ -1,4 +1,7 @@
 # #################################
+# WGEN type model for variables other than rainfall (e.g. temp, PET)
+# Various parameterisations, including conditioning parameters on wet/dry day
+# #################################
 
 #' @include default_parameters.R
 
