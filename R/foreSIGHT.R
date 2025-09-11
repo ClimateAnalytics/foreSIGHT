@@ -32,8 +32,8 @@
 #'
 #' @format A list with 2 elements
 #' \describe{
-#'   \item{volumetric reliability (fraction)}
-#'   \item{reliability (fraction)}
+#'   \item{volumetric reliability (fraction)}{Volumetric reliaiblity of tank}
+#'   \item{reliability (fraction)}{Reliability of tank}
 #' }
 "egScalPerformance"
 
