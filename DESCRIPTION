@@ -1,5 +1,5 @@
 Package: foreSIGHT
-Version: 2.0
+Version: 2.0.0
 Depends: R (>= 3.5.0)
 LinkingTo: Rcpp 
 Imports: 
