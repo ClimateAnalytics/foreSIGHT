@@ -5,7 +5,7 @@ rm(list=ls())
 
 library(foreSIGHT)
 
-attPerturb <- c("P_day_all_tot", "Temp_day_all_avg")
+attPerturb <- c("P_day_all_tot_m", "Temp_day_all_avg")
 attPerturbType <- "regGrid"
 attPerturbSamp <- c(10, 10)
 attPerturbMin <- c(0.8, -1)
