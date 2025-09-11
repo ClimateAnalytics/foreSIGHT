@@ -62,9 +62,11 @@
 #' @return The function returns two R plots showing the biases in the targets of the scenarios generated using the function \code{generateScenarios}.
 #' @seealso \code{createExpSpace}, \code{generateScenarions}, \code{getSimSummary}
 #' @examples
+#' \dontrun{
 #' # load simulated climates from Scott Creek example 
 #' data('egScottCreekSimStoch')
 #' plotScenarios(sim.stoch)
+#' }
 #' @export
 
 plotScenarios <- function(sim,

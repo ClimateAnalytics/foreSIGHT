@@ -41,6 +41,7 @@ Refer to \code{tankWrapper} to understand how the \code{systemModel} is expected
 The \code{systemModel} function is expected to return a named list of performance metrics. The elements of the vector should correspond to \code{metrics}.
 }
 \examples{
+\dontrun{
 # Example using tankWrapper as the systemModel
 # =====================================================
 # create an exposure space
@@ -74,6 +75,7 @@ systemPerf <- runSystemModel(
   systemArgs = systemArgs,
   metrics = tankMetrics[1:2]
 )
+}
 }
 \seealso{
 \code{tankWrapper}, \code{generateScenarios}

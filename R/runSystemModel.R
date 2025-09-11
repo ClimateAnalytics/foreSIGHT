@@ -25,6 +25,7 @@
 #' Each element contains performance values calculated at all the target points in the exposure space in a matrix with nrow corresponding to the targets and ncol corresponding to the replicates.
 #' @seealso \code{tankWrapper}, \code{generateScenarios}
 #' @examples
+#' \dontrun{
 #' # Example using tankWrapper as the systemModel
 #' # =====================================================
 #' # create an exposure space
@@ -58,6 +59,7 @@
 #'   systemArgs = systemArgs,
 #'   metrics = tankMetrics[1:2]
 #' )
+#' }
 #' @export
 
 

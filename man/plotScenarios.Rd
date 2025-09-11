@@ -40,9 +40,11 @@ The argument \code{sim} may be a full stochastic simulation generated using the 
 generated using \code{getSimSummary}
 }
 \examples{
+\dontrun{
 # load simulated climates from Scott Creek example 
 data('egScottCreekSimStoch')
 plotScenarios(sim.stoch)
+}
 }
 \seealso{
 \code{createExpSpace}, \code{generateScenarions}, \code{getSimSummary}
