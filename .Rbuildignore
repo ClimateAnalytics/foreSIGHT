@@ -1,16 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^scripts_benchmark_test$
 ^cran-comments\.md$
-^notebooks$
-^testing_2.0$
 ^CRAN-SUBMISSION$
-^data/backup$
-^data/backup_20250903
-^data/backup_20250904
-^data/backup_20250910
-^vignettes/backup$
 ^data/scripts$
-^tests$
 ^doc$
 ^Meta$
