@@ -21,7 +21,7 @@ devtools::load_all()
 # remove.packages("foreSIGHT")
 # .rs.restartR()
 # devtools::install()
-library(foreSIGHT)
+#library(foreSIGHT)
 
 # climate reference data file name
 fname = paste0(dataDir,'24007_LOXTON_Dec2023.csv')
@@ -81,60 +81,60 @@ clim_ref <- list(times = as.POSIXct(date[keep],tz='UTC'),
 
 ######################################################################
 
-mvFunc_cor = function(data.1,data.2){
-  return(cor(data.1,data.2,use='pairwise.complete.obs'))
-}
-
-mvFunc_avgWetDay = function(data.1,data.2){
-  return(mean(data.1[data.2>0],na.rm=T))
-}
-
-mvFunc_sdWetDay = function(data.1,data.2){
-  return(sd(data.1[data.2>0],na.rm=T))
-}
-
-mvFunc_avgDryDay = function(data.1,data.2){
-  return(mean(data.1[data.2==0],na.rm=T))
-}
-
-mvFunc_sdDryDay = function(data.1,data.2){
-  return(sd(data.1[data.2==0],na.rm=T))
-}
-
-func_sd = function(data){
-  return(sd(data,na.rm=T))
-}
-
-func_xP90 = function(data){
-  P90 = quantile(data,probs = 0.9,na.rm=T,names=F)
-  return(P90)
-}
-
-mvFunc_xP90WetDay = function(data.1,data.2){
-  return(quantile(data.1[data.2>0],probs=0.9,na.rm=T,names=F))
-}
-
-mvFunc_xP90DryDay = function(data.1,data.2){
-  return(quantile(data.1[data.2==0],probs=0.9,na.rm=T,names=F))
-}
-
-func_cv = function(data){
-  m = mean(data,na.rm=T)
-  if (m==0){
-    cv = 9999.
-  } else {
-    cv = sd(data,na.rm=T)/m
-  }
-  return(cv)
-}
-
-mvFunc_cvWetDay = function(data.1,data.2){
-  return(func_cv(data.1[data.2>0]))
-}
-
-mvFunc_cvDryDay = function(data.1,data.2){
-  return(func_cv(data.1[data.2==0]))
-}
+# mvFunc_cor = function(data.1,data.2){
+#   return(cor(data.1,data.2,use='pairwise.complete.obs'))
+# }
+# 
+# mvFunc_avgWetDay = function(data.1,data.2){
+#   return(mean(data.1[data.2>0],na.rm=T))
+# }
+# 
+# mvFunc_sdWetDay = function(data.1,data.2){
+#   return(sd(data.1[data.2>0],na.rm=T))
+# }
+# 
+# mvFunc_avgDryDay = function(data.1,data.2){
+#   return(mean(data.1[data.2==0],na.rm=T))
+# }
+# 
+# mvFunc_sdDryDay = function(data.1,data.2){
+#   return(sd(data.1[data.2==0],na.rm=T))
+# }
+# 
+# func_sd = function(data){
+#   return(sd(data,na.rm=T))
+# }
+# 
+# func_xP90 = function(data){
+#   P90 = quantile(data,probs = 0.9,na.rm=T,names=F)
+#   return(P90)
+# }
+# 
+# mvFunc_xP90WetDay = function(data.1,data.2){
+#   return(quantile(data.1[data.2>0],probs=0.9,na.rm=T,names=F))
+# }
+# 
+# mvFunc_xP90DryDay = function(data.1,data.2){
+#   return(quantile(data.1[data.2==0],probs=0.9,na.rm=T,names=F))
+# }
+# 
+# func_cv = function(data){
+#   m = mean(data,na.rm=T)
+#   if (m==0){
+#     cv = 9999.
+#   } else {
+#     cv = sd(data,na.rm=T)/m
+#   }
+#   return(cv)
+# }
+# 
+# mvFunc_cvWetDay = function(data.1,data.2){
+#   return(func_cv(data.1[data.2>0]))
+# }
+# 
+# mvFunc_cvDryDay = function(data.1,data.2){
+#   return(func_cv(data.1[data.2==0]))
+# }
 
 
 
@@ -229,14 +229,21 @@ modelSelection[["optimisationArguments"]][["OFtol"]] <- 0.02
 #modelSelection[["penaltyAttributes"]] <- c("P_day_all_tot", "P_day_all_xP99overPave",
 #                                           "P_day_all_nWet", "P_day_all_avgDSD")#,
 
-modelSelection[["penaltyAttributes"]] <- c("P_day_all_tot", "P_day_all_xP99overPave",
-                                             "P_day_all_nWet", "P_day_all_avgDSD",
-                                           "PET_day_all_avg","PET_day_all_cor","PET_day_all_cv")
+#modelSelection[["penaltyAttributes"]] <- c("P_day_all_tot", "P_day_all_xP99overPave",
+#                                             "P_day_all_nWet", "P_day_all_avgDSD",
+#                                           "PET_day_all_avg","PET_day_all_cor","PET_day_all_cv")#,"P_year_all_cv")
+modelSelection[["penaltyAttributes"]] <- c("P_day_all_tot", "P_day_all_P99",
+                                           "P_day_all_nWet", "P_day_all_avgDSD",
+                                           "PET_day_all_avg","PET_day_all_cor","PET_day_all_cv")#,"P_year_all_cv")
 #modelSelection[["penaltyWeights"]] <-c(2,2,2,2)
+#modelSelection[["penaltyWeights"]] = rep(3,8)
 modelSelection[["penaltyWeights"]] = rep(3,7)
 #modelSelection[["penaltyWeights"]] = rep(3,4)
 # modelSelection[["penaltyWeights"]] = rep(0,4)
 
+# modelSelection$postProcessing = list()
+# modelSelection$postProcessing$P = list()
+# modelSelection$postProcessing$P$types = c('annVar','annCor')
 
 modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
 controlFile = paste0(tempdir(), "\\eg_controlFile.json")
@@ -298,49 +305,61 @@ write(modelSelectionJSON, file = controlFile)
 
 #########################
 
-# attPerturb = c('P_day_all_tot')
-# attHold = c('P_day_all_avgDSD','P_day_all_P99','P_day_all_nWet',
-#             "PET_day_all_avg","PET_day_all_cor","PET_day_all_xP90")
-# 
-# attPerturbType = "regGrid"
-# attPerturbSamp = c(5)
-# attPerturbMin = c(0.7)
-# attPerturbMax = c(1.1)
-
-#########################
-
-attPerturb = c('P_day_all_avgDSD')
-attHold = c('P_day_all_tot','P_day_all_xP99overPave','P_day_all_nWet',
-            "PET_day_all_avg","PET_day_all_cor","PET_day_all_cv")
+attPerturb = c('P_day_all_tot')
+attHold = c('P_day_all_avgDSD','P_day_all_P99','P_day_all_nWet',
+            "PET_day_all_avg","PET_day_all_cor","PET_day_all_xP90")
 
 attPerturbType = "regGrid"
 attPerturbSamp = c(5)
-attPerturbMin = c(1.)
-attPerturbMax = c(1.4)
+attPerturbMin = c(0.7)
+attPerturbMax = c(1.1)
+
+#########################
+
+# attPerturb = c('P_day_all_avgDSD')
+# attHold = c('P_day_all_tot','P_day_all_xP99overPave','P_day_all_nWet',
+#             "PET_day_all_avg","PET_day_all_cor","PET_day_all_cv")
+# 
+# attPerturbType = "regGrid"
+# attPerturbSamp = c(5)
+# attPerturbMin = c(1.)
+# attPerturbMax = c(1.4)
 
 ##########################
 
 # attPerturb = c("PET_day_all_avg")
 # 
-# attHold = c('P_day_all_tot','P_day_all_avgDSD','P_day_all_xP99overPave','P_day_all_nWet',
+# #attHold = c('P_day_all_tot','P_day_all_avgDSD','P_day_all_xP99overPave','P_day_all_nWet',
+# #            "PET_day_all_cor","PET_day_all_cv")
+# 
+# attHold = c('P_day_all_tot','P_day_all_avgDSD','P_day_all_P99','P_day_all_nWet',
 #             "PET_day_all_cor","PET_day_all_cv")
 # 
 # attPerturbType = "regGrid"
-# attPerturbSamp = c(5)
+# #attPerturbSamp = c(5)
+# #attPerturbMin = c(1)
+# #attPerturbMax = c(1.2)
+# 
+# attPerturbSamp = c(1)
 # attPerturbMin = c(1)
-# attPerturbMax = c(1.2)
+# attPerturbMax = c(1)
 
 #########################
 
-# attPerturb = c('P_day_all_tot')
+# attPerturb = c('P_day_all_tot','P_year_all_cor')
 # 
 # attHold = c("PET_day_all_avg",'P_day_all_avgDSD','P_day_all_xP99overPave','P_day_all_nWet',
-#             "PET_day_all_cor","PET_day_all_cv")
+#             "PET_day_all_cor","PET_day_all_cv",'P_year_all_cv')
+# 
+# #attPerturbType = "regGrid"
+# #attPerturbSamp = c(5)
+# #attPerturbMin = c(0.8)
+# #attPerturbMax = c(1.2)
 # 
 # attPerturbType = "regGrid"
-# attPerturbSamp = c(5)
-# attPerturbMin = c(0.8)
-# attPerturbMax = c(1.2)
+# attPerturbSamp = c(1,1)
+# attPerturbMin = c(1,0)
+# attPerturbMax = c(1,0)
 
 #########################
 
@@ -386,8 +405,11 @@ attPerturbMax = c(1.4)
 
 #########################
 
+#attPerturb = c('P_day_all_avgDSD')
+#attHold = c('P_day_all_tot','P_day_all_xP99overPave','P_day_all_nWet')
+
 # attPerturb = c('P_day_all_avgDSD')
-# attHold = c('P_day_all_tot','P_day_all_xP99overPave','P_day_all_nWet')
+# attHold = c('P_day_all_tot','P_day_all_P99','P_day_all_nWet')
 # 
 # # attPerturbType = "regGrid"
 # # attPerturbSamp = c(5)
@@ -407,14 +429,24 @@ expSpace = createExpSpace(attPerturb = attPerturb,
                           attPerturbMin = attPerturbMin,
                           attPerturbMax = attPerturbMax,
                           attPerturbType = attPerturbType,
-                          attHold = attHold)#,
+                          attHold = attHold,
+                          targetTypes = list(P_year_all_cor='val') 
+                          )#,
 #                          attTied = c(attPerturb,attHold),
 #                          tieType = 'seas')
 
-attTied = list(wDdD=c("PET_day_all_avg","PET_day_all_cv"),
-              seas='allTargets')
+pause
+
+# attTied = list(wDdD=c("PET_day_all_avg","PET_day_all_cv"),
+#               seas='allTargets')
 # attTied = list(seas='allTargets')
 
+attTied = list(wDdD=c("PET_day_all_avg","PET_day_all_cv"))
+expSpace = tieAttributes(expSpace,attTied)
+
+atts = colnames(expSpace$targetMat)
+seasTied = atts[!atts%in%c('P_year_all_cv','P_year_all_cor')]
+attTied = list(seas=seasTied)
 expSpace = tieAttributes(expSpace,attTied)
 
 i=which(grepl(pattern = 'xP99overPave',x = colnames(expSpace$targetMat)))
@@ -426,7 +458,7 @@ sim_stoch = generateScenarios(reference = clim_ref,
                               expSpace = expSpace,
                               controlFile = controlFile,
                               seedID = 1,
-                              numReplicates = 5,
+                              numReplicates = 1,
                               cores = 1)
 time.2 = Sys.time()
 print(time.2-time.1)
@@ -458,3 +490,19 @@ P = calcPerformanceAttributes(clim=clim_ref,sim=sim_stoch,attSel=attSel)
 for (att in names(P)){
   plotPerformanceOAT(P, sim_stoch, metric=att,plotType='base',attSel=attPerturb)
 }
+
+
+####################
+
+# f = 1.3
+# 
+# o = calculateAttributes(clim_ref,c('P_day_all_tot','P_day_JJA_tot'))
+# 
+# g = 1+(1-f)*o['P_day_JJA_tot']/(o['P_day_all_tot']-o['P_day_JJA_tot'])
+# 
+# i = which(colnames(expSpace$targetMat)=="P_day_JJA_tot" )
+# 
+# expSpace$targetMat[,i] = expSpace$targetMat[,i]*f
+# 
+# i = which(colnames(expSpace$targetMat)%in%c("P_day_DJF_tot","P_day_MAM_tot","P_day_SON_tot"))
+# expSpace$targetMat[,i] = expSpace$targetMat[,i]*g

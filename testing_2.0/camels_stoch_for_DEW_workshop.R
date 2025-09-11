@@ -10,9 +10,29 @@ setwd(runDirname)
 
 ############################################################################
 
-load('data_A5050517_1976_2005.RData')
+# load('data_A5050517_1976_2005.RData')
 
-numReplicates = 1
+devtools::load_all('/Users/a1065639/Work/DroughtRisk/')
+
+source('load_camels.R')
+catchment = 'A5030502' # Scott Creek
+#catchment = 'A5050517' # North Para River at Penrice (A5050517)
+startYr = 1976
+endYr = 1985
+#endYr = 2005
+
+data = load_camels(catchment,startYr,endYr)
+
+# create reference data 
+clim_ref <- list(times = data$times,
+                 P = data$P,
+                 PET = data$PET)
+
+# calculateAttributes(clim_ref,'P_day_all_tot_m')
+# 
+# calculateAttributes(clim_ref,'mv.P.PET_day_all_cor')
+
+numReplicates = 10
 cores = 1
 
 
@@ -37,6 +57,10 @@ cores = 1
 #fname = paste0(runDirname,'data_',catchment,'_',startYr,'_',endYr,'.RData')
 # save(file=fname,clim_ref,Qobs)
 
+############################################################################
+
+#PET.pars = modCalibrator(obs=clim_ref,modelTag = 'PET-har-wgenO')[[1]]
+PET.pars = modCalibrator(obs=clim_ref,modelTag = 'PET-harWD-wgenO')[[1]]
 
 ############################################################################
 # setup model settings
@@ -49,20 +73,27 @@ modelSelection$modelType$PET = "wgenO"
 
 modelSelection$modelParameterVariation = list()
 modelSelection$modelParameterVariation$P = "seas"
-modelSelection$modelParameterVariation$PET = "har"
+#modelSelection$modelParameterVariation$PET = "har"
+modelSelection$modelParameterVariation$PET = "harWD"
 
-modelSelection$postProcessing = list(P=list())
-modelSelection$postProcessing$P$types = c('annVar','scaleExtremesSeas')
+# modelSelection$postProcessing = list(P=list())
+# modelSelection$postProcessing$P$types = c('annVar','scaleExtremesSeas')
 
 modelSelection[["optimisationArguments"]] <- list()
-modelSelection[["optimisationArguments"]][["nMultiStart"]] <- 5
-modelSelection[["optimisationArguments"]][["OFtol"]] <- 0.05
+#modelSelection[["optimisationArguments"]][["nMultiStart"]] <- 1
+modelSelection[["optimisationArguments"]][["OFtol"]] <- 0.1
 #modelSelection[["optimisationArguments"]][['RGN.control']] = list(iterMax=5)
 
 modelSelection[["penaltyAttributes"]] <- c('P_day_all_seasRatioDecFeb','P_day_all_tot',
                                            'P_day_all_avgDSD','P_day_all_nWet',
-                                           'P_day_all_P99','P_year_all_cv')
-modelSelection[["penaltyWeights"]] = c(5,2,2,2,2,2)
+                                           'P_day_all_P99')#,'P_year_all_cv')
+modelSelection[["penaltyWeights"]] = c(5,2,2,2,2)#,2)
+
+modelSelection[["modelParameterBounds"]] <- list()
+modelSelection[["modelParameterBounds"]][["PET"]] <- list()
+for (parNam in names(PET.pars)){
+  modelSelection[["modelParameterBounds"]][["PET"]][[parNam]] <- rep(PET.pars[parNam],2)
+}
 
 modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
 controlFile = paste0(tempdir(), "\\eg_controlFile.json")
@@ -72,15 +103,17 @@ write(modelSelectionJSON, file = controlFile)
 
 attPerturbType = "regGrid"
 attPerturb = c('P_day_all_seasRatioDecFeb')
-attPerturbSamp = c(3)
-attPerturbMin = c(0.7)
-attPerturbMax = c(1.3)
+#attPerturbSamp = c(3)
+#attPerturbMin = c(0.7)
+#attPerturbMax = c(1.3)
+attPerturbSamp = c(1)
+attPerturbMin = c(1)
+attPerturbMax = c(1)
 attHold = c('P_day_all_tot','P_day_all_avgDSD','P_day_all_nWet','P_day_all_P99',
-            'P_day_DJF_tot','P_day_DJF_avgDSD','P_day_DJF_nWet','P_day_DJF_P99',
-            'P_day_MAM_tot','P_day_MAM_avgDSD','P_day_MAM_nWet','P_day_MAM_P99',
-            'P_day_JJA_tot','P_day_JJA_avgDSD','P_day_JJA_nWet','P_day_JJA_P99',
-            'P_day_SON_tot','P_day_SON_avgDSD','P_day_SON_nWet','P_day_SON_P99',
-            'P_year_all_cv')
+            'P_day_DJF_tot','P_day_DJF_avgDSD','P_day_DJF_nWet',
+            'P_day_MAM_tot','P_day_MAM_avgDSD','P_day_MAM_nWet',
+            'P_day_JJA_tot','P_day_JJA_avgDSD','P_day_JJA_nWet',
+            'P_day_SON_tot','P_day_SON_avgDSD','P_day_SON_nWet','PET_day_all_avg')#,'P_year_all_cv')
 
 expSpace = createExpSpace(attPerturb = attPerturb,
                           attPerturbSamp = attPerturbSamp,
@@ -90,15 +123,15 @@ expSpace = createExpSpace(attPerturb = attPerturb,
                           attHold = attHold)
 
 
-attsTied = setSeasonalTiedAttributes(attSel='P_day_all_P99')
-  
+#attsTied = setSeasonalTiedAttributes(attSel='P_day_all_P99')
+attsTied = list(P_day_all_P99=c('P_day_DJF_P99','P_day_MAM_P99','P_day_JJA_P99','P_day_SON_P99'))
 expSpace1 = tieAttributes(expSpace,attsTied)
 
 ############################################################################
 
 time.1 = Sys.time()
 sim = generateScenarios(reference = clim_ref,
-                        expSpace = expSpace,
+                        expSpace = expSpace1,
                         controlFile = controlFile,
                         seedID = 1,
                         numReplicates = numReplicates,
@@ -110,13 +143,13 @@ print(time.2-time.1)
 
 plotScenarios(sim)
 
-attEval = c(attPerturb,attHold)
-par(mfrow=c(6,4),mar=c(3,3,1,1))
-plotPerformanceAttributes(clim=clim_ref,sim = sim,attEval=attEval,attPerturb = attPerturb)
+# attEval = c(attPerturb,attHold)
+# par(mfrow=c(6,4),mar=c(3,3,1,1))
+# plotPerformanceAttributesOAT(clim=clim_ref,sim = sim,attEval=attEval,attPerturb = attPerturb)
 
 ##########################################################################
 
-pause
+# pause
 
 #$###########################################################################
 #$#
@@ -155,9 +188,20 @@ source(paste0(runDirname,'GR4J_funcs.R'))
 source(paste0(runDirname,'boxplot.ext_DM.r'))
 #devtools::load_all(foreSIGHTDir)
 
+Qobs = data$Qobs
+
+# PETclim = calc_ClimDaily_dayOfYearWindow(obs=clim_ref$PET,
+#                                          dateObs = clim_ref$times,
+#                                          dateClim = clim_ref$times,inc=14)
+# PETclim = apply(PETclim,1,mean,na.rm=T)
+# 
+# clim_ref_1 = clim_ref; clim_ref_1$PET = PETclim
+
 dates = as.Date(clim_ref$times)
 Param = setup_cal_GR4J(dates = dates,P=clim_ref$P,PET=clim_ref$PET,Qobs=Qobs)
-systemArgs = list(dates=dates,Param=Param,PET=clim_ref$PET)
+systemArgs = list(dates=dates,Param=Param)
+# Param = setup_cal_GR4J(dates = dates,P=clim_ref$P,PET=PETclim,Qobs=Qobs)
+# systemArgs = list(dates=dates,Param=Param,PET=PETclim)
 metrics = c('meanQ','P99','P25','min3yr')
 
 print('calc sysOutSim')
@@ -165,13 +209,17 @@ sysOutSim = runSystemModel(sim=sim,systemModel = GR4J_wrapper,systemArgs = syste
 print('done') 
 
 print('calc sysOutClim')
+#sysOutClim = GR4J_wrapper(data = clim_ref_1, systemArgs = systemArgs,metrics=metrics)
 sysOutClim = GR4J_wrapper(data = clim_ref, systemArgs = systemArgs,metrics=metrics)
 print('done')
 
 print('calc evaluate_system_metrics')
+#eval = evaluate_system_metrics(sim=sim,clim=clim_ref_1,
+#                        systemModel=GR4J_wrapper,systemArgs=systemArgs,
+#                        metrics=metrics)
 eval = evaluate_system_metrics(sim=sim,clim=clim_ref,
-                        systemModel=GR4J_wrapper,systemArgs=systemArgs,
-                        metrics=metrics)
+                               systemModel=GR4J_wrapper,systemArgs=systemArgs,
+                               metrics=metrics)
 print('done')
 
 par(mfrow=c(2,2))
@@ -183,14 +231,14 @@ for (metric in metrics){
   title(metric)
 }
 
-plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'meanQ',attSel=attPerturb)
-plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'P99',attSel=attPerturb)
-plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'P25',attSel=attPerturb)
-plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'min3yr',attSel=attPerturb)
+# plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'meanQ',attSel=attPerturb)
+# plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'P99',attSel=attPerturb)
+# plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'P25',attSel=attPerturb)
+# plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'min3yr',attSel=attPerturb)
 
 ############################################################################
 
-dev.off()
+# dev.off()
 
 save.image(file=paste0(runDirname,'summary_',attPerturb,'.RData'))
 

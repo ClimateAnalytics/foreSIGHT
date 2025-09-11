@@ -2,15 +2,15 @@ rm(list=ls())
 
 ########################
 
-#foreSIGHTDir = 'C:/Users/a1065639/Work/foreSIGHT/'
-#droughRiskDir = 'C:/Users/a1065639/Work/DroughtRisk/'
-#dataDir.Loxton = 'C:/Users/a1065639/Box/2025_DEW_foreSIGHT/Data/'
-#dataDir.Barossa = 'C:/Users/a1065639/Box/2021 CRAFT Barossa project/External datasets/Hydroclimate (instrumental)/'
+foreSIGHTDir = 'C:/Users/a1065639/Work/foreSIGHT/'
+droughRiskDir = 'C:/Users/a1065639/Work/DroughtRisk/'
+dataDir.Loxton = 'C:/Users/a1065639/Box/2025_DEW_foreSIGHT/Data/'
+dataDir.Barossa = 'C:/Users/a1065639/Box/2021 CRAFT Barossa project/External datasets/Hydroclimate (instrumental)/'
 
-foreSIGHTDir = '../'
-droughRiskDir = '/hpcfs/users/a1065639/git/DroughtRisk_Feb_2024_paper_shared/DroughtRisk/'
-dataDir.Loxton = '../../Data/'
-dataDir.Barossa = '../../Data/'
+# foreSIGHTDir = '../'
+# droughRiskDir = '/hpcfs/users/a1065639/git/DroughtRisk_Feb_2024_paper_shared/DroughtRisk/'
+# dataDir.Loxton = '../../Data/'
+# dataDir.Barossa = '../../Data/'
 
 devtools::load_all(foreSIGHTDir)
 devtools::load_all(droughRiskDir)
@@ -36,8 +36,6 @@ runDirname = paste0(foreSIGHTDir,'testing_2.0/')
 # catchment = 'A5130501' # Rocky River upstream Gorge Falls 
 # catchment = '606001' # Deep River at Teds Pool 
 
-#catchment = 'Barossa.1'
-
 # period
 #startYr = 1976
 #endYr = 2005
@@ -53,15 +51,24 @@ runDirname = paste0(foreSIGHTDir,'testing_2.0/')
 #numReplicates = 1
 #cores = 1
 
-args = commandArgs(trailingOnly=TRUE)
-catchment = args[1]
-attPerturb = args[2]
-startYr = as.integer(args[3])
-endYr = as.integer(args[4])
-numReplicates = as.integer(args[5])
-cores = as.integer(args[6])
-site.min = as.integer(args[7])
-site.max = as.integer(args[8])
+# args = commandArgs(trailingOnly=TRUE)
+# catchment = args[1]
+# attPerturb = args[2]
+# startYr = as.integer(args[3])
+# endYr = as.integer(args[4])
+# numReplicates = as.integer(args[5])
+# cores = as.integer(args[6])
+# site.min = as.integer(args[7])
+# site.max = as.integer(args[8])
+
+catchment = 'Barossa'
+attPerturb = "PET_day_all_avg"
+startYr = 1976
+endYr = 2005
+numReplicates = 1
+cores = 1
+site.min = 1
+site.max = 3
 
 ########################
 
@@ -232,6 +239,8 @@ expSpace = createExpSpace(attPerturb = attPerturb,
                           attPerturbMax = attPerturbMax,
                           attPerturbType = attPerturbType,
                           attHold = attHold)
+
+pause
 
 #attTied = list(wDdD=c("PET_day_all_avg","PET_day_all_cv"),
 #               seas=attsAll[attsAll!='P_day_all_seasRatioMarMay'])

@@ -81,62 +81,62 @@ clim_ref <- list(times = as.POSIXct(date[keep],tz='UTC'),
 
 ######################################################################
 
-mvFunc_cor = function(data.1,data.2){
-  return(cor(data.1,data.2,use='pairwise.complete.obs'))
-}
-
-mvFunc_avgWetDay = function(data.1,data.2){
-  return(mean(data.1[data.2>0],na.rm=T))
-}
-
-mvFunc_sdWetDay = function(data.1,data.2){
-  return(sd(data.1[data.2>0],na.rm=T))
-}
-
-mvFunc_avgDryDay = function(data.1,data.2){
-  return(mean(data.1[data.2==0],na.rm=T))
-}
-
-mvFunc_sdDryDay = function(data.1,data.2){
-  return(sd(data.1[data.2==0],na.rm=T))
-}
-
-func_sd = function(data){
-  return(sd(data,na.rm=T))
-}
-
-mvFunc_cvDryDay = function(data.1,data.2){
-  return(func_cv(data.1[data.2==0]))
-}
-
-mvFunc_cvWetDay = function(data.1,data.2){
-  return(func_cv(data.1[data.2>0]))
-}
-
-func_cv = function(data){
-  return(sd(data,na.rm=T)/mean(data,na.rm=T))
-}
-
-
-func_xP90 = function(data){
-  P90 = quantile(data,probs = 0.9,na.rm=T,names=F)
-  return(P90)
-}
-
-mvFunc_xP90WetDay = function(data.1,data.2){
-  return(quantile(data.1[data.2>0],probs=0.9,na.rm=T,names=F))
-}
-
-mvFunc_xP90DryDay = function(data.1,data.2){
-  return(quantile(data.1[data.2==0],probs=0.9,na.rm=T,names=F))
-}
+# mvFunc_cor = function(data.1,data.2){
+#   return(cor(data.1,data.2,use='pairwise.complete.obs'))
+# }
+# 
+# mvFunc_avgWetDay = function(data.1,data.2){
+#   return(mean(data.1[data.2>0],na.rm=T))
+# }
+# 
+# mvFunc_sdWetDay = function(data.1,data.2){
+#   return(sd(data.1[data.2>0],na.rm=T))
+# }
+# 
+# mvFunc_avgDryDay = function(data.1,data.2){
+#   return(mean(data.1[data.2==0],na.rm=T))
+# }
+# 
+# mvFunc_sdDryDay = function(data.1,data.2){
+#   return(sd(data.1[data.2==0],na.rm=T))
+# }
+# 
+# func_sd = function(data){
+#   return(sd(data,na.rm=T))
+# }
+# 
+# mvFunc_cvDryDay = function(data.1,data.2){
+#   return(func_cv(data.1[data.2==0]))
+# }
+# 
+# mvFunc_cvWetDay = function(data.1,data.2){
+#   return(func_cv(data.1[data.2>0]))
+# }
+# 
+# func_cv = function(data){
+#   return(sd(data,na.rm=T)/mean(data,na.rm=T))
+# }
+# 
+# 
+# func_xP90 = function(data){
+#   P90 = quantile(data,probs = 0.9,na.rm=T,names=F)
+#   return(P90)
+# }
+# 
+# mvFunc_xP90WetDay = function(data.1,data.2){
+#   return(quantile(data.1[data.2>0],probs=0.9,na.rm=T,names=F))
+# }
+# 
+# mvFunc_xP90DryDay = function(data.1,data.2){
+#   return(quantile(data.1[data.2==0],probs=0.9,na.rm=T,names=F))
+# }
 
 
 modelSelection = list()
 
 modelSelection$modelType = list()
 modelSelection$modelType$P = "latent"
-modelSelection$modelType$PET = "wgenLM"
+modelSelection$modelType$PET = "wgenO"
 
 modelSelection$modelParameterVariation = list()
 modelSelection$modelParameterVariation$P = "seas"
@@ -163,22 +163,22 @@ modelSelection[["modelParameterBounds"]][["PET"]][["cor0.SON"]] <- c(0.1, 0.99)
 modelSelection[["modelParameterBounds"]][["PET"]][["cor0.DJF"]] <- c(0.1, 0.99)
 modelSelection[["modelParameterBounds"]][["PET"]][["cor0.MAM"]] <- c(0.1, 0.99)
 modelSelection[["modelParameterBounds"]][["PET"]][["cor0.JJA"]] <- c(0.1, 0.99)
-modelSelection[["modelParameterBounds"]][["PET"]][["muW.SON"]] <- c(0, 10)
-modelSelection[["modelParameterBounds"]][["PET"]][["muW.DJF"]] <- c(0, 10)
-modelSelection[["modelParameterBounds"]][["PET"]][["muW.MAM"]] <- c(0, 10)
-modelSelection[["modelParameterBounds"]][["PET"]][["muW.JJA"]] <- c(0, 10)
-modelSelection[["modelParameterBounds"]][["PET"]][["sigmaW.SON"]] <- c(0.01, 5)
-modelSelection[["modelParameterBounds"]][["PET"]][["sigmaW.DJF"]] <- c(0.01, 5)
-modelSelection[["modelParameterBounds"]][["PET"]][["sigmaW.MAM"]] <- c(0.01, 5)
-modelSelection[["modelParameterBounds"]][["PET"]][["sigmaW.JJA"]] <- c(0.01, 5)
-modelSelection[["modelParameterBounds"]][["PET"]][["muD.SON"]] <- c(0, 15)
-modelSelection[["modelParameterBounds"]][["PET"]][["muD.DJF"]] <- c(0, 15)
-modelSelection[["modelParameterBounds"]][["PET"]][["muD.MAM"]] <- c(0, 15)
-modelSelection[["modelParameterBounds"]][["PET"]][["muD.JJA"]] <- c(0, 15)
-modelSelection[["modelParameterBounds"]][["PET"]][["sigmaD.SON"]] <- c(0.01, 5)
-modelSelection[["modelParameterBounds"]][["PET"]][["sigmaD.DJF"]] <- c(0.01, 5)
-modelSelection[["modelParameterBounds"]][["PET"]][["sigmaD.MAM"]] <- c(0.01, 5)
-modelSelection[["modelParameterBounds"]][["PET"]][["sigmaD.JJA"]] <- c(0.01, 5)
+modelSelection[["modelParameterBounds"]][["PET"]][["mu.W.SON"]] <- c(0, 10)
+modelSelection[["modelParameterBounds"]][["PET"]][["mu.W.DJF"]] <- c(0, 10)
+modelSelection[["modelParameterBounds"]][["PET"]][["mu.W.MAM"]] <- c(0, 10)
+modelSelection[["modelParameterBounds"]][["PET"]][["mu.W.JJA"]] <- c(0, 10)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigma.W.SON"]] <- c(0.01, 5)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigma.W.DJF"]] <- c(0.01, 5)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigma.W.MAM"]] <- c(0.01, 5)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigma.W.JJA"]] <- c(0.01, 5)
+modelSelection[["modelParameterBounds"]][["PET"]][["mu.D.SON"]] <- c(0, 15)
+modelSelection[["modelParameterBounds"]][["PET"]][["mu.D.DJF"]] <- c(0, 15)
+modelSelection[["modelParameterBounds"]][["PET"]][["mu.D.MAM"]] <- c(0, 15)
+modelSelection[["modelParameterBounds"]][["PET"]][["mu.D.JJA"]] <- c(0, 15)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigma.D.SON"]] <- c(0.01, 5)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigma.D.DJF"]] <- c(0.01, 5)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigma.D.MAM"]] <- c(0.01, 5)
+modelSelection[["modelParameterBounds"]][["PET"]][["sigma.D.JJA"]] <- c(0.01, 5)
 
 # parNam=c("alpha.SON","alpha.DJF","alpha.MAM","alpha.JJA",
 #          "sigma.SON","sigma.DJF","sigma.MAM","sigma.JJA",
@@ -307,9 +307,9 @@ attHold = c('P_day_all_tot','P_day_all_avgDSD','P_day_all_P99','P_day_all_nWet',
             "PET_day_all_cor","PET_day_all_cv")
 
 attPerturbType = "regGrid"
-attPerturbSamp = c(5)
-attPerturbMin = c(1)
-attPerturbMax = c(1.4)
+# attPerturbSamp = c(5)
+# attPerturbMin = c(1)
+# attPerturbMax = c(1.4)
 # 
 # # attPerturbSamp = c(1)
 # # attPerturbMin = c(0.7)
@@ -317,9 +317,9 @@ attPerturbMax = c(1.4)
 
 #########################
 
-# attPerturbSamp = c(1)
-# attPerturbMin = c(1)
-# attPerturbMax = c(1)
+attPerturbSamp = c(1)
+attPerturbMin = c(1)
+attPerturbMax = c(1)
 
 # create the exposure space
 expSpace = createExpSpace(attPerturb = attPerturb,
@@ -331,13 +331,21 @@ expSpace = createExpSpace(attPerturb = attPerturb,
 #                          attTied = c(attPerturb,attHold),
 #                          tieType = 'seas')
 
-attTied = list(wDdD=c("PET_day_all_avg","PET_day_all_cv"),
-               seas='allTargets')
+attsTied = setWDdayTiedAttributes(attSel=c("PET_day_all_avg","PET_day_all_cv"))
+expSpace = tieAttributes(expSpace,attsTied)
 
-expSpace = tieAttributes(expSpace,attTied)
+  
+attsTied = setSeasonalTiedAttributes(attSel=c('P_day_all_P99','P_day_all_tot','P_day_all_avgDSD','P_day_all_nWet'))
+expSpace = tieAttributes(expSpace,attsTied)
 
 
-
+# attTied = list(wDdD=c("PET_day_all_avg","PET_day_all_cv"),
+#                seas='allTargets')
+# 
+# expSpace = tieAttributes(expSpace,attTied)
+# 
+# 
+# 
 
 time.1 = Sys.time()
 sim_stoch = generateScenarios(reference = clim_ref,

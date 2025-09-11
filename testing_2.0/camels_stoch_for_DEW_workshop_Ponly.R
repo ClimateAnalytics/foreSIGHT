@@ -1,10 +1,10 @@
 rm(list=ls())
 
-#foreSIGHTDir = 'C:/Users/a1065639/Work/foreSIGHT/'
-foreSIGHTDir = '/scratchdata1/users/a1065639/DEW_foreSIGHT/foreSIGHT/'
+foreSIGHTDir = 'C:/Users/a1065639/Work/foreSIGHT/'
+#foreSIGHTDir = '/scratchdata1/users/a1065639/DEW_foreSIGHT/foreSIGHT/'
 
-#devtools::load_all(foreSIGHTDir)
-library(foreSIGHT)
+devtools::load_all(foreSIGHTDir)
+#library(foreSIGHT)
 
 runDirname = paste0(foreSIGHTDir,'testing_2.0/')
 setwd(runDirname)
@@ -21,8 +21,11 @@ endYr = 1985
 #endYr = 1995
 #endYr = 2005
 
-numReplicates = 50
-cores = 50
+#numReplicates = 50
+#cores = 50
+
+numReplicates = 3
+cores = 1
 
 load_data = TRUE # read RData files (TRUE) or create them using DroughtRisk Package (FALSE) 
 
@@ -117,23 +120,23 @@ pdf(fname)
 
 ############################################################################
 
-#time.1 = Sys.time()
-#sim = generateScenarios(reference = clim_ref,
-#                        expSpace = expSpace,
-#                        controlFile = controlFile,
-#                        seedID = 1,
-#                        numReplicates = numReplicates,
-#                        cores = cores)
-#time.2 = Sys.time()
-#print(time.2-time.1)
+time.1 = Sys.time()
+sim = generateScenarios(reference = clim_ref,
+                       expSpace = expSpace,
+                       controlFile = controlFile,
+                       seedID = 1,
+                       numReplicates = numReplicates,
+                       cores = cores)
+time.2 = Sys.time()
+print(time.2-time.1)
 
 #fname = paste0(runDirname,'summary_',paste(attPerturb,collapse='_'),'.RData')
 fname = paste0(runDirname,'sim_',runStr,'.RData')
 
 
-#save.image(file=fname)
+save.image(file=fname)
 
-load(fname)
+#load(fname)
 
 ##########################################################################
 

@@ -1,8 +1,8 @@
 
 rm(list=ls())
 
-#foreSIGHTDir = 'C:/Users/a1065639/Work/foreSIGHT/'
-foreSIGHTDir = '/scratchdata1/users/a1065639/DEW_foreSIGHT/foreSIGHT/'
+foreSIGHTDir = 'C:/Users/a1065639/Work/foreSIGHT/'
+#foreSIGHTDir = '/scratchdata1/users/a1065639/DEW_foreSIGHT/foreSIGHT/'
 
 devtools::load_all(foreSIGHTDir)
 #devtools::install(foreSIGHTDir)
@@ -13,11 +13,11 @@ setwd(runDirname)
 ############################################################################
 
 #load('data_A5050517_1976_2005.RData')
-numReplicates = 20
-cores = 25
+#numReplicates = 20
+#cores = 25
 
-#numReplicates = 1
-#cores = 1
+numReplicates = 1
+cores = 1
 
 #clim_ref = convert_climYMD_POSIXct(barossa_obs)
 #clim_ref = barossa_obs
@@ -61,10 +61,10 @@ modelSelection$postProcessing = list(P=list())
 modelSelection$postProcessing$P$types = c('annVar','scaleExtremesSeas')
 
 modelSelection[["optimisationArguments"]] <- list()
-modelSelection[["optimisationArguments"]][["nMultiStart"]] <- 5
+modelSelection[["optimisationArguments"]][["nMultiStart"]] <- 1
 modelSelection[["optimisationArguments"]][["OFtol"]] <- 0.05
 #modelSelection[["optimisationArguments"]][['RGN.control']] = list(iterMax=100)
-#modelSelection[["optimisationArguments"]][['RGN.control']] = list(iterMax=10)
+modelSelection[["optimisationArguments"]][['RGN.control']] = list(iterMax=1)
 
 modelSelection[["penaltyAttributes"]] <- c('P_day_all_tot','P_day_all_avgDSD','P_day_all_P99','P_day_all_nWet','P_day_all_tot_cv')
 modelSelection[["penaltyWeights"]] = rep(3,length(modelSelection[["penaltyAttributes"]]))
@@ -84,7 +84,7 @@ write(modelSelectionJSON, file = controlFile)
 
 attPerturbType = "regGrid"
 attPerturb = c('P_day_all_tot')
-attPerturbSamp = c(5)
+attPerturbSamp = c(3)
 attPerturbMin = c(0.8)
 attPerturbMax = c(1.2)
 attHold = c('P_day_all_avgDSD','P_day_all_P99','P_day_all_nWet','P_day_all_tot_cv')

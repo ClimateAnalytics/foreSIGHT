@@ -102,13 +102,13 @@ write(modelSelectionJSON, file = controlFile)
 
 #########################
 
-attPerturb = c('P_day_all_avgDSD')
-attHold = c('P_day_all_tot','P_day_all_xP99overPave','P_day_all_nWet')
-
-attPerturbType = "regGrid"
-attPerturbSamp = c(5)
-attPerturbMin = c(1.)
-attPerturbMax = c(1.4)
+# attPerturb = c('P_day_all_avgDSD')
+# attHold = c('P_day_all_tot','P_day_all_xP99overPave','P_day_all_nWet')
+# 
+# attPerturbType = "regGrid"
+# attPerturbSamp = c(5)
+# attPerturbMin = c(1.)
+# attPerturbMax = c(1.4)
 
 #########################
 
@@ -119,6 +119,16 @@ attPerturbMax = c(1.4)
 # attPerturbSamp = c(5)
 # attPerturbMin = c(0.8)
 # attPerturbMax = c(1.2)
+
+#########################
+
+attPerturb = c('P_day_all_tot')
+attHold = c('P_day_all_avgDSD','P_day_all_xP99overPave','P_day_all_nWet')
+  
+attPerturbType = "regGrid"
+attPerturbSamp = c(1)
+attPerturbMin = c(1)
+attPerturbMax = c(1)
 
 #########################
 
@@ -155,7 +165,7 @@ plotScenarios(sim_stoch)
 
 attSel = colnames(expSpace$targetMat)
 
-P = calcPerformanceAttributes(clim=clim_ref,sim=sim_stoch,attSel=attSel)
+P = calcPerformanceAttributes(clim=clim_ref,sim=sim_stoch,attSel=attSel,vSel = 'P',cSel=1)
 
 par(mfrow=c(5,5),mar=c(4,5,2,1))
 for (att in names(P)){

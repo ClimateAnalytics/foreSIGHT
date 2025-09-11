@@ -100,7 +100,7 @@ GR4J_wrapper = function(data,
   o = add_dummy_year(dates,P,PET)
   dates.new = o$dates; P.new = o$P; PET.new = o$PET
   
-  InputsModel <- CreateInputsModel(FUN_MOD = RunModel_GR4J, DatesR = dates.new,
+  InputsModel <- CreateInputsModel(FUN_MOD = airGR::RunModel_GR4J, DatesR = dates.new,
                                    Precip = P.new, PotEvap = PET.new)
   
   ## calibration period selection
@@ -108,12 +108,12 @@ GR4J_wrapper = function(data,
   IndPeriod_WarmUp = 1:(length(dates.new)-length(dates))
   
   ## preparation of RunOptions object
-  RunOptions <- CreateRunOptions(FUN_MOD = RunModel_GR4J, InputsModel = InputsModel,
+  RunOptions <- airGR::CreateRunOptions(FUN_MOD = airGR::RunModel_GR4J, InputsModel = InputsModel,
                                  IndPeriod_Run = Ind_Run,IndPeriod_WarmUp=IndPeriod_WarmUp)
   
   ## simulation
   Param <- systemArgs$Param
-  Qsim <- RunModel_GR4J(InputsModel = InputsModel,
+  Qsim <- airGR::RunModel_GR4J(InputsModel = InputsModel,
                         RunOptions = RunOptions, Param = Param)$Qsim
   
   metricList = c()

@@ -5,14 +5,10 @@ devtools::load_all(foreSIGHTDir)
 
 dirname = 'C:/Users/a1065639/Box/2025_DEW_foreSIGHT/Data/SA_climate_ready/'
 
-#site = '23343' # rosedale
-site = '23090' # kent town
+site = '23343' # rosedale
 region = 'amlr27'
-#modelList = c('access10','bcc.csm11m','gfdl.esm2m','ipsl.cm5blr','miroc5','mri.cgcm3')
-modelList = c('canesm2','cnrm.cm5','gfdl.esm2m','ipsl.cm5blr','miroc5')#,'mri.cgcm3')
-#period = 'his'
-#scenList = c('his','r45','r85')
-scenList = c('his','r85')
+modelList = c('access10','bcc.csm11m','gfdl.esm2m','ipsl.cm5blr','miroc5','mri.cgcm3')
+scenList = c('his','r45','r85')
 
 attSel = c('P_day_all_tot_m','P_day_all_seasRatioMarAug',
            'P_day_all_P99','P_day_all_avgDSD','P_day_all_nWet_m',
@@ -25,25 +21,6 @@ year.end.his = 2000
 
 year.start.fut = 2076
 year.end.fut = 2100
-
-system = 'A'
-#system = 'B'
-
-if (system=='A'){
-  systemArgs = systemArgs <- list(roofArea = 205, 
-                                  nPeople = 1, 
-                                  tankVol = 2400, 
-                                  firstFlush = 2.0, 
-                                  write.file = FALSE)  
-} else if (system=='B'){
-  systemArgs <- list(roofArea = 205,
-                      nPeople = 1, 
-                      tankVol = 2600,
-                      firstFlush = 2.0,
-                      write.file = FALSE)  
-}
-
-metrics <- c("average daily deficit (L)", "reliability (fraction)", "volumetric reliability (fraction)")
 
 df.atts <- data.frame(matrix(ncol = (3+length(attSel)+length(metrics)), nrow = 0))
 
@@ -124,14 +101,6 @@ df.atts = subset(df.atts,select=-scen)
 df.colnames = colnames(df.atts) 
 colnames(df.atts)[df.colnames=='model'] = 'Name'
 
-
-if (system=='A'){
-  egClimData = df.atts
-  save(file='data/egClimData.rda',egClimData)
-} else if (system=='B'){
-  egClimDataB = df.atts
-  save(file='data/egClimDataB.rda',egClimDataB)
-}
 
 # climData = data.frame(P_day_all_tot_m=as.numeric(df.atts$P_day_all_tot_m),
 #                       P_day_all_seasRatioMarAug=as.numeric(df.atts$P_day_all_seasRatioMarAug),

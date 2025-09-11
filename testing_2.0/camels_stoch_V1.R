@@ -1,8 +1,8 @@
 
 rm(list=ls())
 
-#foreSIGHTDir = 'C:/Users/a1065639/Work/foreSIGHT/'
-foreSIGHTDir = '/scratchdata1/users/a1065639/DEW_foreSIGHT/foreSIGHT/'
+foreSIGHTDir = 'C:/Users/a1065639/Work/foreSIGHT/'
+#foreSIGHTDir = '/scratchdata1/users/a1065639/DEW_foreSIGHT/foreSIGHT/'
 
 devtools::load_all(foreSIGHTDir)
 #devtools::install(foreSIGHTDir)
@@ -101,13 +101,13 @@ write(modelSelectionJSON, file = controlFile)
 
 attPerturbType = "regGrid"
 attPerturb = c('P_day_all_P99')
-#attPerturbSamp = c(5)
+attPerturbSamp = c(5)
 ##attPerturbSamp = c(2)
-#attPerturbMin = c(0.9)
-#attPerturbMax = c(1.3)
-attPerturbSamp = c(1)
-attPerturbMin = c(1.3)
+attPerturbMin = c(0.9)
 attPerturbMax = c(1.3)
+#attPerturbSamp = c(1)
+#attPerturbMin = c(1.3)
+#attPerturbMax = c(1.3)
 ##attPerturbSamp = c(1)
 ##attPerturbMin = c(0.9)
 ##attPerturbMax = c(0.9)
@@ -125,7 +125,57 @@ expSpace = createExpSpace(attPerturb = attPerturb,
                           attHold = attHold)
 
 attTied = list(seas=attsAll[!attsAll%in%c('P_day_all_tot_cv')])
-expSpace = tieAttributes(expSpace=expSpace,attTied=attTied)
+expSpace1 = tieAttributes(expSpace=expSpace,attTied=attTied)
+
+#######
+
+setSeasonalTiedAttributes = function(attSel){
+  attsTied = list()
+  for (att in attSel){
+    attsTied[[att]] = c()
+    for (seas in c('DJF','MAM','JJA','SON')){
+      att.seas = gsub('all',seas,att)
+      attsTied[[att]] = c(attsTied[[att]],att.seas)
+    }
+  }
+  return(attsTied)
+}
+
+tieAttributes = function(expSpace,attsTied){
+ 
+  for (att1 in names(attsTied)){
+    
+    if (!att1%in%colnames(expSpace$targetMat)){stop("must have tied attributes in targetMat attributes")}
+    
+    for (att2 in attsTied[[att1]]){
+      i=which(colnames(expSpace$targetMat)==att1)
+      if (att2%in%expSpace$attTied){
+        if (expSpace$targetType[i]=='frac'){
+          expSpace$targetMat[att2] = expSpace$targetMat[att2]*expSpace$targetMat[att1]
+        } else if (expSpace$targetType[i]=='diff'){
+          expSpace$targetMat[att2] = expSpace$targetMat[att2]+expSpace$targetMat[att1]
+        } 
+      } else {
+        expSpace$targetMat[att2] = expSpace$targetMat[att1]
+        expSpace$attTied = c(expSpace$attTied,att2)
+        expSpace$targetType = c(expSpace$targetType,expSpace$targetType[i])
+      }         
+    }
+    
+  }
+  
+  return(expSpace)
+  
+}
+
+#######
+
+attsTied = tieAttsSeas(attSel=c('P_day_all_P99','P_day_all_tot','P_day_all_avgDSD','P_day_all_nWet'))
+expSpace2 = tieAtts(expSpace,attsTied)
+     
+  
+
+pause
 
 ############################################################################
 

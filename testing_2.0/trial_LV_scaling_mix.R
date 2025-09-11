@@ -11,10 +11,11 @@ clim = convert_climYMD_POSIXct(tank_obs)
 
 modelSelection = list()
 modelSelection$modelType = list()
-#modelSelection$modelType$P = "LV"
 modelSelection$modelType$P = "latent"
 modelSelection$modelParameterVariation = list()
-modelSelection$modelParameterVariation$P = "ann"
+modelSelection$modelParameterVariation$P = "seas"
+modelSelection$modelType$Temp = "Simple-ann"
+
 modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
 controlFile = paste0(tempdir(), "\\eg_controlFile.json")
 

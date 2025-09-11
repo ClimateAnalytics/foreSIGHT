@@ -16,7 +16,7 @@ if ( is.data.frame(x) || is.matrix(x)) {
       x.stats$stats[1,j]=quantile(y,prob=whiskersProb[1])
       x.stats$stats[5,j]=quantile(y,prob=whiskersProb[2])
     }
-    for (i in 1:length(na.omit(y))){
+    for (i in 1:length(stats::na.omit(y))){
       if (y[i]<x.stats$stats[1,j]|y[i]>x.stats$stats[5,j]){
 
         x.stats$out = c(x.stats$out,y[i])
@@ -30,11 +30,11 @@ if ( is.data.frame(x) || is.matrix(x)) {
   x.stats$out = c()
   x.stats$group = c()
   y=sort(x)
-  if (length(na.omit(y))!=0) {
+  if (length(stats::na.omit(y))!=0) {
     x.stats$stats[1,1]=quantile(y,prob=whiskersProb[1])
     x.stats$stats[5,1]=quantile(y,prob=whiskersProb[2])
     }
-    for (i in 1:length(na.omit(y))){
+    for (i in 1:length(stats::na.omit(y))){
       if (y[i]<x.stats$stats[1]|y[i]>x.stats$stats[5]){
 
       x.stats$out = c(x.stats$out,y[i])

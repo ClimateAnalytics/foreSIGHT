@@ -2,8 +2,9 @@
 rm(list=ls())
 
 foreSIGHTDir = 'C:/Users/a1065639/Work/foreSIGHT/'
-
 devtools::load_all(foreSIGHTDir)
+
+#library(foreSIGHT)
 
 runDirname = paste0(foreSIGHTDir,'testing_2.0/')
 setwd(runDirname)
@@ -11,11 +12,13 @@ setwd(runDirname)
 ############################################################################
 
 load('data_A5050517_1976_2005.RData')
-
 numReplicates = 1
 cores = 1
+#cores=2
+#numReplicates = 5
 
-
+# clim_ref = convert_climYMD_POSIXct(barossa_obs)
+# clim_ref$P = clim_ref$P[,1:2]
 
 ############################################################################
 # read catchment data
@@ -45,11 +48,9 @@ modelSelection = list()
 
 modelSelection$modelType = list()
 modelSelection$modelType$P = "latent"
-modelSelection$modelType$PET = "wgenO"
 
 modelSelection$modelParameterVariation = list()
 modelSelection$modelParameterVariation$P = "seas"
-modelSelection$modelParameterVariation$PET = "har"
 
 modelSelection$postProcessing = list(P=list())
 modelSelection$postProcessing$P$types = c('annVar','scaleExtremesSeas')
@@ -57,12 +58,11 @@ modelSelection$postProcessing$P$types = c('annVar','scaleExtremesSeas')
 modelSelection[["optimisationArguments"]] <- list()
 modelSelection[["optimisationArguments"]][["nMultiStart"]] <- 5
 modelSelection[["optimisationArguments"]][["OFtol"]] <- 0.05
-#modelSelection[["optimisationArguments"]][['RGN.control']] = list(iterMax=5)
+#modelSelection[["optimisationArguments"]][['RGN.control']] = list(iterMax=100)
+#modelSelection[["optimisationArguments"]][['RGN.control']] = list(iterMax=10)
 
-modelSelection[["penaltyAttributes"]] <- c('P_day_all_seasRatioDecFeb','P_day_all_tot',
-                                           'P_day_all_avgDSD','P_day_all_nWet',
-                                           'P_day_all_P99','P_year_all_cv')
-modelSelection[["penaltyWeights"]] = c(5,2,2,2,2,2)
+modelSelection[["penaltyAttributes"]] <- c('P_day_all_tot','P_day_all_avgDSD','P_day_all_P99','P_day_all_nWet','P_day_all_tot_cv')
+modelSelection[["penaltyWeights"]] = rep(3,length(modelSelection[["penaltyAttributes"]]))
 
 modelSelectionJSON = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
 controlFile = paste0(tempdir(), "\\eg_controlFile.json")
@@ -70,17 +70,35 @@ write(modelSelectionJSON, file = controlFile)
 
 ############################################################################
 
+# attPerturbType = "regGrid"
+# attPerturb = c('P_day_all_avgDSD')
+# attPerturbSamp = c(3)
+# attPerturbMin = c(1)
+# attPerturbMax = c(1.4)
+# # attPerturbSamp = c(1)
+# # attPerturbMin = c(1)
+# # attPerturbMax = c(1)
+# attHold = c('P_day_all_tot','P_day_all_P99','P_day_all_nWet','P_day_all_tot_cv')
+
+# attPerturbType = "regGrid"
+# attPerturb = c('P_day_all_tot')
+# attPerturbSamp = c(2)
+# attPerturbMin = c(0.8)
+# attPerturbMax = c(1.2)
+# # attPerturbSamp = c(1)
+# # attPerturbMin = c(1)
+# # attPerturbMax = c(1)
+# attHold = c('P_day_all_avgDSD','P_day_all_P99','P_day_all_nWet','P_day_all_tot_cv')
+
 attPerturbType = "regGrid"
-attPerturb = c('P_day_all_seasRatioDecFeb')
-attPerturbSamp = c(3)
-attPerturbMin = c(0.7)
+attPerturb = c('P_day_all_P99')
+attPerturbSamp = c(2)
+attPerturbMin = c(0.9)
 attPerturbMax = c(1.3)
-attHold = c('P_day_all_tot','P_day_all_avgDSD','P_day_all_nWet','P_day_all_P99',
-            'P_day_DJF_tot','P_day_DJF_avgDSD','P_day_DJF_nWet','P_day_DJF_P99',
-            'P_day_MAM_tot','P_day_MAM_avgDSD','P_day_MAM_nWet','P_day_MAM_P99',
-            'P_day_JJA_tot','P_day_JJA_avgDSD','P_day_JJA_nWet','P_day_JJA_P99',
-            'P_day_SON_tot','P_day_SON_avgDSD','P_day_SON_nWet','P_day_SON_P99',
-            'P_year_all_cv')
+attHold = c('P_day_all_tot','P_day_all_avgDSD','P_day_all_nWet','P_day_all_tot_cv')
+
+#############################
+
 
 expSpace = createExpSpace(attPerturb = attPerturb,
                           attPerturbSamp = attPerturbSamp,
@@ -89,10 +107,9 @@ expSpace = createExpSpace(attPerturb = attPerturb,
                           attPerturbType = attPerturbType,
                           attHold = attHold)
 
-
-attsTied = setSeasonalTiedAttributes(attSel='P_day_all_P99')
-  
-expSpace1 = tieAttributes(expSpace,attsTied)
+attsAll = c(attPerturb,attHold)
+attTied = list(seas=attsAll[!attsAll%in%c('P_day_all_tot_cv')])
+expSpace = tieAttributes(expSpace=expSpace,attTied=attTied)
 
 ############################################################################
 
@@ -108,27 +125,11 @@ print(time.2-time.1)
 
 ##########################################################################
 
-plotScenarios(sim)
+#pdf(file=paste0(runDirname,'summary_',attPerturb,'.pdf'))
 
-attEval = c(attPerturb,attHold)
-par(mfrow=c(6,4),mar=c(3,3,1,1))
-plotPerformanceAttributes(clim=clim_ref,sim = sim,attEval=attEval,attPerturb = attPerturb)
+#plotScenarios(sim)
 
 ##########################################################################
-
-pause
-
-#$###########################################################################
-#$#
-#$#PETclim = calc_ClimDaily_dayOfYearWindow(obs=clim_ref$PET,
-#$#                                         dateObs = clim_ref$times,
-#$#                                         dateClim = clim_ref$times,inc=14)
-#$#PETclim = apply(PETclim,1,mean,na.rm=T)
-#$#clim_ref_PET = clim_ref; clim_ref_PET$PET = PETclim
-#$#
-#$#sim.addPET = add_obs_var_to_sim(sim,var='PET',data = PETclim)
-
-############################################################################
 
 nTar = length(sim$Rep1)
 if (nTar>1){
@@ -138,42 +139,38 @@ if (nTar>1){
              'P_day_all_P99.9','P_day_JJA_P99.9','P_day_SON_P99.9',
              'P_day_DJF_P99.9','P_day_MAM_P99.9')
   
-  Perf = calcPerformanceAttributes(clim=clim_ref,sim=sim,attSel=attSel)
-
-print(Perf)
-
+#  P = calcPerformanceAttributes(clim=clim_ref,sim=sim,attSel=attSel,cSel = 1,vSel='P')
+  #P = calcPerformanceAttributes(clim=clim_ref,sim=sim,attSel=attSel,cSel = 'mean',vSel='P')
+P = calcPerformanceAttributes(clim=clim_ref,sim=sim,attSel=attSel)
+  
   par(mfrow=c(5,5),mar=c(4,5,2,1))
-  for (att in names(Perf)){
-    plotPerformanceOAT(Perf, sim, metric=att,plotType='base',attSel=attPerturb)
+  for (att in names(P)){
+  #  plotPerformanceOAT(P, sim.addPET, metric=att,plotType='base',attSel=attPerturb)
+    plotPerformanceOAT(P, sim, metric=att,plotType='base',attSel=attPerturb)
   } 
   
 }
 
+print(P)
+
+pause
+
 ############################################################################
 
 source(paste0(runDirname,'GR4J_funcs.R'))
-source(paste0(runDirname,'boxplot.ext_DM.r'))
-#devtools::load_all(foreSIGHTDir)
 
 dates = as.Date(clim_ref$times)
-Param = setup_cal_GR4J(dates = dates,P=clim_ref$P,PET=clim_ref$PET,Qobs=Qobs)
-systemArgs = list(dates=dates,Param=Param,PET=clim_ref$PET)
+Param = setup_cal_GR4J(dates = dates,clim_ref_PET$P,clim_ref_PET$PET,Qobs)
+systemArgs = list(dates=dates,Param=Param)
 metrics = c('meanQ','P99','P25','min3yr')
 
-print('calc sysOutSim')
-sysOutSim = runSystemModel(sim=sim,systemModel = GR4J_wrapper,systemArgs = systemArgs,metrics = metrics)
-print('done') 
-
-print('calc sysOutClim')
-sysOutClim = GR4J_wrapper(data = clim_ref, systemArgs = systemArgs,metrics=metrics)
-print('done')
-
-print('calc evaluate_system_metrics')
-eval = evaluate_system_metrics(sim=sim,clim=clim_ref,
+sysOutSim = runSystemModel(sim=sim.addPET,systemModel = GR4J_wrapper,systemArgs = systemArgs,metrics = c('meanQ','P99','P25','min3yr'),varNames=c('P','PET'))
+ 
+sysOutClim = GR4J_wrapper(data = clim_ref_PET, systemArgs = systemArgs,metrics=metrics)
+  
+eval = evaluate_system_metrics(sim=sim.addPET,clim=clim_ref_PET,
                         systemModel=GR4J_wrapper,systemArgs=systemArgs,
-                        metrics=metrics)
-print('done')
-
+                        metrics=metrics,varNames=c('P','PET'))
 par(mfrow=c(2,2))
 for (metric in metrics){
   yAll = c(eval$systemPerf_base[[metric]],eval$systemPerf_obsClim[metric])
@@ -183,26 +180,31 @@ for (metric in metrics){
   title(metric)
 }
 
-plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'meanQ',attSel=attPerturb)
-plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'P99',attSel=attPerturb)
-plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'P25',attSel=attPerturb)
-plotPerformanceOAT(performance = sysOutSim, sim=sim, metric = 'min3yr',attSel=attPerturb)
+plotPerformanceOAT(performance = sysOutSim, sim=sim.addPET, metric = 'meanQ',attSel=attPerturb)
+plotPerformanceOAT(performance = sysOutSim, sim=sim.addPET, metric = 'P99',attSel=attPerturb)
+plotPerformanceOAT(performance = sysOutSim, sim=sim.addPET, metric = 'P25',attSel=attPerturb)
+plotPerformanceOAT(performance = sysOutSim, sim=sim.addPET, metric = 'min3yr',attSel=attPerturb)
 
 ############################################################################
 
-dev.off()
+#dev.off()
 
-save.image(file=paste0(runDirname,'summary_',attPerturb,'.RData'))
 
-#$#P=sim$Rep1$Target1$P$sim
-#$#clim_sim = clim_ref; clim_sim$P = P
-#$#
-#$#print(calculateAttributes(clim_sim,'P_day_DJF_P99.9') / calculateAttributes(clim_sim,'P_day_DJF_P99'))
-#$#print(calculateAttributes(clim_ref,'P_day_DJF_P99.9') / calculateAttributes(clim_ref,'P_day_DJF_P99'))
-#$#
-#$#
-#$#P=sim$Rep1$Target2$P$sim
-#$#clim_sim = clim_ref; clim_sim$P = P
-#$#print(calculateAttributes(clim_sim,'P_day_DJF_P99.9') / calculateAttributes(clim_sim,'P_day_DJF_P99'))
-#$#
-#$#
+pause
+
+P=sim$Rep1$Target1$P$sim
+clim_sim = clim_ref
+#clim_sim$P = P[,1]
+clim_sim$P = P[,1]
+
+clim_ref1 = clim_ref
+clim_ref1$P = clim_ref1$P[,1]
+
+
+calculateAttributes(clim_sim,'P_day_all_P99.9') / calculateAttributes(clim_sim,'P_day_all_P99')
+calculateAttributes(clim_ref1,'P_day_all_P99.9') / calculateAttributes(clim_ref1,'P_day_all_P99')
+calculateAttributes(clim_sim,'P_day_SON_P99.9') / calculateAttributes(clim_sim,'P_day_SON_P99')
+calculateAttributes(clim_ref1,'P_day_SON_P99.9') / calculateAttributes(clim_ref1,'P_day_SON_P99')
+calculateAttributes(clim_sim,'P_day_DJF_P99.9') / calculateAttributes(clim_sim,'P_day_DJF_P99')
+calculateAttributes(clim_ref1,'P_day_DJF_P99.9') / calculateAttributes(clim_ref1,'P_day_DJF_P99')
+
