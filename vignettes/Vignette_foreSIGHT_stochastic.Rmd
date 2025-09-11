@@ -423,7 +423,7 @@ writeControlFile()
 
 Alternatively, the `toJSON` function from the `jsonlite` package can be used to create a JSON file for the `controlFile` from an R list as shown below.
 
-```{r, jsonFileModel2}
+```{r, jsonFileModel2, eval = FALSE}
 # create a list containing the specifications of the selected models
 controlFileList <- list()
 controlFileList[["modelType"]] <- list()
@@ -439,7 +439,7 @@ controlFileListJSON <- jsonlite::toJSON(controlFileList, pretty = TRUE, auto_unb
 write(controlFileListJSON, file = paste0(tempdir(), "\\eg_controlFile.json"))
 ```
 
-```{r, jsonFileModel3}
+```{r, jsonFileModel3, eval = FALSE}
 # input a the JSON file
 controlFile = paste0(tempdir(), "\\eg_controlFile.json")  
 ```
@@ -711,7 +711,7 @@ sim.stoch.single = generateScenarios(reference = clim_ref,
                        cores = 1)
 time.2 = Sys.time()
 print(time.2-time.1)
-
+file.remove(controlFile)
 ```
 
 Simulated climates for the full exposure space, and with 50 replicates, have been pre-computed and can be loaded as follows:
