@@ -77,29 +77,6 @@ varUnits <- c(
   "Radn" = "MJ/m2"
 )
 
-#' Prints the names of and units of valid variables
-#'
-#' \code{viewVariables()} prints the names of valid variables and their units in the package. The user should input these variable
-#' in the same units.
-#' @details The function does not take any input arguments.
-#' @seealso \code{generateScenarios}
-#' @examples
-#' # To view the valid variables
-#' viewVariables()
-#' @export
-viewVariables <- function() {
-  # vector of stochastic model tags - exclude scaling
-  stochModels <- names(modelInfoList)
-  # get variable name
-  shortName <- unique(sapply(strsplit(stochModels, "-"), `[[`, 1))
-  longName <- varShortToLong[shortName]
-  units <- varUnits[shortName]
-  outData <- cbind(shortName, longName, units)
-  rownames(outData) <- NULL
-  return(outData)
-}
-
-
 
 # function to get a vector of varUnits given varNames
 getVarUnits <- function(varNames) {
