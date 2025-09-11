@@ -259,27 +259,28 @@ getSliceIndices <- function(expSpace, attSlices) {
 #' data("egSimSummary") # summary of stochastic simulation
 #' data("egSimPerformance") # system performance calculated using the stochastic simulation
 #' data("egClimData") # alternate climate data and system performance
-#'
+#' colnames(egClimData)[6] = "average daily deficit (L)" # change metric name to match egSimPerformance
+#' 
 #' plotPerformanceSpace(performance = egSimPerformance[2], sim = egSimSummary)
 #'
 #' # change plot style to "filled.contour" and specify contours - show contours from
 #' # 0.76 to 0.9 in increments of 0.02
 #' plotPerformanceSpace(
-#'   type = "filled.contour", performance = egSimPerformance[2],
-#'   sim = egSimSummary, contourBreaks = seq(0.76, 0.9, 0.02)
+#'   performance = egSimPerformance[2],
+#'   sim = egSimSummary, contourBreaks = seq(0.76, 0.84, 0.02),type='filled.contour'
 #' )
 #'
 #'
 #' # adding climate data, using top 10 replicates
 #' plotPerformanceSpace(
 #'   performance = egSimPerformance[1], sim = egSimSummary,
-#'   topReps = 10, climData = egClimData
+#'   topReps = 10, climData = egClimData 
 #' )
 #'
 #' # adding a threshold
 #' plotPerformanceSpace(
-#'   performance = egSimPerformance, sim = egSimSummary, metric = "Avg. Deficit (L)",
-#'   climData = egClimData, perfThresh = 27.5, perfThreshLabel = "Max Avg. Deficit"
+#'   performance = egSimPerformance, sim = egSimSummary, metric = "average daily deficit (L)",
+#'   climData = egClimData, perfThresh = 27.5, perfThreshLabel = "Max Avg. Deficit",type = "heat.plot"
 #' )
 #'
 #' # user specified colMap
@@ -308,36 +309,35 @@ getSliceIndices <- function(expSpace, attSlices) {
 #' # display fractional changes axes as percentage change
 #' plotPerformanceSpace(
 #'   performance = egSimPerformance, sim = egSimSummary,
-#'   metric = "Avg. Deficit (L)",
+#'   metric = "average daily deficit (L)",
 #'   climData = egClimData, perfThresh = 27.5,
 #'   perfThreshLabel = "Max Avg. Deficit",
-#'   axesPercentLabel = TRUE
+#'   axesPercentLabel = "percentage.change"
 #' )
 #'
 #' # change displayed contours on performance space - show contours 
 #' # from 18 to 34 in increments of 2 L
 #' plotPerformanceSpace(
 #'   performance = egSimPerformance, sim = egSimSummary,
-#'   metric = "Avg. Deficit (L)",
+#'   metric = "average daily deficit (L)",
 #'   climData = egClimData, perfThresh = 27.5,
-#'   perfThreshLabel = "Max Avg. Deficit", axesPercentLabel = TRUE,
+#'   perfThreshLabel = "Max Avg. Deficit",
 #'   contourBreaks = seq(18, 34, 2)
 #' )
 #'
 #' # change plot type to filled.contour style
 #' plotPerformanceSpace(
 #'   type = "filled.contour", performance = egSimPerformance,
-#'   sim = egSimSummary, metric = "Avg. Deficit (L)",
+#'   sim = egSimSummary, metric = "average daily deficit (L)",
 #'   climData = egClimData, perfThresh = 27.5,
-#'   perfThreshLabel = "Max Avg. Deficit", axesPercentLabel = TRUE,
+#'   perfThreshLabel = "Max Avg. Deficit",
 #'   contourBreaks = seq(18, 34, 2)
 #' )
 #'
 #' # example overlay points manually from a dataset in a similar style to egClimData
-#' ptStyle <- c(21, 22, 24) # select set of pt styles (e.g. circle, square, triangle)
+#' ptStyle <- 21:25 # select set of pt styles (e.g. circle, square, triangle)
 #' plotPerformanceSpace(performance = egSimPerformance[1],
-#'                      sim = egSimSummary, 
-#'                      axesPercentLabel = TRUE) +
+#'                      sim = egSimSummary) +
 #'   ggplot2::geom_point(
 #'     data = egClimData,
 #'     mapping = ggplot2::aes(
@@ -363,8 +363,8 @@ getSliceIndices <- function(expSpace, attSlices) {
 #' data("egScalSummary")
 #' data("egClimData")
 #' plotPerformanceSpace(
-#'   performance = egScalPerformance[1], sim = egScalSummary, climData = egClimData,
-#'   perfThresh = 28.25, perfThreshLabel = "Max Avg. Deficit"
+#'   performance = egScalPerformance[2], sim = egScalSummary,
+#'   perfThresh = 0.8, perfThreshLabel = "Reliability threshold"
 #' )
 #' }
 #' @export
@@ -383,8 +383,8 @@ plotPerformanceSpace <- function(performance, # system model performance, matrix
                                  colLim = NULL, # if null, the full limit is used
                                  contourBreaks = NULL, # if null, default number of contours used, otherwise accepts vector of breaks
                                  nContour = perfSpace_nContour, # number of contours
-                                 axesPercentLabel = "fraction", # if false, natural units used (if true fractions converted to %)
-                                 type = "filled.contour", # plotting options "heat.plot", "filled.contour"
+                                 axesPercentLabel = "fraction", # or 'percentage.change' or 'percentage.total'
+                                 type = "heat.plot", # plotting options "heat.plot", "filled.contour"
                                  noPlot = F) {
   # assuming that performance is a list with a name
   # it may also be a matrix without a name; will be named "performance"
@@ -575,7 +575,7 @@ heatPlot <- function(plotData,
 
 
   # Modify axes that currently display as "fraction" to display in terms of "%"
-  if (axesPercentLabel == "percentage.change") {
+  if (axesPercentLabel == "percentage.total") {
     # modify if atribute is a fraction
     tempInd <- which(varUnits == "fraction")
     varUnits[tempInd] <- "%" # change label to %
@@ -609,7 +609,7 @@ heatPlot <- function(plotData,
         coord_cartesian(xlim = xlimits, ylim = ylimits) +
         theme_heatPlot()
     }
-  } else if (axesPercentLabel == "percentage.total") { # display as +/- % change i.e., -20% instead of 80%
+  } else if (axesPercentLabel == "percentage.change") { # display as +/- % change i.e., -20% instead of 80%
     # modify if atribute is a fraction
 
     plotDataMean[, 1] <- plotDataMean[, 1] - 1 # convert to just the percentage increase or decrease
@@ -619,7 +619,6 @@ heatPlot <- function(plotData,
     xyLabels <- paste0(xyAttDefs, " (", varUnits, ")")
     xlimits <- c(min(plotDataMean[, 1]), max(plotDataMean[, 1]))
     ylimits <- c(min(plotDataMean[, 2]), max(plotDataMean[, 2]))
-
 
     # modify depending on whether x, y or both
     if (length(tempInd) == 2) { # if both x- & y-axis
@@ -647,6 +646,7 @@ heatPlot <- function(plotData,
         coord_cartesian(xlim = xlimits, ylim = ylimits) +
         theme_heatPlot()
     }
+
   } else if (axesPercentLabel == "fraction") { # if no percentage axes modification
     xyLabels <- paste0(xyAttDefs, " (", varUnits, ")")
     xlimits <- c(min(plotDataMean[, 1]), max(plotDataMean[, 1]))
