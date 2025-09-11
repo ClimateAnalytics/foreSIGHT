@@ -250,6 +250,7 @@ aggregate_calculate_attributes <- function(data, attSel, datInd, attInfo = NULL)
       agg <- aggList[a]
       # print(agg)
 
+      # determine if single or multivariable attribute
       if (length(tmp) == 1) {
         data <- agg_data[[var]][[agg]]$data
       } else if (length(tmp) == 2) {
