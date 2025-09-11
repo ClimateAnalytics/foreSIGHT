@@ -23,3 +23,17 @@ A vector with GR4J parameter values
 \description{
 \code{calGR4J} calibrates the GR4J model using the airGR package. The NSE is used as the objective function.
 }
+\examples{
+# load dates, precip, PET and streamflow data for Scott Creek
+data('data_A5030502')
+clim_ref = list(times = data_A5030502$times,P = data_A5030502$P)  
+data("egScottCreekSimStoch")
+# observed flow
+Qobs = data_A5030502$Qobs
+# observed PET 
+PET = data_A5030502$PET 
+dates = as.Date(clim_ref$times)
+# calibrate GR4J parameters
+Param = calGR4J(dates = dates,P=clim_ref$P,PET=PET,Qobs=Qobs)
+#' @import airGR
+}

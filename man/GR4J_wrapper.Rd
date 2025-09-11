@@ -27,3 +27,26 @@ A vector of metric values
 \code{GR4J_wrapper} runs the GR4J model, using the airGR package, for a given 
 set of climate inputs and parameter values and produces a set of runoff metrics
 }
+\examples{
+# load dates, precip, PET and streamflow data for Scott Creek
+data('data_A5030502')
+
+clim_ref = list(times = data_A5030502$times,P = data_A5030502$P)  
+
+# observed flow
+Qobs = data_A5030502$Qobs
+# observed PET 
+PET = data_A5030502$PET 
+
+dates = as.Date(clim_ref$times)
+
+# calibrate GR4J parameters
+Param = calGR4J(dates = dates,P=clim_ref$P,PET=PET,Qobs=Qobs)
+
+# setup systemArgs and metrics
+systemArgs = list(dates=dates,Param=Param,PET=PET)
+metrics = c('meanQ','P99','P25','min3yr')
+
+metricsObs = GR4J_wrapper(data=clim_ref,systemArgs = systemArgs,metrics=metrics)
+metricsObs
+}

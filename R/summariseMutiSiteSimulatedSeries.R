@@ -1,33 +1,3 @@
-###############################
-#' Creates summary plots of the biases in the multi-site scenarios
-#'
-#' \code{plotMultiSiteScenarios} uses a multi-site simulation performed using the function \code{generateScenarios} as input,
-#' and creates heatmaps that show biases in simulated attributes and spatial correlation.
-#' The function creates heatmaps (for each replicate and target) that show:
-#' \itemize{
-#' \item{magnitude of biases in single site attributes}
-#' \item{magnitude of biases in catchment total attributes}
-#' \item{biases in spatial correlation}
-#' }
-#' @param reference list; contains reference daily climate data, with elements named \emph{year}, \emph{month}, \emph{day}, \emph{*variable_name1*}, \emph{*variable_name2*}. List format is suitable for both single and multi-site data.
-#'            Climate variables are specified as matrices, with columns for each site. \cr
-#'            Please refer to data provided with the package that may be loaded using \code{data(barossaDat)} for examples of the expected format of multi-site \code{reference}.
-#' @param sim a list; contains a multi-site stochastic simulation created using the function \code{generateScenarios}
-#' @param attSel a vector; contains names of selected attributes to be evaluated
-#' @param targets a vector; contains set of targets in exposure space to be evaluated
-#' @param reps a vector; contains replicates of stochastic simulation to be evaluated
-#' @param stages a vector; contains names of approaches used to generate multi-site stochastic simulations ('Stage3' is recommended approach, while 'Stage1' and 'Stage2' show intermediate results)
-#' @return The function returns three R plots for each target and replicate showing the biases in single site attributes, catchment average attributes, and spatial correlations.
-#' @seealso \code{generateScenarios}
-#' @examples
-#' # load data from multi-site simulation
-#' data(egMultiSiteSim)
-#' # plot performance of simulated time series in terms of single site
-#' # and catchment attributes, and correlation between sites
-#' \dontrun{
-#' plotMultiSiteScenarios(reference = barossa_obs, sim = egMultiSiteSim)
-#' }
-#' @export
 plotMultiSiteScenarios <- function(reference, sim, attSel = NULL, targets = 1, reps = 1, stages = c("Stage1", "Stage2", "Stage3")) {
   
   if (is.null(attSel)) {
@@ -176,7 +146,6 @@ calc_diff <- function(clim_ref, sim, scen, label, attSel, target = 1, rep = 1) {
 calc_cor <- function(clim_ref, sim, scen, target = 1, rep = 1) {
   cor_obs <- stats::cor(clim_ref$P)
   cor_sim <- stats::cor(sim[[paste0("Rep", rep)]][[paste0("Target", target)]]$stages[[scen]]$P$sim)
-  browser()
   cor_diff <- cor_obs - cor_sim
 
   return(list(cor_obs = cor_obs, cor_sim = cor_sim, cor_diff = cor_diff))

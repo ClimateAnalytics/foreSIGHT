@@ -101,7 +101,7 @@ evaluate_system_metrics <- function(sim, clim, systemModel, systemArgs, metrics,
 #' @param whiskersProb a vector of length 2; min and max probability limits
 #' @param at a vector; specifying x coordinates for boxes
 #' @param ... other arguments for \code{bxp}
-#' @return The function returns a boxplot. 
+#' @return The function returns a boxplot. See example in help for \code{evaluate_system_metrics()}
 #' @export
 boxplot_prob <- function(xin, whiskersProb = c(0.025, 0.975), at = NULL, ...) {
   # Draws a boxplot with the whiskers at the probability limits, provided by whiskersProb

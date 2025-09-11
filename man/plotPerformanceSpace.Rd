@@ -20,7 +20,7 @@ plotPerformanceSpace(
   contourBreaks = NULL,
   nContour = perfSpace_nContour,
   axesPercentLabel = "fraction",
-  type = "filled.contour",
+  type = "heat.plot",
   noPlot = F
 )
 }
@@ -140,27 +140,28 @@ to plot other metrics.
 data("egSimSummary") # summary of stochastic simulation
 data("egSimPerformance") # system performance calculated using the stochastic simulation
 data("egClimData") # alternate climate data and system performance
+colnames(egClimData)[6] = "average daily deficit (L)" # change metric name to match egSimPerformance
 
 plotPerformanceSpace(performance = egSimPerformance[2], sim = egSimSummary)
 
 # change plot style to "filled.contour" and specify contours - show contours from
 # 0.76 to 0.9 in increments of 0.02
 plotPerformanceSpace(
-  type = "filled.contour", performance = egSimPerformance[2],
-  sim = egSimSummary, contourBreaks = seq(0.76, 0.9, 0.02)
+  performance = egSimPerformance[2],
+  sim = egSimSummary, contourBreaks = seq(0.76, 0.84, 0.02),type='filled.contour'
 )
 
 
 # adding climate data, using top 10 replicates
 plotPerformanceSpace(
   performance = egSimPerformance[1], sim = egSimSummary,
-  topReps = 10, climData = egClimData
+  topReps = 10, climData = egClimData 
 )
 
 # adding a threshold
 plotPerformanceSpace(
-  performance = egSimPerformance, sim = egSimSummary, metric = "Avg. Deficit (L)",
-  climData = egClimData, perfThresh = 27.5, perfThreshLabel = "Max Avg. Deficit"
+  performance = egSimPerformance, sim = egSimSummary, metric = "average daily deficit (L)",
+  climData = egClimData, perfThresh = 27.5, perfThreshLabel = "Max Avg. Deficit",type = "heat.plot"
 )
 
 # user specified colMap
@@ -189,36 +190,35 @@ plotPerformanceSpace(
 # display fractional changes axes as percentage change
 plotPerformanceSpace(
   performance = egSimPerformance, sim = egSimSummary,
-  metric = "Avg. Deficit (L)",
+  metric = "average daily deficit (L)",
   climData = egClimData, perfThresh = 27.5,
   perfThreshLabel = "Max Avg. Deficit",
-  axesPercentLabel = TRUE
+  axesPercentLabel = "percentage.change"
 )
 
 # change displayed contours on performance space - show contours 
 # from 18 to 34 in increments of 2 L
 plotPerformanceSpace(
   performance = egSimPerformance, sim = egSimSummary,
-  metric = "Avg. Deficit (L)",
+  metric = "average daily deficit (L)",
   climData = egClimData, perfThresh = 27.5,
-  perfThreshLabel = "Max Avg. Deficit", axesPercentLabel = TRUE,
+  perfThreshLabel = "Max Avg. Deficit",
   contourBreaks = seq(18, 34, 2)
 )
 
 # change plot type to filled.contour style
 plotPerformanceSpace(
   type = "filled.contour", performance = egSimPerformance,
-  sim = egSimSummary, metric = "Avg. Deficit (L)",
+  sim = egSimSummary, metric = "average daily deficit (L)",
   climData = egClimData, perfThresh = 27.5,
-  perfThreshLabel = "Max Avg. Deficit", axesPercentLabel = TRUE,
+  perfThreshLabel = "Max Avg. Deficit",
   contourBreaks = seq(18, 34, 2)
 )
 
 # example overlay points manually from a dataset in a similar style to egClimData
-ptStyle <- c(21, 22, 24) # select set of pt styles (e.g. circle, square, triangle)
+ptStyle <- 21:25 # select set of pt styles (e.g. circle, square, triangle)
 plotPerformanceSpace(performance = egSimPerformance[1],
-                     sim = egSimSummary, 
-                     axesPercentLabel = TRUE) +
+                     sim = egSimSummary) +
   ggplot2::geom_point(
     data = egClimData,
     mapping = ggplot2::aes(
@@ -244,8 +244,8 @@ data("egScalPerformance")
 data("egScalSummary")
 data("egClimData")
 plotPerformanceSpace(
-  performance = egScalPerformance[1], sim = egScalSummary, climData = egClimData,
-  perfThresh = 28.25, perfThreshLabel = "Max Avg. Deficit"
+  performance = egScalPerformance[2], sim = egScalSummary,
+  perfThresh = 0.8, perfThreshLabel = "Reliability threshold"
 )
 }
 }

@@ -27,7 +27,6 @@
 #' @examples
 #' # Example using tankWrapper as the systemModel
 #' # =====================================================
-#' \dontrun{
 #' # create an exposure space
 #' attPerturb <- c("P_day_all_tot", "Temp_day_all_avg")
 #' attPerturbType <- "regGrid"
@@ -59,7 +58,6 @@
 #'   systemArgs = systemArgs,
 #'   metrics = tankMetrics[1:2]
 #' )
-#' }
 #' @export
 
 

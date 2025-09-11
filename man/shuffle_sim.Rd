@@ -43,25 +43,25 @@ a target change in a perturbed attribute
 \dontrun{
 ###############
 # load dates, precip, PET and streamflow data for Scott Creek
-data('data_A5030502_1976_1985')
+data('data_A5030502')
 # create reference data - won't include PET here since not modelled 
-clim_ref = list(times = data$times,
-                P = data$P)  
+clim_ref = list(times = data_A5030502$times,
+                P = data_A5030502$P)  
 ###############
-# create exposure space for baseline claimte - no perturbations
+# create exposure space for baseline climate - no perturbations
 
 attPerturbType = "regGrid"
-attPerturb = c('P_day_all_tot')
+attPerturb = c('P_day_all_tot_m')
 attPerturbSamp = c(1)
 attPerturbMin = c(1)
 attPerturbMax = c(1)
 # will hold a number of attributes to historical values
 # note: normP = P99/avg rainfall.  
-attHold = c('P_day_all_P99','P_day_all_avgDSD','P_day_all_nWet',
-            'P_day_DJF_tot','P_day_DJF_normP99','P_day_DJF_avgDSD','P_day_DJF_nWet',
-            'P_day_MAM_tot','P_day_MAM_normP99','P_day_MAM_avgDSD','P_day_MAM_nWet',
-            'P_day_JJA_tot','P_day_JJA_normP99','P_day_JJA_avgDSD','P_day_JJA_nWet',
-            'P_day_SON_tot','P_day_SON_normP99','P_day_SON_avgDSD','P_day_SON_nWet')
+attHold = c('P_day_all_P99','P_day_all_avgDSD','P_day_all_nWet_m',
+            'P_day_DJF_tot_m','P_day_DJF_normP99','P_day_DJF_avgDSD','P_day_DJF_nWet_m',
+            'P_day_MAM_tot_m','P_day_MAM_normP99','P_day_MAM_avgDSD','P_day_MAM_nWet_m',
+            'P_day_JJA_tot_m','P_day_JJA_normP99','P_day_JJA_avgDSD','P_day_JJA_nWet_m',
+            'P_day_SON_tot_m','P_day_SON_normP99','P_day_SON_avgDSD','P_day_SON_nWet_m')
 expSpace = createExpSpace(attPerturb = attPerturb,
                           attPerturbSamp = attPerturbSamp,
                           attPerturbMin = attPerturbMin,
@@ -84,8 +84,8 @@ modelSelection[["optimisationArguments"]] = list()
 modelSelection[["optimisationArguments"]][["OFtol"]] = 0.1 # stop optimization when OF < OFtol
 
 # set penalty weights. More weights to total, and attributes for 'all' data)
-modelSelection[["penaltyAttributes"]]=c('P_day_all_tot','P_day_all_P99',
-                                        'P_day_all_avgDSD','P_day_all_nWet')
+modelSelection[["penaltyAttributes"]]=c('P_day_all_tot_m','P_day_all_P99',
+                                        'P_day_all_avgDSD','P_day_all_nWet_m')
 modelSelection[["penaltyWeights"]] = c(3,2,2,2)
 
 # write to JSON file

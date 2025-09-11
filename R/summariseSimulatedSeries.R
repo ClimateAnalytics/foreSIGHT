@@ -56,48 +56,15 @@
 #' If set to \code{"full"}, the colourmap limits are set to the minimum and maximum values in the data.
 #' If a numeric vector is specified, the colourmap limits are set to the first (minimum) and second (maximum) values in the vector.
 #' @param plotAbs logical value, defaults to TRUE; determines whether the absolute value of the data is plotted (TRUE), or the raw value (which can be positive/negative) is plotted (FALSE).
-#' @param showSD logical value, defaults to FALSE; determines whether to plot heat maps showing standard deviation in biases (TRUE), or only mean biases (FALSE).
-#' @details The argument \code{sim} may be a full stochastic simulation generated using the function \code{generateScenarrios} or the summary of the stochastic simulation
+#' @param showSD logical value, defaults to TRUE; determines whether to plot heat maps showing standard deviation in biases (TRUE), or only mean biases (FALSE).
+#' @details The argument \code{sim} may be a full stochastic simulation generated using the function \code{generateScenarios} or the summary of the stochastic simulation
 #' generated using \code{getSimSummary}
 #' @return The function returns two R plots showing the biases in the targets of the scenarios generated using the function \code{generateScenarios}.
 #' @seealso \code{createExpSpace}, \code{generateScenarions}, \code{getSimSummary}
 #' @examples
-#' \dontrun{
-#' # the examples are not run since the run times are too long for CRAN
-#' # create an exposure space
-#' attPerturb <- c("P_day_all_tot_m", "P_day_all_nWet_m", "P_day_all_R10_m")
-#' attHold <- c(
-#'   "P_day_Feb_tot_m", "P_day_SON_dyWet_m", "P_day_JJA_avgWSD_m", "P_day_MAM_tot_m",
-#'   "P_day_DJF_avgDSD_m", "Temp_day_all_rng_m", "Temp_day_all_avg_m"
-#' )
-#' attPerturbType <- "regGrid"
-#' attPerturbSamp <- c(2, 1, 1)
-#' attPerturbMin <- c(0.9, 1, 1)
-#' attPerturbMax <- c(1.1, 1, 1)
-#' expSpace <- createExpSpace(
-#'   attPerturb = attPerturb,
-#'   attPerturbSamp = attPerturbSamp,
-#'   attPerturbMin = attPerturbMin,
-#'   attPerturbMax = attPerturbMax,
-#'   attPerturbType = attPerturbType,
-#'   attHold = attHold,
-#'   attTargetsFile = NULL
-#' )
-#' # load example data available in foreSIGHT
-#' data(tankDat)
-#' # perform stochastic simulation
-#' sim <- generateScenarios(
-#'   reference = tank_obs,
-#'   expSpace = expSpace,
-#'   simLengthNyrs = 30,
-#'   numReplicates = 2
-#' )
-#' # plots heatmaps showing biases in simulated targets
-#' plotScenarios(sim)
-#' # using an example stochastic simulation summary provided with the package
-#' data("egSimSummary")
-#' plotScenarios(egSimSummary)
-#' }
+#' # load simulated climates from Scott Creek example 
+#' data('egScottCreekSimStoch')
+#' plotScenarios(sim.stoch)
 #' @export
 
 plotScenarios <- function(sim,

@@ -43,23 +43,22 @@ vector of any of the following supported models:
 \itemize{
 \item \code{"P-ann-wgen"} a four parameter annual rainfall model
 \item \code{"P-seas-wgen"} a 16 parameter seasonal rainfall model
-(phase angles must be specified via modelInfoMod=list("P-har12-wgen-FS"=fixedPars=c(x,x,x,x))
 \item \code{"P-har-wgen"} a harmonic rainfall model
-\item \code{"Temp-har-wgen"} a harmonic temperature model not conditional on rainfall
-\item \code{"Temp-har-wgen-wd"} a harmonic temperature model dependent on wet or
+\item \code{"Temp-har-wgenO"} a harmonic temperature model not conditional on rainfall
+\item \code{"Temp-harWD-wgenO"} a harmonic temperature model dependent on wet or
 dry day
-\item \code{"Temp-har-wgen-wdsd"} a harmonic temperature model
-where standard deviation parameters are dependent on wet or dry day
-\item \code{"PET-har-wgen"}a harmonic potential evapotranspiration model
-\item \code{"PET-har-wgen-wd"} a harmonic potential evapotranspiration model
-dependent on wet or dry day
-\item \code{"Radn-har-wgen"} a harmonic solar radiation model (MJ/m2) }
+\item \code{"Temp-har-wgenO"} a harmonic temperature model
+\item \code{"Temp-harWD-wgenO"} a harmonic temperature model dependent on wet or
+dry day
+\item \code{"PET-har-wgen"} a harmonic potential evapotranspiration model
+\item \code{"PET-harWD-wgen"} a harmonic potential evapotranspiration model
+dependent on wet or dry day }
 }
 \examples{
 \dontrun{
 data(tankDat)
 obs <- tank_obs # Get observed data
-modelTag <- c("P-har-wgen", "Temp-har-wgen") # Select models
+modelTag <- c("P-har-wgen", "Temp-har-wgenO") # Select models
 pars <- modCalibrator(obs = obs, modelTag = modelTag) # Calibrate models
 sim <- modSimulator(
   datStart = "1970-01-01", # Simulate!

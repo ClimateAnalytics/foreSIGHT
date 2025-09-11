@@ -43,7 +43,6 @@ The \code{systemModel} function is expected to return a named list of performanc
 \examples{
 # Example using tankWrapper as the systemModel
 # =====================================================
-\dontrun{
 # create an exposure space
 attPerturb <- c("P_day_all_tot", "Temp_day_all_avg")
 attPerturbType <- "regGrid"
@@ -75,7 +74,6 @@ systemPerf <- runSystemModel(
   systemArgs = systemArgs,
   metrics = tankMetrics[1:2]
 )
-}
 }
 \seealso{
 \code{tankWrapper}, \code{generateScenarios}

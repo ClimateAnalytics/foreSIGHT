@@ -32,8 +32,8 @@
 #'
 #' @format A list with 2 elements
 #' \describe{
-#'   \item{Avg. Deficit}{average daily deficit of water, litres}
-#'   \item{Reliability}{reliability of the tank, fraction}
+#'   \item{volumetric reliability (fraction)}
+#'   \item{reliability (fraction)}
 #' }
 "egScalPerformance"
 

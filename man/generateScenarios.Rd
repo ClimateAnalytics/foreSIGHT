@@ -229,7 +229,7 @@ controlFileList$modelType = list()
 controlFileList$modelType$P = "BLRPM"  # Bartlett-Lewis rectangular pulse model        
 controlFileList$modelParameterVariation = list()
 controlFileList$modelParameterVariation$P = "ann" # annual parameters (don't vary with season)
-controlFileList = jsonlite::toJSON(modelSelection, pretty = TRUE, auto_unbox = TRUE)
+controlFileList = jsonlite::toJSON(controlFileList, pretty = TRUE, auto_unbox = TRUE)
 controlFile = paste0(tempdir(), "\\\\eg_controlFile.json")
 write(controlFileList, file = controlFile)
 

@@ -16,7 +16,7 @@ boxplot_prob(xin, whiskersProb = c(0.025, 0.975), at = NULL, ...)
 \item{...}{other arguments for \code{bxp}}
 }
 \value{
-The function returns a boxplot.
+The function returns a boxplot. See example in help for \code{evaluate_system_metrics()}
 }
 \description{
 \code{boxplot_prob} draws a boxplot with the whiskers at probability limits \code{whiskersProb}.

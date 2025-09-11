@@ -25,15 +25,16 @@ vector of any of the following supported models:
 \itemize{
 \item \code{"P-ann-wgen"} a four parameter annual rainfall model
 \item \code{"P-seas-wgen"} a 16 parameter seasonal rainfall model
-(phase angles must be specified via modelInfoMod=list("P-har12-wgen-FS"=fixedPars=c(x,x,x,x))
 \item \code{"P-har-wgen"} a harmonic rainfall model
 \item \code{"Temp-har-wgenO"} a harmonic temperature model not conditional on rainfall
 \item \code{"Temp-harWD-wgenO"} a harmonic temperature model dependent on wet or
 dry day
-\item \code{"PET-har-wgenO"} a harmonic potential evapotranspiration model
-\item \code{"PET-har-wgenWD"} a harmonic potential evapotranspiration model
-dependent on wet or dry day
-\item \code{"Radn-har-wgenO"} a harmonic solar radiation model (MJ/m2) }
+\item \code{"Temp-har-wgenO"} a harmonic temperature model
+\item \code{"Temp-harWD-wgenO"} a harmonic temperature model dependent on wet or
+dry day
+\item \code{"PET-har-wgen"} a harmonic potential evapotranspiration model
+\item \code{"PET-harWD-wgen"} a harmonic potential evapotranspiration model
+dependent on wet or dry day }
 }
 \examples{
 
