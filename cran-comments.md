@@ -5,13 +5,9 @@
 ## R CMD check results
 There were no ERRORs or WARNINGs.
 
-There were 2 NOTES [devtools::check(args = "--as-cran") only]:
-
-NOTE 1: Imports includes 25 non-default packages.
+There was 1 NOTE [devtools::check(args = "--as-cran") only]:
+Imports includes 25 non-default packages.
 The package imports a larger number of packages due to its integration of multiple statistical, hydrological, and visualization tools to support a comprehensive climate scenario evaluation framework. Further reduction is being considered for future versions.
-
-NOTE 2: Installed size is 29.2Mb (data: 26.4Mb, doc: 1.2Mb)
-The majority of the package size is due to example datasets (in data/) used to illustrate and validate the package functionality. These datasets are important for reproducibility, examples, and vignettes. The size has been minimized where feasible without compromising usability.
 
 ## Downstream dependencies
 There are no known reverse dependencies.
