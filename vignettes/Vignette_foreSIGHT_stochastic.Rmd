@@ -13,7 +13,7 @@ description: >
   and the assessment of hydrological responses to climate changes.
 
 vignette: >
-  %\VignetteIndexEntry{'Stress-Testing' using *fore*SIGHT: Stochastic simulation for evaluating changes in catchment runoff}
+  %\VignetteIndexEntry{'Stress-Testing' using *fore*SIGHT: Stochastic simulation}
   %\VignetteEngine{knitr::rmarkdown_notangle}
   %\VignetteEncoding{UTF-8}
 ---
