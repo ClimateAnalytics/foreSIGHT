@@ -657,7 +657,9 @@ The `controlFile` is configured to specify the following:
 -   **Weights for the objective function**:\
     Highest weights are assigned to the perturbed attributes `'P_day_all_seasRatioJunAug'` and `'P_day_all_P99'`, along with `'P_day_all_tot_m'`, a known key driver of system response.
 
-For computational simplicity, the example below targets a single point from the exposure space and generates a single stochastic climate replicate. The code is expected to run in approximately one minute.
+The call to `generateScenarios()` specifies the generation of 50 stochastic weather replicates. Given the combination of a large number of replicates (50) and multiple target locations in the exposure space (25), parallel processing on high-performance computing (HPC) is recommended to reduce runtime.
+
+The example below demonstrates the use of 25 processing cores, and completes in approximately 20 minutes under these settings.
 
 ```{r sim.stoch.single, eval=FALSE}
 
@@ -688,36 +690,25 @@ controlFileList[["optimisationArguments"]][["OFtol"]] <- 0.1 # stop multi-start 
 controlFileList[["penaltyAttributes"]]<-c('P_day_all_seasRatioMarMay',
                                         'P_day_all_P99','P_day_all_tot_m',
                                            'P_day_all_avgDSD','P_day_all_nWet_m')
-controlFileList[["penaltyWeights"]] <- c(4,4,4,2,2)
+controlFileList[["penaltyWeights"]] = c(3,3,3,1.5,1.5)
 
 # write to JSON file
 controlFileListJSON <- jsonlite::toJSON(controlFileList, pretty = TRUE, auto_unbox = TRUE)
 controlFile <- paste0(tempdir(), "\\eg_controlFile.json")
 write(controlFileListJSON, file = controlFile)
 
-# consider only a single target in exposure space
-expSpaceTmp <- expSpace
-expSpaceTmp$targetMat <- expSpace$targetMat[1,]
-
 ###############
 # generate scenarios
 
-time.1 <- Sys.time()
-sim.stoch.single <- generateScenarios(reference = clim_ref,
-                       expSpace = expSpaceTmp,
-                       controlFile = controlFile,
-                       seedID = 1,
-                       numReplicates = 1,
-                       cores = 1)
-time.2 <- Sys.time()
-print(time.2-time.1)
-file.remove(controlFile)
-```
+sim.stoch <- generateScenarios(reference = clim_ref,        # reference climate data
+                               expSpace = expSpace,         # exposure space (defined in Section 3.4)
+                               controlFile = controlFile,   # control file constructed above
+                               seedID = 1,                  # random seed
+                               numReplicates = 50,          # stochastic replicates
+                               cores = 25)                  # cores for parallel processing
 
-Simulated climates for the full exposure space, and with 50 replicates, have been pre-computed and can be loaded as follows:
-
-```{r egScottCreek}
-data("egScottCreekSimStoch") # this loads object sim.stoch
+# extract summary data
+sim.stoch.summary = getSimSummary(sim.stoch)
 ```
 
 # 5. Evaluation of perturbed climates
@@ -759,7 +750,6 @@ If the standard deviation of the absolute biases across the replicates are high,
 The use of `plotScenarios()` is demonstrated for the simulated climates generated in Section 4.3.6. (for the full exposure space, and with 50 replicates) as follows:
 
 ```{r plotScenariosMultiRepsLarge, eval = FALSE}
-data("egScottCreekSimStoch") # this loads object sim.stoch
 plotScenarios(sim.stoch)
 ```
 
@@ -809,13 +799,6 @@ In particular, we examine perturbations to the attribute `"P_day_all_seasRatioJu
 
 ```{r , fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 22, out.width = "90%", fig.cap = "Evaluation of changes in climate attributes for perturbations in P_day_all_seasRatioMarMay", eval=FALSE}
 
-# load dates, precip, PET and streamflow data for Scott Creek
-data('data_A5030502')
-clim_ref <- list(times = data_A5030502$times,P = data_A5030502$P)  
-
-# load sim data from Scott Creek example above (more targets, more reps)
-data("egScottCreekSimStoch")
-
 # select target attributes (perturbed/held/tied)
 attSel <- colnames(sim.stoch$expSpace$targetMat)
 # other attributes
@@ -825,14 +808,13 @@ attSel <- c(attSel,'P_year_all_avgDwellTime','P_day_all_avgWSD',
 
 # plot changes in attributes for perturbations in seasonality ratio
 att <- "P_day_all_seasRatioMarMay"
-old_par <- par(no.readonly = TRUE)  # Save current settings
 par(mfrow=c(10,3),mar=c(4,7,2,1))
 # plot changes in a single attribute with respect to perturbed attrbiutes
-plotPerformanceAttributesOAT(clim=clim_ref,
-                             sim=sim.stoch,
-                             attPerturb=att,
-                             attEval=attSel,
-                             cex.main = 1.5,cex.xaxis = 1,cex.yaxis = 1)    
+plotPerformanceAttributesOAT(clim=clim_ref,        # reference climate
+                             sim=sim.stoch,        # simulated perturebed climates (see Section 4.3.6)
+                             attPerturb=att,       # perturbed attribute
+                             attEval=attSel,       # seelected attributes for evaluation
+                             cex.main = 1.5,cex.xaxis = 1,cex.yaxis = 1)    # formatting options
 ```
 
 ```{r plotPerformanceAtts1_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 22, out.width = "90%", fig.cap = "Evaluation of changes in climate attributes for perturbations in P_day_all_seasRatioMarMay", eval=TRUE}
@@ -868,14 +850,11 @@ Next we evaluate the response to perturbations in `"P_day_all_P99":`
 att <- "P_day_all_P99"
 par(mfrow=c(10,3),mar=c(4,7,2,1))
 # plot changes in a single attribute with respect to perturbed attrbiutes
-plotPerformanceAttributesOAT(clim=clim_ref,
-                             sim=sim.stoch,
-                             attPerturb=att,
-                             attEval=attSel,
-                             cex.main = 1.5,cex.xaxis = 1,cex.yaxis = 1)   
-
-# restore original par settings
-par(old_par)
+plotPerformanceAttributesOAT(clim=clim_ref,        # reference climate
+                             sim=sim.stoch,        # simulated perturebed climates (see Section 4.3.6)
+                             attPerturb=att,       # perturbed attribute
+                             attEval=attSel,       # seelected attributes for evaluation
+                             cex.main = 1.5,cex.xaxis = 1,cex.yaxis = 1)    # formatting options   
 ```
 
 ```{r plotPerformanceAtts2_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 22, out.width = "90%", fig.cap = "Evaluation of changes in climate attributes for perturbations in P_day_all_P99", eval=TRUE}
@@ -910,11 +889,7 @@ The function `evaluate_system_metrics()` in *fore*SIGHT supports this evaluation
 
 First, we setup the system model for this application:
 
-```{r GR4JsystemPerf, eval=TRUE}
-
-# load dates, precip, PET and streamflow data for Scott Creek
-data('data_A5030502')
-clim_ref <- list(times = data_A5030502$times,P = data_A5030502$P)  
+```{r GR4JsystemPerf, eval=FALSE}
 
 # put dates in format required for airGR
 dates <- as.Date(clim_ref$times)
@@ -934,7 +909,7 @@ metrics <- c('meanQ','P99','P25','min3yr')
 
 Next, `evaluate_system_metrics()` is used to calculate streamflow metrics for the observed and baseline stochastic climates, with boxplots used to compare these values.
 
-```{r, virtualObs, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "80%", fig.cap = "Evaluation of stochastic climates in terms of capturing hydrological response to observed climates", eval=TRUE}
+```{r, virtualObs, eval=FALSE}
 eval <- evaluate_system_metrics(sim=sim.stoch,clim=clim_ref,
                                systemModel=GR4J_wrapper,systemArgs=systemArgs,
                                metrics=metrics)
@@ -950,6 +925,10 @@ for (m in 1:length(metrics)){
 }
 ```
 
+```{r, virtualObs_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "80%", fig.cap = "Evaluation of stochastic climates in terms of capturing hydrological response to observed climates", eval=TRUE}
+knitr::include_graphics("plotPerformanceAtts2.png")
+```
+
 This figure shows that, for each system metric, the values obtained using the observed climate (red points) fall within the range produced by the baseline stochastic climate simulations (boxplots). This indicates that the SWG is successfully capturing the climate features relevant to the system model—at least under historical (unperturbed) conditions.
 
 # 6. Calculate and evaluate performance (Steps C and D)
@@ -958,7 +937,7 @@ Once we are satisfied with the performance of the generated stochastic climates,
 
 Using the rainfall–runoff case study for the Scott Creek catchment in South Australia (see Appendix for details), system performance metrics for the perturbed climates can be calculated as follows:
 
-```{r sysPerf}
+```{r sysPerf, eval=FALSE}
 # calculate system performance metrics for simulated climates
 sysOutSim <- runSystemModel(sim=sim.stoch,systemModel = GR4J_wrapper,systemArgs = systemArgs,metrics = metrics)
 ```
@@ -975,27 +954,39 @@ For each attribute perturbation, performance can be visualized using probability
 
 First, the response to perturbations in the seasonality ratio is explored
 
-```{r, GR4J_OATplotsSeasRatio, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "40%", eval=TRUE}
+```{r, GR4J_OATplotsSeasRatio, eval=FALSE}
 # performance for changes in P_day_all_seasRatioMarMay (1st attribute)
 plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'meanQ',attSel=attPerturb[1],topReps=40,col='orange')
 plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'P99',attSel=attPerturb[1],topReps=40,col='orange')
 plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'P25',attSel=attPerturb[1],topReps=40,col='orange')
 ```
 
+```{r, GR4J_OATplotsSeasRatio_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 8, fig.height = 8, out.width = "80%", fig.cap = "Performance for OAT changes in seasonality ratio", eval=TRUE}
+knitr::include_graphics("GR4J_OATplotsSeasRatio_meanQ.png")
+knitr::include_graphics("GR4J_OATplotsSeasRatio_P99.png")
+knitr::include_graphics("GR4J_OATplotsSeasRatio_P25.png")
+```
+
 Next, the response to perturbations in extreme rainfall is shown:
 
-```{r, GR4J_OATplotsP99, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "40%", eval=TRUE}
+```{r, GR4J_OATplotsP99, eval=FALSE}
 # performance for changes in P_day_all_P99 (2nd attribute)
 plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'meanQ',attSel=attPerturb[2],topReps=40,col='orange')
 plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'P99',attSel=attPerturb[2],topReps=40,col='orange')
 plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'P25',attSel=attPerturb[2],topReps=40,col='orange')
 ```
 
+```{r, GR4J_OATplotsP99_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 8, fig.height = 8, out.width = "80%", fig.cap = "Performance for OAT changes in extreme rainfall", eval=TRUE}
+knitr::include_graphics("GR4J_OATplotsP99_meanQ.png") 
+knitr::include_graphics("GR4J_OATplotsP99_P99.png") 
+knitr::include_graphics("GR4J_OATplotsP99_P25.png")
+```
+
 ## 6.2. Plot 2D performance spaces:
 
 To explore joint responses to multiple attribute changes, we can generate 2D performance spaces. These plots show the mean system response across the top 40 replicates.
 
-```{r, GR4J_perfSpace, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "47%", fig.cap = "Plots of 2D performance spaces", eval=TRUE}
+```{r, GR4J_perfSpace, eval=FALSE}
 
 attX <- "P_day_all_seasRatioMarMay"
 attY <- "P_day_all_P99"
@@ -1004,6 +995,12 @@ attY <- "P_day_all_P99"
 plotPerformanceSpace(performance = sysOutSim, sim=sim.stoch, metric = 'meanQ',type='filled.contour',nContour=5,topReps = 40,attX = attX,attY = attY)
 plotPerformanceSpace(performance = sysOutSim, sim=sim.stoch, metric = 'P99',type='filled.contour',nContour=5,topReps = 40,attX = attX,attY = attY)
 plotPerformanceSpace(performance = sysOutSim, sim=sim.stoch, metric = 'P25',type='filled.contour',nContour=5,topReps = 40,attX = attX,attY = attY)
+```
+
+```{r, GR4J_perfSpace_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "47%", fig.cap = "Plots of 2D performance spaces", eval=TRUE}
+knitr::include_graphics("GR4J_perfSpace_meanQ.png")
+knitr::include_graphics("GR4J_perfSpace_P99.png")
+knitr::include_graphics("GR4J_perfSpace_P25.png")
 ```
 
 # 7. Conclusion
