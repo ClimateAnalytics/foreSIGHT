@@ -757,7 +757,7 @@ plotScenarios(sim.stoch)
 knitr::include_graphics("plotScenariosMultiRepsLarge_mean.png")
 ```
 
-```{r plotScenariosMultiRepsLarge_SD_fig, echo=FALSE, fig.cap="SD of biases in simulated attributes", out.width = '100%'}
+```{r plotScenariosMultiRepsLarge_SD_fig, echo=FALSE, fig.cap="SD of biases in simulated attributes", out.width = '100%', echo=FALSE}
 knitr::include_graphics("plotScenariosMultiRepsLarge_SD.png")
 ```
 
@@ -797,7 +797,7 @@ In particular, we examine perturbations to the attribute `"P_day_all_seasRatioJu
 
 -   Indicators of extreme events, including the 99.9th percentiles for all and seasonal data, i.e. `'P_day_all_P99.9','P_day_JJA_P99.9'`, `'P_day_SON_P99.9'`, `'P_day_DJF_P99.9'`, `'P_day_MAM_P99.9'`
 
-```{r , fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 22, out.width = "90%", fig.cap = "Evaluation of changes in climate attributes for perturbations in P_day_all_seasRatioMarMay", eval=FALSE}
+```{r plotPerformanceAtts1, eval=FALSE}
 
 # select target attributes (perturbed/held/tied)
 attSel <- colnames(sim.stoch$expSpace$targetMat)
@@ -817,7 +817,7 @@ plotPerformanceAttributesOAT(clim=clim_ref,        # reference climate
                              cex.main = 1.5,cex.xaxis = 1,cex.yaxis = 1)    # formatting options
 ```
 
-```{r plotPerformanceAtts1_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 22, out.width = "90%", fig.cap = "Evaluation of changes in climate attributes for perturbations in P_day_all_seasRatioMarMay", eval=TRUE}
+```{r plotPerformanceAtts1_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 22, out.width = "90%", fig.cap = "Evaluation of changes in climate attributes for perturbations in P_day_all_seasRatioMarMay", eval=TRUE, echo=FALSE}
 knitr::include_graphics("plotPerformanceAtts1.png")
 ```
 
@@ -845,7 +845,7 @@ These results can be interpreted as follows:
 
 Next we evaluate the response to perturbations in `"P_day_all_P99":`
 
-```{r plotPerformanceAtts2, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 22, out.width = "90%", fig.cap = "Evaluation of changes in climate attributes for perturbations in P_day_all_P99", eval=FALSE}
+```{r plotPerformanceAtts2, eval=FALSE}
 # plot changes in attrtibutes for perturbations in P99
 att <- "P_day_all_P99"
 par(mfrow=c(10,3),mar=c(4,7,2,1))
@@ -857,7 +857,7 @@ plotPerformanceAttributesOAT(clim=clim_ref,        # reference climate
                              cex.main = 1.5,cex.xaxis = 1,cex.yaxis = 1)    # formatting options   
 ```
 
-```{r plotPerformanceAtts2_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 22, out.width = "90%", fig.cap = "Evaluation of changes in climate attributes for perturbations in P_day_all_P99", eval=TRUE}
+```{r plotPerformanceAtts2_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 22, out.width = "90%", fig.cap = "Evaluation of changes in climate attributes for perturbations in P_day_all_P99", eval=TRUE, echo=FALSE}
 knitr::include_graphics("plotPerformanceAtts2.png")
 ```
 
@@ -925,8 +925,8 @@ for (m in 1:length(metrics)){
 }
 ```
 
-```{r, virtualObs_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "80%", fig.cap = "Evaluation of stochastic climates in terms of capturing hydrological response to observed climates", eval=TRUE}
-knitr::include_graphics("plotPerformanceAtts2.png")
+```{r, virtualObs_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "80%", fig.cap = "Evaluation of stochastic climates in terms of capturing hydrological response to observed climates", eval=TRUE, echo=FALSE}
+knitr::include_graphics("virtualObs.png")
 ```
 
 This figure shows that, for each system metric, the values obtained using the observed climate (red points) fall within the range produced by the baseline stochastic climate simulations (boxplots). This indicates that the SWG is successfully capturing the climate features relevant to the system model—at least under historical (unperturbed) conditions.
@@ -961,7 +961,7 @@ plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'P99',attSel
 plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'P25',attSel=attPerturb[1],topReps=40,col='orange')
 ```
 
-```{r, GR4J_OATplotsSeasRatio_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 8, fig.height = 8, out.width = "80%", fig.cap = "Performance for OAT changes in seasonality ratio", eval=TRUE}
+```{r, GR4J_OATplotsSeasRatio_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 8, fig.height = 8, out.width = "60%", fig.cap = "Performance for OAT changes in seasonality ratio", eval=TRUE, echo=FALSE}
 knitr::include_graphics("GR4J_OATplotsSeasRatio_meanQ.png")
 knitr::include_graphics("GR4J_OATplotsSeasRatio_P99.png")
 knitr::include_graphics("GR4J_OATplotsSeasRatio_P25.png")
@@ -976,7 +976,7 @@ plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'P99',attSel
 plotPerformanceOAT(performance = sysOutSim, sim=sim.stoch, metric = 'P25',attSel=attPerturb[2],topReps=40,col='orange')
 ```
 
-```{r, GR4J_OATplotsP99_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 8, fig.height = 8, out.width = "80%", fig.cap = "Performance for OAT changes in extreme rainfall", eval=TRUE}
+```{r, GR4J_OATplotsP99_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 8, fig.height = 8, out.width = "60%", fig.cap = "Performance for OAT changes in extreme rainfall", eval=TRUE, echo=FALSE}
 knitr::include_graphics("GR4J_OATplotsP99_meanQ.png") 
 knitr::include_graphics("GR4J_OATplotsP99_P99.png") 
 knitr::include_graphics("GR4J_OATplotsP99_P25.png")
@@ -997,7 +997,7 @@ plotPerformanceSpace(performance = sysOutSim, sim=sim.stoch, metric = 'P99',type
 plotPerformanceSpace(performance = sysOutSim, sim=sim.stoch, metric = 'P25',type='filled.contour',nContour=5,topReps = 40,attX = attX,attY = attY)
 ```
 
-```{r, GR4J_perfSpace_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "47%", fig.cap = "Plots of 2D performance spaces", eval=TRUE}
+```{r, GR4J_perfSpace_fig, fig.align = 'center', dpi = 100, fig.show = "hold", fig.width = 10, fig.height = 10, out.width = "47%", fig.cap = "Plots of 2D performance spaces", eval=TRUE, echo=FALSE}
 knitr::include_graphics("GR4J_perfSpace_meanQ.png")
 knitr::include_graphics("GR4J_perfSpace_P99.png")
 knitr::include_graphics("GR4J_perfSpace_P25.png")
